@@ -106,10 +106,10 @@ export default function Configuracoes() {
     setUploadingLogo(true);
 
     try {
-      const filePath = `${establishment.id}/logo.jpg`;
+      const filePath = `logos/${establishment.id}/logo.jpg`;
 
       const { error: uploadError } = await supabase.storage
-        .from('establishment-logos')
+        .from('uploads')
         .upload(filePath, croppedBlob, { 
           upsert: true,
           contentType: 'image/jpeg'
@@ -118,7 +118,7 @@ export default function Configuracoes() {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('establishment-logos')
+        .from('uploads')
         .getPublicUrl(filePath);
 
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
@@ -152,12 +152,12 @@ export default function Configuracoes() {
 
     try {
       // Extract file path from URL
-      const urlParts = logoUrl.split('/establishment-logos/');
+      const urlParts = logoUrl.split('/uploads/');
       if (urlParts.length > 1) {
-        const filePath = urlParts[1];
+        const rawPath = urlParts[1].split('?')[0];
         await supabase.storage
-          .from('establishment-logos')
-          .remove([filePath]);
+          .from('uploads')
+          .remove([rawPath]);
       }
 
       // Update establishment to remove logo URL

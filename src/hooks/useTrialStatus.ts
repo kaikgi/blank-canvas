@@ -18,7 +18,7 @@ export function useTrialStatus() {
     return { isBlocked: false, isLoading: false, daysLeft: 0, reason: '' };
   }
 
-  // If establishment status is 'active', it's paid
+  // If establishment status is 'active', it's paid — never blocked
   if (est.status === 'active') {
     return { isBlocked: false, isLoading: false, daysLeft: 0, reason: '' };
   }
@@ -28,11 +28,11 @@ export function useTrialStatus() {
     return { isBlocked: true, isLoading: false, daysLeft: 0, reason: est.status };
   }
 
-  // Check trial expiration (status === 'trial')
+  // Check trial expiration ONLY when status === 'trial'
   if (est.status === 'trial') {
     const trialEndsAt = est.trial_ends_at;
     if (!trialEndsAt) {
-      // No trial_ends_at set, assume 7 days left
+      // No trial_ends_at set — assume 7 days left, NOT blocked
       return { isBlocked: false, isLoading: false, daysLeft: 7, reason: '' };
     }
 
@@ -40,6 +40,7 @@ export function useTrialStatus() {
     const trialEnd = new Date(trialEndsAt);
     const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
+    // Block ONLY if current date > trial_ends_at
     if (now > trialEnd) {
       return { isBlocked: true, isLoading: false, daysLeft: 0, reason: 'trial_expired' };
     }
@@ -47,5 +48,6 @@ export function useTrialStatus() {
     return { isBlocked: false, isLoading: false, daysLeft: Math.max(0, daysLeft), reason: '' };
   }
 
+  // Any other status: not blocked
   return { isBlocked: false, isLoading: false, daysLeft: 0, reason: '' };
 }

@@ -1,7 +1,12 @@
-import { useState } from 'react';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isToday, isSameDay, parseISO, getDay } from 'date-fns';
+import { useState, useMemo } from 'react';
+import {
+  format,
+  startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks,
+  startOfMonth, endOfMonth, addMonths, subMonths,
+  isToday, isSameDay, isSameMonth, parseISO, getDay,
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Clock, User, Ban, Filter, CalendarDays, List, Scissors, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, User, Ban, Filter, CalendarDays, List, Scissors, RefreshCw, CalendarRange } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +22,7 @@ import { useManageProfessionals } from '@/hooks/useManageProfessionals';
 import { useTimeBlocks, useRecurringTimeBlocks } from '@/hooks/useTimeBlocks';
 import { AppointmentDetailsDialog } from '@/components/dashboard/AppointmentDetailsDialog';
 import { cn } from '@/lib/utils';
+
 type AppointmentStatus = 'booked' | 'confirmed' | 'completed' | 'no_show' | 'canceled';
 
 interface Appointment {
@@ -37,7 +43,7 @@ const statusColors: Record<string, string> = {
   confirmed: 'bg-green-100 text-green-800 border-green-200',
   arrived: 'bg-purple-100 text-purple-800 border-purple-200',
   in_service: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  completed: 'bg-gray-100 text-gray-800 border-gray-200',
+  completed: 'bg-muted text-muted-foreground border-border',
   no_show: 'bg-red-100 text-red-800 border-red-200',
   canceled: 'bg-red-100 text-red-800 border-red-200',
   canceled_by_customer: 'bg-red-100 text-red-800 border-red-200',
@@ -56,10 +62,10 @@ const statusLabels: Record<string, string> = {
   canceled_by_establishment: 'Cancelado',
 };
 
-type ViewMode = 'week' | 'list';
+type ViewMode = 'week' | 'month' | 'list';
 
 export default function Agenda() {
-  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlocks, setShowBlocks] = useState(true);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('all');
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -68,15 +74,22 @@ export default function Agenda() {
   
   const { data: establishment, isLoading: estLoading, error: estError, refetch: refetchEst } = useUserEstablishment();
   const { professionals } = useManageProfessionals(establishment?.id);
-  
 
-  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
-  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  // Compute date range based on view mode
+  const { rangeStart, rangeEnd } = useMemo(() => {
+    if (viewMode === 'month') {
+      const ms = startOfMonth(currentDate);
+      const me = endOfMonth(currentDate);
+      return { rangeStart: startOfWeek(ms, { weekStartsOn: 0 }), rangeEnd: endOfWeek(me, { weekStartsOn: 0 }) };
+    }
+    return { rangeStart: startOfWeek(currentDate, { weekStartsOn: 0 }), rangeEnd: endOfWeek(currentDate, { weekStartsOn: 0 }) };
+  }, [currentDate, viewMode]);
+
+  const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
 
   const { data: appointments, isLoading, error, refetch } = useAppointments(establishment?.id, {
-    startDate: weekStart,
-    endDate: weekEnd,
+    startDate: rangeStart,
+    endDate: rangeEnd,
   });
 
   const { blocks: timeBlocks } = useTimeBlocks(establishment?.id);
@@ -85,6 +98,15 @@ export default function Agenda() {
   const handleRetry = () => {
     if (estError) refetchEst();
     else refetch();
+  };
+
+  const navigatePrev = () => {
+    if (viewMode === 'month') setCurrentDate(subMonths(currentDate, 1));
+    else setCurrentDate(subWeeks(currentDate, 1));
+  };
+  const navigateNext = () => {
+    if (viewMode === 'month') setCurrentDate(addMonths(currentDate, 1));
+    else setCurrentDate(addWeeks(currentDate, 1));
   };
 
   const getFilteredAppointments = () => {
@@ -97,38 +119,21 @@ export default function Agenda() {
 
   const getAppointmentsForDay = (date: Date) => {
     let filtered = appointments?.filter((apt) => isSameDay(parseISO(apt.start_at), date)) || [];
-    
     if (selectedProfessional !== 'all') {
       filtered = filtered.filter((apt) => apt.professional?.id === selectedProfessional);
     }
-    
-    return filtered;
+    return filtered.sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
   };
 
   const getBlocksForDay = (date: Date) => {
-    if (!showBlocks) {
-      return { punctualBlocks: [], recurringBlocks: [] };
-    }
-
+    if (!showBlocks) return { punctualBlocks: [], recurringBlocks: [] };
     const dayOfWeek = getDay(date);
-    
-    let punctualBlocks = timeBlocks.filter((block) => 
-      isSameDay(parseISO(block.start_at), date)
-    );
-    
-    let recurring = recurringBlocks.filter((block) => 
-      block.weekday === dayOfWeek && block.active
-    );
-
+    let punctualBlocks = timeBlocks.filter((block) => isSameDay(parseISO(block.start_at), date));
+    let recurring = recurringBlocks.filter((block) => block.weekday === dayOfWeek && block.active);
     if (selectedProfessional !== 'all') {
-      punctualBlocks = punctualBlocks.filter((block) => 
-        block.professional_id === selectedProfessional || block.professional_id === null
-      );
-      recurring = recurring.filter((block) => 
-        block.professional_id === selectedProfessional || block.professional_id === null
-      );
+      punctualBlocks = punctualBlocks.filter((b) => b.professional_id === selectedProfessional || b.professional_id === null);
+      recurring = recurring.filter((b) => b.professional_id === selectedProfessional || b.professional_id === null);
     }
-
     return { punctualBlocks, recurringBlocks: recurring };
   };
 
@@ -137,7 +142,8 @@ export default function Agenda() {
     setDetailsOpen(true);
   };
 
-  // Error state
+  const isCompletedApt = (status: string) => status === 'completed';
+
   if (estError || error) {
     return (
       <div className="text-center py-12">
@@ -150,62 +156,50 @@ export default function Agenda() {
     );
   }
 
-  // Loading state for establishment
   if (estLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <div className="grid gap-4 md:grid-cols-7">
-          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <Skeleton key={i} className="h-64" />
-          ))}
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-64" />)}
         </div>
       </div>
     );
   }
+
+  const periodLabel = viewMode === 'month'
+    ? format(currentDate, "MMMM yyyy", { locale: ptBR })
+    : `${format(rangeStart, "d 'de' MMMM", { locale: ptBR })} - ${format(rangeEnd, "d 'de' MMMM, yyyy", { locale: ptBR })}`;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Agenda</h1>
-          <p className="text-sm text-muted-foreground">
-            Visualize e gerencie seus agendamentos
-          </p>
+          <p className="text-sm text-muted-foreground">Visualize e gerencie seus agendamentos</p>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)}>
-            <ToggleGroupItem value="week" aria-label="Visualização semanal" className="touch-target">
+            <ToggleGroupItem value="week" aria-label="Semanal" className="touch-target">
               <CalendarDays className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label="Visualização em lista" className="touch-target">
+            <ToggleGroupItem value="month" aria-label="Mensal" className="touch-target">
+              <CalendarRange className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="Lista" className="touch-target">
               <List className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="touch-target"
-              onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
-            >
+            <Button variant="outline" size="icon" className="touch-target" onClick={navigatePrev}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentWeek(new Date())}
-            >
+            <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
               Hoje
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="touch-target"
-              onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
-            >
+            <Button variant="outline" size="icon" className="touch-target" onClick={navigateNext}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -220,7 +214,6 @@ export default function Agenda() {
               <Filter className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Filtros:</span>
             </div>
-            
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Label htmlFor="professional-filter" className="text-sm shrink-0">Profissional:</Label>
               <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
@@ -235,14 +228,9 @@ export default function Agenda() {
                 </SelectContent>
               </Select>
             </div>
-
-            {viewMode === 'week' && (
+            {viewMode !== 'list' && (
               <div className="flex items-center gap-2">
-                <Switch
-                  id="show-blocks"
-                  checked={showBlocks}
-                  onCheckedChange={setShowBlocks}
-                />
+                <Switch id="show-blocks" checked={showBlocks} onCheckedChange={setShowBlocks} />
                 <Label htmlFor="show-blocks" className="text-sm">Mostrar bloqueios</Label>
               </div>
             )}
@@ -250,41 +238,82 @@ export default function Agenda() {
         </CardContent>
       </Card>
 
-      <div className="text-center text-lg font-medium">
-        {format(weekStart, "d 'de' MMMM", { locale: ptBR })} - {format(weekEnd, "d 'de' MMMM, yyyy", { locale: ptBR })}
-      </div>
+      <div className="text-center text-lg font-medium capitalize">{periodLabel}</div>
 
       {isLoading ? (
-        viewMode === 'week' ? (
-          <div className="grid gap-4 md:grid-cols-7">
-            {days.map((day) => (
-              <Skeleton key={day.toISOString()} className="h-64" />
+        <div className="grid gap-4 md:grid-cols-7">
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-64" />)}
+        </div>
+      ) : viewMode === 'month' ? (
+        /* ─── Month View ─── */
+        <div className="border rounded-lg overflow-hidden">
+          <div className="grid grid-cols-7 bg-muted">
+            {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
+              <div key={d} className="p-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
             ))}
           </div>
-        ) : (
-          <Skeleton className="h-96" />
-        )
+          <div className="grid grid-cols-7">
+            {days.map((day) => {
+              const key = format(day, 'yyyy-MM-dd');
+              const dayApts = getAppointmentsForDay(day);
+              const inMonth = isSameMonth(day, currentDate);
+
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    'min-h-[80px] sm:min-h-[100px] border-t border-r p-1 relative',
+                    !inMonth && 'bg-muted/30',
+                    isToday(day) && 'bg-primary/5'
+                  )}
+                >
+                  <span className={cn(
+                    'text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full',
+                    !inMonth && 'text-muted-foreground/50',
+                    isToday(day) && 'bg-primary text-primary-foreground'
+                  )}>
+                    {format(day, 'd')}
+                  </span>
+                  <div className="space-y-0.5 mt-0.5">
+                    {dayApts.slice(0, 3).map((apt) => (
+                      <button
+                        key={apt.id}
+                        onClick={() => handleAppointmentClick(apt)}
+                        className={cn(
+                          'w-full text-left text-[10px] sm:text-xs px-1 py-0.5 rounded border truncate cursor-pointer hover:opacity-80 transition-opacity',
+                          statusColors[apt.status],
+                          isCompletedApt(apt.status) && 'opacity-60 line-through'
+                        )}
+                      >
+                        <span className="hidden sm:inline">
+                          {format(parseISO(apt.start_at), 'HH:mm')} {apt.customer?.name}
+                        </span>
+                        <span className="sm:hidden">
+                          {format(parseISO(apt.start_at), 'HH:mm')}
+                        </span>
+                      </button>
+                    ))}
+                    {dayApts.length > 3 && (
+                      <p className="text-[10px] text-muted-foreground text-center">+{dayApts.length - 3}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       ) : viewMode === 'week' ? (
-        /* Week View */
+        /* ─── Week View ─── */
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
           {days.map((day) => {
             const dayAppointments = getAppointmentsForDay(day);
             const { punctualBlocks, recurringBlocks: dayRecurring } = getBlocksForDay(day);
             const hasBlocks = punctualBlocks.length > 0 || dayRecurring.length > 0;
-            
+
             return (
-              <Card
-                key={day.toISOString()}
-                className={cn(
-                  "min-h-[200px]",
-                  isToday(day) && "ring-2 ring-primary"
-                )}
-              >
+              <Card key={day.toISOString()} className={cn("min-h-[200px]", isToday(day) && "ring-2 ring-primary")}>
                 <CardHeader className="pb-2">
-                  <CardTitle className={cn(
-                    "text-center text-sm",
-                    isToday(day) && "text-primary"
-                  )}>
+                  <CardTitle className={cn("text-center text-sm", isToday(day) && "text-primary")}>
                     <span className="block text-xs text-muted-foreground uppercase">
                       {format(day, 'EEE', { locale: ptBR })}
                     </span>
@@ -298,49 +327,29 @@ export default function Agenda() {
                 </CardHeader>
                 <CardContent className="space-y-2 px-2">
                   {dayRecurring.map((block) => (
-                    <div
-                      key={`rec-${block.id}`}
-                      className="p-2 rounded-md border text-xs bg-amber-50 text-amber-800 border-amber-200"
-                    >
+                    <div key={`rec-${block.id}`} className="p-2 rounded-md border text-xs bg-amber-50 text-amber-800 border-amber-200">
                       <div className="flex items-center gap-1 font-medium">
                         <Ban className="h-3 w-3" />
                         {block.start_time} - {block.end_time}
                       </div>
-                      <div className="truncate mt-1">
-                        {block.reason || 'Bloqueio recorrente'}
-                      </div>
-                      {block.professionals?.name && (
-                        <div className="text-amber-600 truncate text-[10px]">
-                          {block.professionals.name}
-                        </div>
-                      )}
+                      <div className="truncate mt-1">{block.reason || 'Bloqueio recorrente'}</div>
+                      {block.professionals?.name && <div className="text-amber-600 truncate text-[10px]">{block.professionals.name}</div>}
                     </div>
                   ))}
-                  
+
                   {punctualBlocks.map((block) => (
-                    <div
-                      key={`pnt-${block.id}`}
-                      className="p-2 rounded-md border text-xs bg-orange-50 text-orange-800 border-orange-200"
-                    >
+                    <div key={`pnt-${block.id}`} className="p-2 rounded-md border text-xs bg-orange-50 text-orange-800 border-orange-200">
                       <div className="flex items-center gap-1 font-medium">
                         <Ban className="h-3 w-3" />
                         {format(parseISO(block.start_at), 'HH:mm')} - {format(parseISO(block.end_at), 'HH:mm')}
                       </div>
-                      <div className="truncate mt-1">
-                        {block.reason || 'Bloqueio'}
-                      </div>
-                      {block.professionals?.name && (
-                        <div className="text-orange-600 truncate text-[10px]">
-                          {block.professionals.name}
-                        </div>
-                      )}
+                      <div className="truncate mt-1">{block.reason || 'Bloqueio'}</div>
+                      {block.professionals?.name && <div className="text-orange-600 truncate text-[10px]">{block.professionals.name}</div>}
                     </div>
                   ))}
 
                   {dayAppointments.length === 0 && !hasBlocks ? (
-                    <p className="text-xs text-muted-foreground text-center py-2">
-                      Sem agendamentos
-                    </p>
+                    <p className="text-xs text-muted-foreground text-center py-2">Sem agendamentos</p>
                   ) : (
                     dayAppointments.slice(0, 5).map((apt) => (
                       <div
@@ -348,16 +357,15 @@ export default function Agenda() {
                         onClick={() => handleAppointmentClick(apt)}
                         className={cn(
                           "p-2 rounded-md border text-xs cursor-pointer hover:opacity-80 transition-opacity",
-                          statusColors[apt.status]
+                          statusColors[apt.status],
+                          isCompletedApt(apt.status) && "opacity-60 line-through"
                         )}
                       >
                         <div className="flex items-center gap-1 font-medium">
                           <Clock className="h-3 w-3" />
                           {format(parseISO(apt.start_at), 'HH:mm')}
                         </div>
-                        <div className="truncate mt-1">
-                          {apt.service?.name}
-                        </div>
+                        <div className="truncate mt-1">{apt.service?.name}</div>
                         <div className="flex items-center gap-1 text-muted-foreground truncate">
                           <User className="h-3 w-3" />
                           {apt.customer?.name}
@@ -366,9 +374,7 @@ export default function Agenda() {
                     ))
                   )}
                   {dayAppointments.length > 5 && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      +{dayAppointments.length - 5} mais
-                    </p>
+                    <p className="text-xs text-muted-foreground text-center">+{dayAppointments.length - 5} mais</p>
                   )}
                 </CardContent>
               </Card>
@@ -376,101 +382,94 @@ export default function Agenda() {
           })}
         </div>
       ) : (
-        /* List View */
+        /* ─── List View ─── */
         <Card>
           <CardContent className="p-0">
             <div className="table-responsive">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead>Profissional</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {getFilteredAppointments().length === 0 ? (
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      Nenhum agendamento neste período
-                    </TableCell>
+                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead>Profissional</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ) : (
-                  getFilteredAppointments().map((apt) => (
-                    <TableRow 
-                      key={apt.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleAppointmentClick(apt)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">
-                              {format(parseISO(apt.start_at), "dd/MM", { locale: ptBR })}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {format(parseISO(apt.start_at), 'HH:mm')} - {format(parseISO(apt.end_at), 'HH:mm')}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span>{apt.customer?.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Scissors className="h-4 w-4 text-muted-foreground" />
-                          <span>{apt.service?.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{apt.professional?.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={cn("text-xs", statusColors[apt.status])}>
-                          {statusLabels[apt.status]}
-                        </Badge>
+                </TableHeader>
+                <TableBody>
+                  {getFilteredAppointments().length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Nenhum agendamento neste período
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    getFilteredAppointments().map((apt) => (
+                      <TableRow
+                        key={apt.id}
+                        className={cn(
+                          "cursor-pointer hover:bg-muted/50",
+                          isCompletedApt(apt.status) && "opacity-60"
+                        )}
+                        onClick={() => handleAppointmentClick(apt)}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className={cn("font-medium", isCompletedApt(apt.status) && "line-through")}>
+                                {format(parseISO(apt.start_at), "dd/MM", { locale: ptBR })}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {format(parseISO(apt.start_at), 'HH:mm')} - {format(parseISO(apt.end_at), 'HH:mm')}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className={cn(isCompletedApt(apt.status) && "line-through")}>{apt.customer?.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Scissors className="h-4 w-4 text-muted-foreground" />
+                            <span>{apt.service?.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{apt.professional?.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={cn("text-xs", statusColors[apt.status])}>
+                            {statusLabels[apt.status]}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Legend - only show in week view */}
-      {viewMode === 'week' && (
+      {/* Legend */}
+      {viewMode !== 'list' && (
         <Card>
           <CardContent className="pt-4">
             <div className="flex flex-wrap gap-2">
               {Object.entries(statusLabels).map(([key, label]) => (
-                <Badge
-                  key={key}
-                  variant="outline"
-                  className={cn("text-xs", statusColors[key])}
-                >
+                <Badge key={key} variant="outline" className={cn("text-xs", statusColors[key])}>
                   {label}
                 </Badge>
               ))}
               {showBlocks && (
                 <>
-                  <Badge
-                    variant="outline"
-                    className="text-xs bg-amber-50 text-amber-800 border-amber-200"
-                  >
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-800 border-amber-200">
                     Bloqueio Recorrente
                   </Badge>
-                  <Badge
-                    variant="outline"
-                    className="text-xs bg-orange-50 text-orange-800 border-orange-200"
-                  >
+                  <Badge variant="outline" className="text-xs bg-orange-50 text-orange-800 border-orange-200">
                     Bloqueio Pontual
                   </Badge>
                 </>
@@ -480,7 +479,6 @@ export default function Agenda() {
         </Card>
       )}
 
-      {/* Appointment Details Dialog */}
       <AppointmentDetailsDialog
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
