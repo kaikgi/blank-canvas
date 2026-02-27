@@ -6,14 +6,10 @@ import { useAuth } from './useAuth';
 export interface PlanLimitsData {
   planCode: string;
   isTrial: boolean;
-  maxProfessionals: number;
-  maxAppointmentsMonth: number | null;
+  maxProfessionals: number | null; // null = unlimited
   currentProfessionals: number;
-  currentAppointmentsMonth: number;
   canAddProfessional: boolean;
-  canAddAppointment: boolean;
-  professionalsRemaining: number;
-  appointmentsRemaining: number | null; // null = unlimited
+  professionalsRemaining: number | null; // null = unlimited
 }
 
 export function usePlanLimits(establishmentId: string | undefined) {
@@ -58,37 +54,18 @@ export function usePlanLimits(establishmentId: string | undefined) {
         .select('id', { count: 'exact', head: true })
         .eq('establishment_id', establishmentId);
 
-      // 5. Count current month appointments
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
-
-      const { count: aptCount } = await supabase
-        .from('appointments')
-        .select('id', { count: 'exact', head: true })
-        .eq('establishment_id', establishmentId)
-        .gte('start_at', monthStart)
-        .lte('start_at', monthEnd)
-        .not('status', 'in', '("canceled","canceled_by_customer","canceled_by_establishment")');
-
       const currentProfessionals = profCount ?? 0;
-      const currentAppointmentsMonth = aptCount ?? 0;
 
-      const canAddProfessional = currentProfessionals < limits.maxProfessionals;
-      const canAddAppointment = limits.maxAppointmentsMonth === null || currentAppointmentsMonth < limits.maxAppointmentsMonth;
+      const canAddProfessional = limits.maxProfessionals === null || currentProfessionals < limits.maxProfessionals;
 
       return {
         planCode: isTrial ? 'trial' : planCode,
         isTrial: !!isTrial,
         maxProfessionals: limits.maxProfessionals,
-        maxAppointmentsMonth: limits.maxAppointmentsMonth,
         currentProfessionals,
-        currentAppointmentsMonth,
         canAddProfessional,
-        canAddAppointment,
-        professionalsRemaining: Math.max(0, limits.maxProfessionals - currentProfessionals),
-        appointmentsRemaining: limits.maxAppointmentsMonth !== null
-          ? Math.max(0, limits.maxAppointmentsMonth - currentAppointmentsMonth)
+        professionalsRemaining: limits.maxProfessionals !== null
+          ? Math.max(0, limits.maxProfessionals - currentProfessionals)
           : null,
       };
     },
@@ -99,7 +76,8 @@ export function usePlanLimits(establishmentId: string | undefined) {
 
 /**
  * Lightweight check for public booking pages (no auth required).
- * Checks if an establishment can accept new appointments based on plan limits.
+ * Only checks if establishment is blocked (trial expired / past_due).
+ * Appointments are always unlimited — no count check needed.
  */
 export function usePublicPlanLimits(establishmentId: string | undefined) {
   return useQuery({
@@ -107,56 +85,19 @@ export function usePublicPlanLimits(establishmentId: string | undefined) {
     queryFn: async () => {
       if (!establishmentId) return { canAccept: true };
 
-      // Get establishment
       const { data: est } = await supabase
         .from('establishments')
-        .select('status, trial_ends_at, owner_user_id')
+        .select('status, trial_ends_at')
         .eq('id', establishmentId)
         .single();
 
       if (!est) return { canAccept: false, reason: 'Estabelecimento não encontrado.' };
 
-      // Check blocked status
       if (est.status === 'past_due' || est.status === 'canceled') {
         return { canAccept: false, reason: 'Estabelecimento temporariamente indisponível para novos agendamentos online.' };
       }
       if (est.status === 'trial' && est.trial_ends_at && new Date() > new Date(est.trial_ends_at)) {
         return { canAccept: false, reason: 'Estabelecimento temporariamente indisponível para novos agendamentos online.' };
-      }
-
-      const isTrial = est.status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) > new Date();
-
-      // Get subscription
-      let planCode = 'basico';
-      const { data: sub } = await supabase
-        .from('subscriptions')
-        .select('plan_code')
-        .eq('owner_user_id', est.owner_user_id)
-        .eq('status', 'active')
-        .limit(1);
-
-      if (sub && sub.length > 0) planCode = sub[0].plan_code;
-
-      const limits = getPlanLimits(planCode, !!isTrial);
-
-      if (limits.maxAppointmentsMonth === null) return { canAccept: true };
-
-      // Count this month's appointments
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
-
-      const { count } = await supabase
-        .from('appointments')
-        .select('id', { count: 'exact', head: true })
-        .eq('establishment_id', establishmentId)
-        .gte('start_at', monthStart)
-        .lte('start_at', monthEnd)
-        .not('status', 'in', '("canceled","canceled_by_customer","canceled_by_establishment")');
-
-      const current = count ?? 0;
-      if (current >= limits.maxAppointmentsMonth) {
-        return { canAccept: false, reason: 'Estabelecimento não pode receber novos agendamentos online no momento.' };
       }
 
       return { canAccept: true };

@@ -15,9 +15,7 @@ import { useUserEstablishment } from '@/hooks/useUserEstablishment';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useManageProfessionals } from '@/hooks/useManageProfessionals';
 import { useTimeBlocks, useRecurringTimeBlocks } from '@/hooks/useTimeBlocks';
-import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { AppointmentDetailsDialog } from '@/components/dashboard/AppointmentDetailsDialog';
-import { UsageBadge } from '@/components/dashboard/UsageBadge';
 import { cn } from '@/lib/utils';
 type AppointmentStatus = 'booked' | 'confirmed' | 'completed' | 'no_show' | 'canceled';
 
@@ -70,7 +68,7 @@ export default function Agenda() {
   
   const { data: establishment, isLoading: estLoading, error: estError, refetch: refetchEst } = useUserEstablishment();
   const { professionals } = useManageProfessionals(establishment?.id);
-  const { data: limits } = usePlanLimits(establishment?.id);
+  
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
@@ -174,20 +172,6 @@ export default function Agenda() {
           <p className="text-sm text-muted-foreground">
             Visualize e gerencie seus agendamentos
           </p>
-          {limits && limits.maxAppointmentsMonth && (
-            <div className="mt-2 w-56">
-              <UsageBadge
-                current={limits.currentAppointmentsMonth}
-                max={limits.maxAppointmentsMonth}
-                label="Agendamentos este mês"
-              />
-            </div>
-          )}
-          {limits && !limits.canAddAppointment && (
-            <div className="mt-2 p-2 bg-destructive/10 text-destructive text-sm rounded-md">
-              Você atingiu o limite de agendamentos do mês.
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">

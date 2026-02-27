@@ -23,10 +23,6 @@ const featureMessages = {
     title: 'Limite de profissionais atingido',
     description: 'Você atingiu o limite máximo de profissionais do seu plano atual. Faça upgrade para adicionar mais profissionais ao seu estabelecimento.',
   },
-  appointments: {
-    title: 'Limite de agendamentos atingido',
-    description: 'Você atingiu o limite mensal de agendamentos do seu plano atual. Faça upgrade para receber mais agendamentos.',
-  },
   establishments: {
     title: 'Limite de estabelecimentos atingido',
     description: 'Seu plano atual não permite múltiplos estabelecimentos. Faça upgrade para o plano Studio para gerenciar várias unidades.',
