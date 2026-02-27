@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useAdminEstablishments, useUpdateEstablishmentPlan, useToggleEstablishment } from "@/hooks/useAdmin";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAdminEstablishments, useUpdateEstablishment, type AdminEstablishment } from "@/hooks/useAdmin";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -20,75 +21,111 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Building2, Users, Calendar, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Search, Building2, Pencil, Ban, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
+const STATUS_OPTIONS = [
+  { value: 'trial', label: 'Trial' },
+  { value: 'active', label: 'Active (Pagante)' },
+  { value: 'past_due', label: 'Past Due' },
+  { value: 'canceled', label: 'Canceled / Bloqueado' },
+];
+
+const PLAN_OPTIONS = [
+  { value: 'basico', label: 'Básico (R$ 19,90)' },
+  { value: 'essencial', label: 'Essencial (R$ 49,90)' },
+  { value: 'studio', label: 'Studio (R$ 99,90)' },
+];
+
+function getStatusBadge(status: string) {
+  switch (status) {
+    case 'active': return <Badge className="bg-green-600 hover:bg-green-700">Active</Badge>;
+    case 'trial': return <Badge variant="secondary">Trial</Badge>;
+    case 'past_due': return <Badge variant="destructive">Past Due</Badge>;
+    case 'canceled': return <Badge variant="destructive">Canceled</Badge>;
+    default: return <Badge variant="outline">{status}</Badge>;
+  }
+}
+
+function getPlanLabel(est: AdminEstablishment) {
+  const planCode = est.subscription?.plan_code || est.plano || 'nenhum';
+  switch (planCode) {
+    case 'basico': return 'Básico';
+    case 'essencial': return 'Essencial';
+    case 'studio': return 'Studio';
+    default: return planCode;
+  }
+}
+
 export default function AdminEstablishments() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selectedEstablishment, setSelectedEstablishment] = useState<{
-    id: string;
-    name: string;
-    currentPlan: string;
-  } | null>(null);
-  const [newPlan, setNewPlan] = useState("");
+  const [editEst, setEditEst] = useState<AdminEstablishment | null>(null);
+  const [editForm, setEditForm] = useState({ status: '', plano: '', trial_ends_at: '' });
 
   const { data, isLoading, error } = useAdminEstablishments(debouncedSearch || undefined);
-  const updatePlan = useUpdateEstablishmentPlan();
-  const toggleEstablishment = useToggleEstablishment();
+  const updateEstablishment = useUpdateEstablishment();
 
-  // Debounce search
+  let debounceTimer: ReturnType<typeof setTimeout>;
   const handleSearchChange = (value: string) => {
     setSearch(value);
-    const timeout = setTimeout(() => setDebouncedSearch(value), 300);
-    return () => clearTimeout(timeout);
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => setDebouncedSearch(value), 400);
   };
 
-  const handleUpdatePlan = async () => {
-    if (!selectedEstablishment || !newPlan) return;
+  const handleOpenEdit = (est: AdminEstablishment) => {
+    setEditEst(est);
+    setEditForm({
+      status: est.status,
+      plano: est.subscription?.plan_code || est.plano || 'basico',
+      trial_ends_at: est.trial_ends_at ? est.trial_ends_at.split('T')[0] : '',
+    });
+  };
 
+  const handleSaveEdit = async () => {
+    if (!editEst) return;
     try {
-      await updatePlan.mutateAsync({
-        establishmentId: selectedEstablishment.id,
-        newPlanCode: newPlan,
+      await updateEstablishment.mutateAsync({
+        establishment_id: editEst.id,
+        status: editForm.status,
+        plano: editForm.plano,
+        trial_ends_at: editForm.trial_ends_at ? new Date(editForm.trial_ends_at).toISOString() : undefined,
       });
-      toast.success("Plano atualizado com sucesso");
-      setSelectedEstablishment(null);
-      setNewPlan("");
-    } catch (err) {
-      toast.error("Erro ao atualizar plano");
+      toast.success(`${editEst.name} atualizado com sucesso`);
+      setEditEst(null);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao atualizar");
     }
   };
 
-  const handleToggle = async (id: string, currentStatus: boolean) => {
+  const handleBlock = async (est: AdminEstablishment) => {
+    if (!confirm(`Bloquear acesso de "${est.name}"?`)) return;
     try {
-      await toggleEstablishment.mutateAsync({
-        establishmentId: id,
-        active: !currentStatus,
+      await updateEstablishment.mutateAsync({
+        establishment_id: est.id,
+        status: 'canceled',
       });
-      toast.success(currentStatus ? "Estabelecimento desativado" : "Estabelecimento ativado");
-    } catch (err) {
-      toast.error("Erro ao alterar status");
-    }
-  };
-
-  const getPlanBadgeVariant = (plan: string) => {
-    switch (plan) {
-      case "studio":
-        return "default";
-      case "essential":
-        return "secondary";
-      default:
-        return "outline";
+      toast.success(`${est.name} bloqueado`);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao bloquear");
     }
   };
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-destructive">Erro ao carregar estabelecimentos</p>
+      <div className="text-center py-12 space-y-2">
+        <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+        <p className="text-destructive font-medium">Erro ao carregar estabelecimentos</p>
       </div>
     );
   }
@@ -96,105 +133,87 @@ export default function AdminEstablishments() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Estabelecimentos</h1>
-        <p className="text-muted-foreground">Gerencie todos os estabelecimentos do sistema</p>
+        <h1 className="text-2xl font-bold tracking-tight">Estabelecimentos</h1>
+        <p className="text-muted-foreground">Gerencie todos os estabelecimentos cadastrados</p>
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nome, slug ou email..."
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex items-center gap-4">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou slug..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        {data && (
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {data.total} resultado{data.total !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
-      {/* Results count */}
-      {data && (
-        <p className="text-sm text-muted-foreground">
-          {data.total} estabelecimento(s) encontrado(s)
-        </p>
-      )}
-
-      {/* Establishments Grid */}
+      {/* Data Table */}
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-48" />
-          ))}
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
       ) : data?.establishments?.length ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data.establishments.map((est) => (
-            <Card key={est.id} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{est.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">/{est.slug}</p>
-                  </div>
-                  <Badge variant={getPlanBadgeVariant(est.subscription?.plan_code || "basic")}>
-                    {est.subscription?.plan_code || "basic"}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-muted-foreground">{est.owner_email}</div>
-
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>{est.professionals_count} prof.</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>{est.appointments_this_month} agend.</span>
-                  </div>
-                </div>
-
-                <div className="text-xs text-muted-foreground">
-                  Criado em {format(new Date(est.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                </div>
-
-                <div className="flex items-center gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedEstablishment({
-                        id: est.id,
-                        name: est.name,
-                        currentPlan: est.subscription?.plan_code || "basic",
-                      });
-                      setNewPlan(est.subscription?.plan_code || "basic");
-                    }}
-                  >
-                    Alterar Plano
-                  </Button>
-                  <Button
-                    variant={est.booking_enabled ? "ghost" : "secondary"}
-                    size="sm"
-                    onClick={() => handleToggle(est.id, est.booking_enabled)}
-                  >
-                    {est.booking_enabled ? (
-                      <>
-                        <ToggleRight className="h-4 w-4 mr-1" />
-                        Ativo
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft className="h-4 w-4 mr-1" />
-                        Inativo
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>E-mail do Dono</TableHead>
+                  <TableHead>Plano</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Profissionais</TableHead>
+                  <TableHead>Fim Trial</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.establishments.map((est) => (
+                  <TableRow key={est.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{est.name}</p>
+                        <p className="text-xs text-muted-foreground">/{est.slug}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">{est.owner_email}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{getPlanLabel(est)}</Badge>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(est.status)}</TableCell>
+                    <TableCell className="tabular-nums">{est.professionals_count}</TableCell>
+                    <TableCell className="text-sm tabular-nums">
+                      {est.trial_ends_at
+                        ? format(new Date(est.trial_ends_at), "dd/MM/yyyy", { locale: ptBR })
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" title="Editar" onClick={() => handleOpenEdit(est)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        {est.status !== 'canceled' && (
+                          <Button variant="ghost" size="icon" title="Bloquear" onClick={() => handleBlock(est)}
+                            className="text-destructive hover:text-destructive">
+                            <Ban className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
       ) : (
         <Card>
           <CardContent className="py-12 text-center">
@@ -204,39 +223,58 @@ export default function AdminEstablishments() {
         </Card>
       )}
 
-      {/* Change Plan Dialog */}
-      <Dialog open={!!selectedEstablishment} onOpenChange={() => setSelectedEstablishment(null)}>
-        <DialogContent>
+      {/* Edit Modal */}
+      <Dialog open={!!editEst} onOpenChange={() => setEditEst(null)}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Alterar Plano</DialogTitle>
-            <DialogDescription>
-              Alterando plano do estabelecimento: {selectedEstablishment?.name}
-            </DialogDescription>
+            <DialogTitle>Editar Estabelecimento</DialogTitle>
+            <DialogDescription>{editEst?.name} — /{editEst?.slug}</DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
-            <label className="text-sm font-medium">Novo Plano</label>
-            <Select value={newPlan} onValueChange={setNewPlan}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Selecione o plano" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="basic">Básico</SelectItem>
-                <SelectItem value="essential">Essencial</SelectItem>
-                <SelectItem value="studio">Studio</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Plano</Label>
+              <Select value={editForm.plano} onValueChange={(v) => setEditForm({ ...editForm, plano: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PLAN_OPTIONS.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Fim do Trial</Label>
+              <Input
+                type="date"
+                value={editForm.trial_ends_at}
+                onChange={(e) => setEditForm({ ...editForm, trial_ends_at: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">Deixe vazio para remover a data de trial</p>
+            </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedEstablishment(null)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleUpdatePlan}
-              disabled={updatePlan.isPending || newPlan === selectedEstablishment?.currentPlan}
-            >
-              {updatePlan.isPending ? "Salvando..." : "Salvar"}
+            <Button variant="outline" onClick={() => setEditEst(null)}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={updateEstablishment.isPending}>
+              {updateEstablishment.isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </DialogFooter>
         </DialogContent>
