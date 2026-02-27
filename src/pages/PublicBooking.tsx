@@ -18,7 +18,7 @@ import type { CustomerFormData } from '@/lib/validations/booking';
 import { getManageAppointmentUrl, buildPublicUrl } from '@/lib/publicUrl';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { useCanEstablishmentAcceptBookings } from '@/hooks/useSubscription';
+import { usePublicPlanLimits } from '@/hooks/usePlanLimits';
 import { PlanLimitAlert } from '@/components/billing/PlanLimitAlert';
 import { EstablishmentRatingDisplay } from '@/components/ratings/EstablishmentRatingDisplay';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -91,7 +91,7 @@ export default function PublicBooking() {
     isLoading: isLoadingEstablishment,
     error: establishmentError,
   } = useEstablishment(slug);
-  const { data: canAcceptBookings, isLoading: isLoadingCanAccept } = useCanEstablishmentAcceptBookings(establishment?.id);
+  const { data: canAcceptBookings, isLoading: isLoadingCanAccept } = usePublicPlanLimits(establishment?.id);
   const { data: services = [] } = useServices(establishment?.id);
   const { data: professionals = [], isLoading: isLoadingProfessionals } = useProfessionalsByService(
     selectedService?.id
@@ -115,7 +115,7 @@ export default function PublicBooking() {
     }
     return false;
   })();
-  const isAppointmentBlocked = isEstablishmentBlocked || (canAcceptBookings && !canAcceptBookings.can_accept);
+  const isAppointmentBlocked = isEstablishmentBlocked || (canAcceptBookings && !canAcceptBookings.canAccept);
 
   // After successful login, proceed with pending booking
   useEffect(() => {
@@ -379,9 +379,7 @@ export default function PublicBooking() {
   if (isAppointmentBlocked) {
     const blockReason = isEstablishmentBlocked
       ? 'Estabelecimento temporariamente indisponível para novos agendamentos online.'
-      : canAcceptBookings?.error_code === 'APPOINTMENT_LIMIT_REACHED' 
-        ? 'Este estabelecimento atingiu o limite de agendamentos do mês. Por favor, tente novamente no próximo mês ou entre em contato diretamente com o estabelecimento.'
-        : canAcceptBookings?.reason || 'Agendamento temporariamente indisponível.';
+      : canAcceptBookings?.reason || 'Agendamento temporariamente indisponível.';
 
     return (
       <div className="min-h-screen bg-background">

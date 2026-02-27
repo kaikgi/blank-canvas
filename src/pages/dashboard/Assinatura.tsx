@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSubscription, getPlanDisplayInfo } from '@/hooks/useSubscription';
-import { useSubscriptionUsage } from '@/hooks/useSubscriptionUsage';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useUserEstablishment } from '@/hooks/useUserEstablishment';
 import { useAuth } from '@/hooks/useAuth';
 import { SubscriptionStatusBadge } from '@/components/billing/SubscriptionStatusBadge';
@@ -32,9 +32,9 @@ export default function Assinatura() {
   const { user } = useAuth();
   const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
   const { data: establishment, isLoading: establishmentLoading } = useUserEstablishment();
-  const { data: usage, isLoading: usageLoading } = useSubscriptionUsage(establishment?.id);
+  const { data: limits, isLoading: limitsLoading } = usePlanLimits(establishment?.id);
 
-  const isLoading = subscriptionLoading || establishmentLoading || usageLoading;
+  const isLoading = subscriptionLoading || establishmentLoading || limitsLoading;
 
   if (isLoading) {
     return (
@@ -49,16 +49,17 @@ export default function Assinatura() {
     );
   }
 
-  const currentPlanCode = subscription?.plan_code || 'basic';
-  const planInfo = getPlanDisplayInfo(currentPlanCode);
-  const currentPlan = PLANS.find(p => p.code === currentPlanCode) || PLANS[0];
+  const currentPlanCode = limits?.isTrial ? 'trial' : (subscription?.plan_code || 'basico');
+  const displayPlanCode = limits?.isTrial ? 'studio' : (subscription?.plan_code || 'basico');
+  const planInfo = getPlanDisplayInfo(displayPlanCode);
+  const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
 
   // Calculate usage percentages
-  const professionalsPercentage = usage?.max_professionals 
-    ? Math.round((usage.current_professionals / usage.max_professionals) * 100)
+  const professionalsPercentage = limits?.maxProfessionals 
+    ? Math.round((limits.currentProfessionals / limits.maxProfessionals) * 100)
     : 0;
-  const appointmentsPercentage = usage?.max_appointments_month 
-    ? Math.round((usage.current_appointments_month / usage.max_appointments_month) * 100)
+  const appointmentsPercentage = limits?.maxAppointmentsMonth 
+    ? Math.round((limits.currentAppointmentsMonth / limits.maxAppointmentsMonth) * 100)
     : 0;
 
   const isNearProfessionalsLimit = professionalsPercentage >= 80;
@@ -76,7 +77,7 @@ export default function Assinatura() {
       </div>
 
       {/* Upgrade Alert */}
-      {showUpgradeAlert && currentPlanCode !== 'studio' && (
+      {showUpgradeAlert && displayPlanCode !== 'studio' && (
         <Alert variant="default" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
@@ -182,18 +183,18 @@ export default function Assinatura() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {usage && (
+            {limits && (
               <>
                 <UsageProgressBar
-                  current={usage.current_professionals || 0}
-                  max={usage.max_professionals}
+                  current={limits.currentProfessionals}
+                  max={limits.maxProfessionals}
                   label="Profissionais"
                   icon={<Users className="h-4 w-4" />}
                 />
                 
                 <UsageProgressBar
-                  current={usage.current_appointments_month || 0}
-                  max={usage.max_appointments_month}
+                  current={limits.currentAppointmentsMonth}
+                  max={limits.maxAppointmentsMonth}
                   label="Agendamentos"
                   icon={<Calendar className="h-4 w-4" />}
                 />
@@ -203,16 +204,14 @@ export default function Assinatura() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Restantes (Prof.)</span>
                     <span className="font-medium">
-                      {usage.professionals_remaining !== null 
-                        ? usage.professionals_remaining
-                        : '∞'}
+                      {limits.professionalsRemaining}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Restantes (Agend.)</span>
                     <span className="font-medium">
-                      {usage.appointments_remaining !== null 
-                        ? usage.appointments_remaining
+                      {limits.appointmentsRemaining !== null 
+                        ? limits.appointmentsRemaining
                         : '∞'}
                     </span>
                   </div>
@@ -239,7 +238,7 @@ export default function Assinatura() {
       </div>
 
       {/* Plan Comparison Section */}
-      {currentPlanCode !== 'studio' && (
+      {displayPlanCode !== 'studio' && (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-primary" />
@@ -258,7 +257,7 @@ export default function Assinatura() {
                   plan.popular
                     ? "bg-primary text-primary-foreground border-primary shadow-strong"
                     : "bg-card border-border hover:border-foreground/20",
-                  plan.code === currentPlanCode && "ring-2 ring-primary"
+                  plan.code === displayPlanCode && "ring-2 ring-primary"
                 )}
               >
                 {plan.popular && (
@@ -266,9 +265,9 @@ export default function Assinatura() {
                     Mais popular
                   </div>
                 )}
-                {plan.code === currentPlanCode && (
+                {plan.code === displayPlanCode && (
                   <div className="absolute -top-3 right-4 px-3 py-1 rounded-full bg-muted text-foreground text-xs font-semibold z-10">
-                    Plano atual
+                    {limits?.isTrial ? 'Trial ativo' : 'Plano atual'}
                   </div>
                 )}
                 <h3 className="text-lg font-bold">{plan.name}</h3>
@@ -287,12 +286,12 @@ export default function Assinatura() {
                   ))}
                 </ul>
                 <div className="mt-auto pt-4">
-                  {plan.code === currentPlanCode ? (
+                  {plan.code === displayPlanCode && !limits?.isTrial ? (
                     <Button variant="outline" disabled className="w-full">Plano atual</Button>
                   ) : (
                     <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
                       <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
-                        Assinar {plan.name}
+                        {limits?.isTrial ? 'Assinar' : 'Assinar'} {plan.name}
                         <ExternalLink size={14} className="ml-1" />
                       </a>
                     </Button>
@@ -305,7 +304,7 @@ export default function Assinatura() {
       )}
 
       {/* Studio Plan Success Message */}
-      {currentPlanCode === 'studio' && (
+      {displayPlanCode === 'studio' && !limits?.isTrial && (
         <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
