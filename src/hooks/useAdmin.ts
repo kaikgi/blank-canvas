@@ -11,30 +11,23 @@ export function useAdminAccess() {
     queryFn: async () => {
       if (!user) return { isAdmin: false };
       try {
-        // Check admin_users table directly
-        const { data, error } = await supabase
-          .from("admin_users")
-          .select("id")
-          .limit(1);
+        // Use the security-definer RPC which bypasses RLS
+        const { data, error } = await supabase.rpc("is_admin", {
+          p_user_id: user.id,
+        });
 
-        // If we can query admin_users and get results, user has access
-        // (RLS should handle this, but as fallback check via edge function)
         if (error) {
-          // Fallback: call edge function
-          const { data: efData, error: efError } = await supabase.functions.invoke('admin-data', {
-            body: { action: 'check_access' },
-          });
-          if (efError) return { isAdmin: false };
-          return { isAdmin: true };
+          console.error("is_admin RPC error:", error);
+          return { isAdmin: false };
         }
 
-        return { isAdmin: (data?.length ?? 0) > 0 };
+        return { isAdmin: !!data };
       } catch {
         return { isAdmin: false };
       }
     },
     enabled: !!user,
-    staleTime: 60000,
+    staleTime: 30000,
   });
 }
 
