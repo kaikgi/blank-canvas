@@ -34,7 +34,7 @@ export default function AdminMessages() {
 
   const handleMarkAsReplied = async (messageId: string, replyText?: string) => {
     try {
-      await updateStatus.mutateAsync({
+      await (updateStatus as any).mutateAsync({
         messageId,
         status: "replied",
         reply: replyText,
@@ -49,7 +49,7 @@ export default function AdminMessages() {
 
   const handleMarkAsClosed = async (messageId: string) => {
     try {
-      await updateStatus.mutateAsync({
+      await (updateStatus as any).mutateAsync({
         messageId,
         status: "closed",
       });

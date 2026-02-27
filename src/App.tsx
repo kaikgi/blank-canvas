@@ -58,6 +58,7 @@ import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminWhatsAppAnalytics from "./pages/admin/AdminWhatsAppAnalytics";
 import AdminAllowedEmails from "./pages/admin/AdminAllowedEmails";
 import AdminWebhooks from "./pages/admin/AdminWebhooks";
+import AdminSettingsSaaS from "./pages/admin/AdminSettingsSaaS";
 import ResponsiveTestPage from "./pages/dev/ResponsiveTest";
 
 const queryClient = new QueryClient();
@@ -162,6 +163,7 @@ const App = () => (
               <Route element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="estabelecimentos" element={<AdminEstablishments />} />
+                <Route path="configuracoes" element={<AdminSettingsSaaS />} />
                 <Route path="mensagens" element={<AdminMessages />} />
                 <Route path="assinaturas" element={<AdminSubscriptions />} />
                 <Route path="admins" element={<AdminAdmins />} />
