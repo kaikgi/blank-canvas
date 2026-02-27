@@ -3,9 +3,19 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
 import { PLANS } from '@/lib/hardcodedPlans';
+import { useTrialStatus } from '@/hooks/useTrialStatus';
 
 export function TrialExpiredModal() {
+  const { reason } = useTrialStatus();
+
+  const title = reason === 'past_due'
+    ? 'Sua assinatura está com pagamento pendente'
+    : reason === 'canceled'
+      ? 'Sua conta foi cancelada'
+      : 'Seu período de teste acabou';
+
   return (
+    // No close button, no click-outside dismiss — inescapable paywall
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 overflow-auto">
       <div className="w-full max-w-4xl space-y-8 py-8">
         {/* Header */}
@@ -16,7 +26,7 @@ export function TrialExpiredModal() {
             <span className="font-medium">Acesso bloqueado</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold">
-            Seu período de teste acabou
+            {title}
           </h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
             Escolha um de nossos planos abaixo para continuar usando o Agendali.
