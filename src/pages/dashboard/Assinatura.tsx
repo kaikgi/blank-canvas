@@ -47,6 +47,7 @@ export default function Assinatura() {
 
   const est = establishment as any;
   const isTrial = est?.status === 'trial';
+  const isVip = est?.status === 'active' && est?.plano === 'studio';
   const hasActiveSubscription = subscription?.status === 'active';
 
   // Calculate trial days left
@@ -57,9 +58,25 @@ export default function Assinatura() {
     trialDaysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   }
 
-  // Determine current plan display
-  const currentPlanCode = hasActiveSubscription ? (subscription?.plan_code || 'basico') : 'basico';
-  const displayPlanCode = isTrial ? 'studio' : currentPlanCode;
+  // Determine current plan display — priority order:
+  // 1. Trial → show as Studio (unlimited)
+  // 2. VIP (plano='studio' + status='active') → Studio regardless of Kiwify
+  // 3. Active Kiwify subscription → use subscription plan_code
+  // 4. Establishment plano column → use that
+  // 5. Fallback → basico
+  let displayPlanCode: string;
+  if (isTrial) {
+    displayPlanCode = 'studio';
+  } else if (isVip) {
+    displayPlanCode = 'studio';
+  } else if (hasActiveSubscription) {
+    displayPlanCode = subscription?.plan_code || 'basico';
+  } else if (est?.plano && est.plano !== 'nenhum') {
+    displayPlanCode = est.plano;
+  } else {
+    displayPlanCode = 'basico';
+  }
+  const currentPlanCode = displayPlanCode;
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
 
   // Usage percentages
