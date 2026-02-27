@@ -105,7 +105,17 @@ export default function PublicBooking() {
     bufferMinutes: establishment?.buffer_minutes ?? 0,
   });
 
-  const isAppointmentBlocked = canAcceptBookings && !canAcceptBookings.can_accept;
+  // Check if establishment is blocked due to trial/payment status
+  const isEstablishmentBlocked = (() => {
+    if (!establishment) return false;
+    const est = establishment as any;
+    if (est.status === 'past_due' || est.status === 'canceled') return true;
+    if (est.status === 'trial' && est.trial_ends_at) {
+      return new Date() > new Date(est.trial_ends_at);
+    }
+    return false;
+  })();
+  const isAppointmentBlocked = isEstablishmentBlocked || (canAcceptBookings && !canAcceptBookings.can_accept);
 
   // After successful login, proceed with pending booking
   useEffect(() => {
@@ -367,8 +377,7 @@ export default function PublicBooking() {
 
   // Show friendly message if establishment has exceeded appointment limit or trial expired
   if (isAppointmentBlocked) {
-    const isTrialExpired = canAcceptBookings?.error_code === 'TRIAL_EXPIRED';
-    const blockReason = isTrialExpired
+    const blockReason = isEstablishmentBlocked
       ? 'Estabelecimento temporariamente indisponível para novos agendamentos online.'
       : canAcceptBookings?.error_code === 'APPOINTMENT_LIMIT_REACHED' 
         ? 'Este estabelecimento atingiu o limite de agendamentos do mês. Por favor, tente novamente no próximo mês ou entre em contato diretamente com o estabelecimento.'
@@ -397,7 +406,7 @@ export default function PublicBooking() {
         <div className="container max-w-lg mx-auto px-4 py-8">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{isTrialExpired ? 'Agenda indisponível' : 'Agendamento temporariamente indisponível'}</AlertTitle>
+            <AlertTitle>{isEstablishmentBlocked ? 'Agenda indisponível' : 'Agendamento temporariamente indisponível'}</AlertTitle>
             <AlertDescription>{blockReason}</AlertDescription>
           </Alert>
           <div className="text-center mt-4">

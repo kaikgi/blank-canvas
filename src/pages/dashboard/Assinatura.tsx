@@ -6,11 +6,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSubscription, getPlanDisplayInfo } from '@/hooks/useSubscription';
 import { useSubscriptionUsage } from '@/hooks/useSubscriptionUsage';
 import { useUserEstablishment } from '@/hooks/useUserEstablishment';
-import { usePlans, formatPriceBRL } from '@/hooks/usePlans';
 import { useAuth } from '@/hooks/useAuth';
 import { SubscriptionStatusBadge } from '@/components/billing/SubscriptionStatusBadge';
 import { UsageProgressBar } from '@/components/billing/UsageProgressBar';
-import { PlanComparisonCard } from '@/components/billing/PlanComparisonCard';
+import { PLANS } from '@/lib/hardcodedPlans';
 import { 
   CreditCard, 
   Users, 
@@ -21,19 +20,21 @@ import {
   Sparkles,
   TrendingUp,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Check,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 export default function Assinatura() {
   const { user } = useAuth();
   const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
   const { data: establishment, isLoading: establishmentLoading } = useUserEstablishment();
   const { data: usage, isLoading: usageLoading } = useSubscriptionUsage(establishment?.id);
-  const { data: plans, isLoading: plansLoading } = usePlans();
 
-  const isLoading = subscriptionLoading || establishmentLoading || usageLoading || plansLoading;
+  const isLoading = subscriptionLoading || establishmentLoading || usageLoading;
 
   if (isLoading) {
     return (
@@ -50,7 +51,7 @@ export default function Assinatura() {
 
   const currentPlanCode = subscription?.plan_code || 'basic';
   const planInfo = getPlanDisplayInfo(currentPlanCode);
-  const currentPlan = plans?.find(p => p.code === currentPlanCode);
+  const currentPlan = PLANS.find(p => p.code === currentPlanCode) || PLANS[0];
 
   // Calculate usage percentages
   const professionalsPercentage = usage?.max_professionals 
@@ -64,36 +65,7 @@ export default function Assinatura() {
   const isNearAppointmentsLimit = appointmentsPercentage >= 80;
   const showUpgradeAlert = isNearProfessionalsLimit || isNearAppointmentsLimit;
 
-  // Build features for plan comparison
-  const buildPlanFeatures = (plan: typeof currentPlan) => {
-    if (!plan) return [];
-    return [
-      {
-        name: plan.max_professionals === 1 ? '1 profissional' : `Até ${plan.max_professionals} profissionais`,
-        included: true,
-      },
-      {
-        name: plan.max_appointments_month ? `${plan.max_appointments_month} agendamentos/mês` : 'Agendamentos ilimitados',
-        included: true,
-      },
-      {
-        name: 'Página de agendamento online',
-        included: true,
-      },
-      {
-        name: 'Portal do profissional',
-        included: true,
-      },
-      {
-        name: 'Múltiplos estabelecimentos',
-        included: plan.allow_multi_establishments,
-      },
-      {
-        name: 'Suporte prioritário',
-        included: plan.code === 'studio',
-      },
-    ];
-  };
+  // No longer need buildPlanFeatures - using hardcoded PLANS
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -154,7 +126,7 @@ export default function Assinatura() {
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold">
-                  R$ {currentPlan ? formatPriceBRL(currentPlan.price_cents) : '0,00'}
+                  R$ {currentPlan.price}
                 </div>
                 <div className="text-sm text-muted-foreground">/mês</div>
               </div>
@@ -166,27 +138,21 @@ export default function Assinatura() {
                 <Users className="h-5 w-5 text-primary" />
                 <div>
                   <div className="text-sm text-muted-foreground">Profissionais</div>
-                  <div className="font-semibold">
-                    {currentPlan?.max_professionals === 1 ? '1' : `Até ${currentPlan?.max_professionals}`}
-                  </div>
+                  <div className="font-semibold">{currentPlan.features[0]}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                 <Calendar className="h-5 w-5 text-primary" />
                 <div>
                   <div className="text-sm text-muted-foreground">Agendamentos</div>
-                  <div className="font-semibold">
-                    {currentPlan?.max_appointments_month ? `${currentPlan.max_appointments_month}/mês` : 'Ilimitados'}
-                  </div>
+                  <div className="font-semibold">Ilimitados</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                 <Building2 className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="text-sm text-muted-foreground">Unidades</div>
-                  <div className="font-semibold">
-                    {currentPlan?.allow_multi_establishments ? 'Múltiplas' : '1 unidade'}
-                  </div>
+                  <div className="text-sm text-muted-foreground">Plano</div>
+                  <div className="font-semibold">{currentPlan.name}</div>
                 </div>
               </div>
             </div>
@@ -284,18 +250,55 @@ export default function Assinatura() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            {plans?.map((plan) => (
-              <PlanComparisonCard
-                key={plan.id}
-                planCode={plan.code}
-                planName={plan.name}
-                priceCents={plan.price_cents}
-                isPopular={plan.popular}
-                isCurrentPlan={plan.code === currentPlanCode}
-                features={buildPlanFeatures(plan)}
-                userId={user?.id}
-                userEmail={user?.email || undefined}
-              />
+            {PLANS.map((plan) => (
+              <div
+                key={plan.code}
+                className={cn(
+                  "relative rounded-2xl border p-6 transition-all flex flex-col h-full",
+                  plan.popular
+                    ? "bg-primary text-primary-foreground border-primary shadow-strong"
+                    : "bg-card border-border hover:border-foreground/20",
+                  plan.code === currentPlanCode && "ring-2 ring-primary"
+                )}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-background text-foreground text-xs font-semibold whitespace-nowrap z-10">
+                    Mais popular
+                  </div>
+                )}
+                {plan.code === currentPlanCode && (
+                  <div className="absolute -top-3 right-4 px-3 py-1 rounded-full bg-muted text-foreground text-xs font-semibold z-10">
+                    Plano atual
+                  </div>
+                )}
+                <h3 className="text-lg font-bold">{plan.name}</h3>
+                <p className={cn("text-sm mt-1", plan.popular ? "text-primary-foreground/80" : "text-muted-foreground")}>{plan.description}</p>
+                <div className="flex items-baseline gap-1 mt-4">
+                  <span className="text-sm">R$</span>
+                  <span className="text-3xl font-bold">{plan.price}</span>
+                  <span className={cn("text-sm", plan.popular ? "text-primary-foreground/80" : "text-muted-foreground")}>/mês</span>
+                </div>
+                <ul className="flex-1 space-y-2 mt-4">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
+                      <Check size={16} className="mt-0.5 shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto pt-4">
+                  {plan.code === currentPlanCode ? (
+                    <Button variant="outline" disabled className="w-full">Plano atual</Button>
+                  ) : (
+                    <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
+                      <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
+                        Assinar {plan.name}
+                        <ExternalLink size={14} className="ml-1" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         </div>
