@@ -17,15 +17,21 @@ export type Database = {
       admin_users: {
         Row: {
           created_at: string
-          id: number
+          id: string
+          level: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          id?: number
+          id?: string
+          level?: string
+          user_id: string
         }
         Update: {
           created_at?: string
-          id?: number
+          id?: string
+          level?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -700,7 +706,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
