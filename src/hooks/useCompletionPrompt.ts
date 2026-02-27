@@ -10,7 +10,7 @@ export function useHasBeenPrompted(appointmentId: string | undefined, userId: st
     queryFn: async () => {
       if (!appointmentId || !userId) return true; // Default to prompted to avoid showing
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('appointment_completion_prompts')
         .select('id, action_taken')
         .eq('appointment_id', appointmentId)
@@ -44,7 +44,7 @@ export function useMarkPrompted() {
       userType: 'customer' | 'establishment' | 'professional';
       actionTaken: 'dismissed' | 'completed' | 'not_yet';
     }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('appointment_completion_prompts')
         .upsert(
           {

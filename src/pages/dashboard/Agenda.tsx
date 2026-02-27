@@ -19,9 +19,7 @@ import { useSubscriptionUsage } from '@/hooks/useSubscriptionUsage';
 import { AppointmentDetailsDialog } from '@/components/dashboard/AppointmentDetailsDialog';
 import { UsageBadge } from '@/components/dashboard/UsageBadge';
 import { cn } from '@/lib/utils';
-import type { Database } from '@/integrations/supabase/types';
-
-type AppointmentStatus = Database['public']['Enums']['appointment_status'];
+type AppointmentStatus = 'booked' | 'confirmed' | 'completed' | 'no_show' | 'canceled';
 
 interface Appointment {
   id: string;

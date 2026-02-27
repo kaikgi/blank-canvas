@@ -86,8 +86,8 @@ export function useInAppNotifications() {
             .eq('id', rating.appointment_id)
             .single();
 
-          const customerName = appointmentData?.customer?.name || 'Cliente';
-          const serviceName = appointmentData?.service?.name || 'Serviço';
+          const customerName = (appointmentData?.customer as any)?.name || 'Cliente';
+          const serviceName = (appointmentData?.service as any)?.name || 'Serviço';
 
           const newNotification: InAppNotification = {
             id: `rating-${rating.id}`,

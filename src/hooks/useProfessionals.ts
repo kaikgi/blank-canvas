@@ -20,9 +20,9 @@ export function useProfessionalsByService(serviceId: string | undefined) {
 
       if (error) throw error;
       
-      return data
-        .map((ps) => ps.professionals)
-        .filter((p): p is Professional => p !== null && p.active);
+      return (data as any[])
+        .map((ps: any) => ps.professionals)
+        .filter((p: any): p is Professional => p !== null && p.active);
     },
     enabled: !!serviceId,
   });

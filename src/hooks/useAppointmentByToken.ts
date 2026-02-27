@@ -1,8 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-
-type AppointmentStatus = Database['public']['Enums']['appointment_status'];
+type AppointmentStatus = 'booked' | 'confirmed' | 'completed' | 'no_show' | 'canceled';
 
 interface AppointmentWithDetails {
   id: string;
@@ -67,7 +65,7 @@ export function useAppointmentByToken(slug: string | undefined, token: string | 
       const tokenHash = await hashToken(token);
 
       // Fetch token record
-      const { data: tokenRecord, error: tokenError } = await supabase
+      const { data: tokenRecord, error: tokenError } = await (supabase as any)
         .from('appointment_manage_tokens')
         .select('appointment_id, expires_at, used_at')
         .eq('token_hash', tokenHash)
@@ -104,11 +102,12 @@ export function useAppointmentByToken(slug: string | undefined, token: string | 
       }
 
       // Verify establishment slug matches
-      if (appointment.establishment?.slug !== slug) {
+      const est = appointment.establishment as any;
+      if (est?.slug !== slug) {
         throw new Error('Agendamento não pertence a este estabelecimento');
       }
 
-      return appointment as AppointmentWithDetails;
+      return appointment as unknown as AppointmentWithDetails;
     },
     enabled: !!slug && !!token,
     retry: false,
@@ -123,7 +122,7 @@ export function useCancelAppointment() {
       const tokenHash = await hashToken(token);
 
       // Verify token is valid
-      const { data: tokenRecord, error: tokenError } = await supabase
+      const { data: tokenRecord, error: tokenError } = await (supabase as any)
         .from('appointment_manage_tokens')
         .select('appointment_id, expires_at')
         .eq('token_hash', tokenHash)
@@ -141,13 +140,13 @@ export function useCancelAppointment() {
       // Update appointment status
       const { error: updateError } = await supabase
         .from('appointments')
-        .update({ status: 'canceled' })
+        .update({ status: 'canceled' } as any)
         .eq('id', appointmentId);
 
       if (updateError) throw updateError;
 
       // Mark token as used
-      await supabase
+      await (supabase as any)
         .from('appointment_manage_tokens')
         .update({ used_at: new Date().toISOString() })
         .eq('token_hash', tokenHash);
@@ -175,7 +174,7 @@ export function useRescheduleAppointment() {
       newEndAt: string;
     }): Promise<RescheduleResult> => {
       // Call the new transactional RPC for rescheduling
-      const { data, error } = await supabase.rpc('public_reschedule_appointment', {
+      const { data, error } = await (supabase.rpc as any)('public_reschedule_appointment', {
         p_token: token,
         p_appointment_id: appointmentId,
         p_new_start_at: newStartAt,

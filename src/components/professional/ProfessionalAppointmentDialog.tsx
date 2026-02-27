@@ -70,7 +70,7 @@ export function ProfessionalAppointmentDialog({
   const handleAction = async (newStatus: string) => {
     setLoading(newStatus);
     try {
-      const { data, error } = await supabase.rpc('professional_update_appointment_status', {
+      const { data, error } = await (supabase.rpc as any)('professional_update_appointment_status', {
         p_token: token,
         p_appointment_id: appointment.id,
         p_new_status: newStatus,

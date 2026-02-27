@@ -32,7 +32,7 @@ export function useClientReschedule() {
       newEndAt: string;
       newProfessionalId?: string;
     }): Promise<RescheduleResult> => {
-      const { data, error } = await supabase.rpc('client_reschedule_appointment', {
+      const { data, error } = await (supabase.rpc as any)('client_reschedule_appointment', {
         p_appointment_id: appointmentId,
         p_new_start_at: newStartAt,
         p_new_end_at: newEndAt,

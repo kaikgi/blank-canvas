@@ -12,9 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUpdateAppointmentStatus, useUpdateAppointmentNotes } from '@/hooks/useAppointments';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import type { Database } from '@/integrations/supabase/types';
-
-type AppointmentStatus = Database['public']['Enums']['appointment_status'];
+type AppointmentStatus = 'booked' | 'confirmed' | 'completed' | 'no_show' | 'canceled';
 
 interface Appointment {
   id: string;

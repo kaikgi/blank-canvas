@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
 import { sendCancellationEmail } from '@/lib/emailNotifications';
 
-type AppointmentStatus = Database['public']['Enums']['appointment_status'];
+type AppointmentStatus = 'booked' | 'confirmed' | 'completed' | 'no_show' | 'canceled';
 
 interface AppointmentWithRelations {
   id: string;
@@ -62,7 +61,7 @@ export function useAppointments(establishmentId: string | undefined, filters?: {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as AppointmentWithRelations[];
+      return data as unknown as AppointmentWithRelations[];
     },
     enabled: !!establishmentId,
     staleTime: 30000,

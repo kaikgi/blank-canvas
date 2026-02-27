@@ -54,7 +54,7 @@ export function useSubscription() {
       }
 
       // Get plan details
-      const { data: plan, error: planError } = await supabase
+      const { data: plan, error: planError } = await (supabase as any)
         .from('plans')
         .select('*')
         .eq('code', subscription.plan_code)
@@ -90,15 +90,15 @@ export function useCanEstablishmentAcceptBookings(establishmentId: string | unde
   return useQuery({
     queryKey: ['can-accept-bookings', establishmentId],
     queryFn: async () => {
-      if (!establishmentId) return { can_accept: false, reason: 'No establishment' };
+      if (!establishmentId) return { can_accept: false, reason: 'No establishment' } as { can_accept: boolean; reason?: string; error_code?: string };
 
-      const { data, error } = await supabase.rpc('can_establishment_accept_bookings', {
+      const { data, error } = await (supabase.rpc as any)('can_establishment_accept_bookings', {
         p_establishment_id: establishmentId,
       });
 
       if (error) {
         console.error('Error checking can_establishment_accept_bookings:', error);
-        return { can_accept: false, reason: error.message };
+        return { can_accept: false, reason: error.message } as { can_accept: boolean; reason?: string; error_code?: string };
       }
 
       return data as { can_accept: boolean; reason?: string; error_code?: string };
