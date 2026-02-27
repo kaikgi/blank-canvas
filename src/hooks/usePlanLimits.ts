@@ -29,8 +29,12 @@ export function usePlanLimits(establishmentId: string | undefined) {
 
       if (!est) return null;
 
-      const isTrial = est.status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) > new Date();
-      const isVip = est.status === 'active' && est.plano === 'studio';
+      // Normalize case from DB
+      const status = (est.status || '').toLowerCase();
+      const plano = (est.plano || '').toLowerCase();
+
+      const isTrial = status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) > new Date();
+      const isVip = status === 'active' && plano === 'studio';
 
       // 2. Determine plan code — priority:
       // Trial/VIP → studio, then subscription, then establishment plano, then basico
@@ -47,9 +51,9 @@ export function usePlanLimits(establishmentId: string | undefined) {
           .limit(1);
 
         if (sub && sub.length > 0) {
-          planCode = sub[0].plan_code;
-        } else if (est.plano && est.plano !== 'nenhum') {
-          planCode = est.plano;
+          planCode = (sub[0].plan_code || 'basico').toLowerCase();
+        } else if (plano && plano !== 'nenhum') {
+          planCode = plano;
         }
       }
 
