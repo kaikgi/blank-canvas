@@ -1,0 +1,244 @@
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Calendar, Clock, MapPin, Phone, User, Building2, Loader2, CalendarClock } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { useCancelClientAppointment, type ClientAppointment } from '@/hooks/useClientAppointments';
+import { ClientRescheduleDialog } from './ClientRescheduleDialog';
+
+interface ClientAppointmentDialogProps {
+  appointment: ClientAppointment | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const statusLabels: Record<string, string> = {
+  booked: 'Agendado',
+  confirmed: 'Confirmado',
+  completed: 'Concluído',
+  canceled: 'Cancelado',
+  no_show: 'Não compareceu',
+};
+
+const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  booked: 'outline',
+  confirmed: 'default',
+  completed: 'secondary',
+  canceled: 'destructive',
+  no_show: 'destructive',
+};
+
+export function ClientAppointmentDialog({ appointment, open, onOpenChange }: ClientAppointmentDialogProps) {
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const cancelMutation = useCancelClientAppointment();
+
+  if (!appointment) return null;
+
+  const canCancel = ['booked', 'confirmed'].includes(appointment.status);
+  const isPast = new Date(appointment.start_at) < new Date();
+
+  const handleCancel = async () => {
+    try {
+      await cancelMutation.mutateAsync(appointment.id);
+      toast({ title: 'Agendamento cancelado com sucesso' });
+      setCancelDialogOpen(false);
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao cancelar',
+        description: 'Não foi possível cancelar o agendamento',
+      });
+    }
+  };
+
+  const formatPrice = (cents: number | null) => {
+    if (cents === null) return null;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(cents / 100);
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              Detalhes do Agendamento
+              <Badge variant={statusVariants[appointment.status]}>
+                {statusLabels[appointment.status]}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Establishment */}
+            <div className="flex items-start gap-3">
+              <Avatar className="h-12 w-12">
+                {appointment.establishment.logo_url && (
+                  <AvatarImage 
+                    src={appointment.establishment.logo_url} 
+                    alt={appointment.establishment.name} 
+                  />
+                )}
+                <AvatarFallback>
+                  <Building2 className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-medium">{appointment.establishment.name}</h3>
+                {appointment.establishment.address && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {appointment.establishment.address}
+                    {appointment.establishment.city && `, ${appointment.establishment.city}`}
+                  </p>
+                )}
+                {appointment.establishment.phone && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Phone className="h-3 w-3" />
+                    {appointment.establishment.phone}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Service & Professional */}
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Serviço</p>
+                <p className="font-medium">{appointment.service.name}</p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  {appointment.service.duration_minutes} minutos
+                  {appointment.service.price_cents && (
+                    <span>• {formatPrice(appointment.service.price_cents)}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  {appointment.professional.photo_url && (
+                    <AvatarImage 
+                      src={appointment.professional.photo_url} 
+                      alt={appointment.professional.name} 
+                    />
+                  )}
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm text-muted-foreground">Profissional</p>
+                  <p className="font-medium">{appointment.professional.name}</p>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Date & Time */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium">
+                  {format(new Date(appointment.start_at), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(appointment.start_at), 'HH:mm')} - {format(new Date(appointment.end_at), 'HH:mm')}
+                </p>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {appointment.customer_notes && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Observações</p>
+                <p className="text-sm bg-muted/50 p-2 rounded">{appointment.customer_notes}</p>
+              </div>
+            )}
+
+            {/* Actions */}
+            {canCancel && !isPast && (
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setRescheduleDialogOpen(true)}
+                >
+                  <CalendarClock className="h-4 w-4 mr-2" />
+                  Reagendar
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => setCancelDialogOpen(true)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reschedule Dialog */}
+      <ClientRescheduleDialog
+        appointment={appointment}
+        open={rescheduleDialogOpen}
+        onOpenChange={setRescheduleDialogOpen}
+        onSuccess={() => onOpenChange(false)}
+      />
+
+      {/* Cancel Confirmation */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Agendamento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancel}
+              disabled={cancelMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cancelMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirmar Cancelamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
