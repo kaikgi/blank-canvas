@@ -3,18 +3,16 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSubscription, getPlanDisplayInfo } from '@/hooks/useSubscription';
+import { useSubscription } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useUserEstablishment } from '@/hooks/useUserEstablishment';
 import { useAuth } from '@/hooks/useAuth';
-import { SubscriptionStatusBadge } from '@/components/billing/SubscriptionStatusBadge';
 import { UsageProgressBar } from '@/components/billing/UsageProgressBar';
 import { PLANS } from '@/lib/hardcodedPlans';
 import { 
   CreditCard, 
   Users, 
   Calendar, 
-  Building2, 
   ExternalLink,
   Crown,
   Sparkles,
@@ -22,10 +20,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   Check,
-  X
+  Clock
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 export default function Assinatura() {
@@ -49,20 +45,28 @@ export default function Assinatura() {
     );
   }
 
-  const currentPlanCode = limits?.isTrial ? 'trial' : (subscription?.plan_code || 'basico');
-  const displayPlanCode = limits?.isTrial ? 'studio' : (subscription?.plan_code || 'basico');
-  const planInfo = getPlanDisplayInfo(displayPlanCode);
+  const est = establishment as any;
+  const isTrial = est?.status === 'trial';
+  const hasActiveSubscription = subscription?.status === 'active';
+
+  // Calculate trial days left
+  let trialDaysLeft = 0;
+  if (isTrial && est?.trial_ends_at) {
+    const now = new Date();
+    const trialEnd = new Date(est.trial_ends_at);
+    trialDaysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  }
+
+  // Determine current plan display
+  const currentPlanCode = hasActiveSubscription ? (subscription?.plan_code || 'basico') : 'basico';
+  const displayPlanCode = isTrial ? 'studio' : currentPlanCode;
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
 
-  // Calculate usage percentages
+  // Usage percentages
   const professionalsPercentage = limits?.maxProfessionals 
     ? Math.round((limits.currentProfessionals / limits.maxProfessionals) * 100)
     : 0;
-
   const isNearProfessionalsLimit = limits?.maxProfessionals ? professionalsPercentage >= 80 : false;
-  const showUpgradeAlert = isNearProfessionalsLimit;
-
-  // No longer need buildPlanFeatures - using hardcoded PLANS
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -73,7 +77,7 @@ export default function Assinatura() {
       </div>
 
       {/* Upgrade Alert */}
-      {showUpgradeAlert && displayPlanCode !== 'studio' && (
+      {isNearProfessionalsLimit && !isTrial && displayPlanCode !== 'studio' && (
         <Alert variant="default" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
@@ -84,7 +88,7 @@ export default function Assinatura() {
 
       {/* Main Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Current Plan Card - Takes 2 columns */}
+        {/* Current Plan Card */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
@@ -92,9 +96,14 @@ export default function Assinatura() {
                 <Crown className="h-5 w-5 text-primary" />
                 Seu Plano
               </CardTitle>
-              {subscription && (
-                <SubscriptionStatusBadge status={subscription.status} />
-              )}
+              {isTrial ? (
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Período de Teste
+                </Badge>
+              ) : hasActiveSubscription ? (
+                <Badge variant="default">Ativo</Badge>
+              ) : null}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -106,27 +115,47 @@ export default function Assinatura() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <Badge className={planInfo.bgColor + ' ' + planInfo.color + ' text-base px-3 py-1'}>
-                      {planInfo.name}
-                    </Badge>
-                    {currentPlanCode === 'studio' && (
-                      <Badge variant="outline" className="text-xs">Premium</Badge>
+                    {isTrial ? (
+                      <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-base px-3 py-1">
+                        Período de Teste (Trial)
+                      </Badge>
+                    ) : (
+                      <Badge className="text-base px-3 py-1">
+                        {currentPlan.name}
+                      </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {subscription 
-                      ? `Renovação em ${format(new Date(subscription.current_period_end), "dd 'de' MMMM", { locale: ptBR })}`
-                      : 'Plano gratuito'
-                    }
-                  </p>
+                  {isTrial ? (
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">
+                      Faltam {trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} para o fim do seu teste.
+                    </p>
+                  ) : hasActiveSubscription && subscription ? (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Assinatura ativa
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Sem assinatura ativa
+                    </p>
+                  )}
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold">
-                  R$ {currentPlan.price}
+              {!isTrial && (
+                <div className="text-right">
+                  <div className="text-3xl font-bold">
+                    R$ {currentPlan.price}
+                  </div>
+                  <div className="text-sm text-muted-foreground">/mês</div>
                 </div>
-                <div className="text-sm text-muted-foreground">/mês</div>
-              </div>
+              )}
+              {isTrial && (
+                <div className="text-right">
+                  <div className="text-lg font-semibold text-amber-700 dark:text-amber-300">
+                    Grátis por 7 dias
+                  </div>
+                  <div className="text-sm text-muted-foreground">Acesso Studio completo</div>
+                </div>
+              )}
             </div>
 
             {/* Plan Features Grid */}
@@ -135,7 +164,9 @@ export default function Assinatura() {
                 <Users className="h-5 w-5 text-primary" />
                 <div>
                   <div className="text-sm text-muted-foreground">Profissionais</div>
-                  <div className="font-semibold">{currentPlan.features[0]}</div>
+                  <div className="font-semibold">
+                    {isTrial ? 'Ilimitados' : currentPlan.features[0]}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
@@ -146,24 +177,26 @@ export default function Assinatura() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
-                <Building2 className="h-5 w-5 text-primary" />
+                <Crown className="h-5 w-5 text-primary" />
                 <div>
                   <div className="text-sm text-muted-foreground">Plano</div>
-                  <div className="font-semibold">{currentPlan.name}</div>
+                  <div className="font-semibold">{isTrial ? 'Trial (Studio)' : currentPlan.name}</div>
                 </div>
               </div>
             </div>
 
-            {/* Manage Button */}
-            <div className="flex justify-end pt-2">
-              <Button variant="outline" asChild>
-                <a href="https://dashboard.kiwify.com.br" target="_blank" rel="noopener noreferrer">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Gerenciar Pagamento
-                  <ExternalLink className="ml-2 h-3 w-3" />
-                </a>
-              </Button>
-            </div>
+            {/* Manage Payment Button (only for subscribers) */}
+            {hasActiveSubscription && (
+              <div className="flex justify-end pt-2">
+                <Button variant="outline" asChild>
+                  <a href="https://dashboard.kiwify.com.br" target="_blank" rel="noopener noreferrer">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Gerenciar Pagamento
+                    <ExternalLink className="ml-2 h-3 w-3" />
+                  </a>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -181,7 +214,8 @@ export default function Assinatura() {
           <CardContent className="space-y-6">
             {limits && (
               <>
-                {limits.maxProfessionals !== null ? (
+                {/* Professionals usage */}
+                {limits.maxProfessionals !== null && !isTrial ? (
                   <UsageProgressBar
                     current={limits.currentProfessionals}
                     max={limits.maxProfessionals}
@@ -193,21 +227,21 @@ export default function Assinatura() {
                     <Users className="h-4 w-4 text-primary" />
                     <div>
                       <div className="text-sm text-muted-foreground">Equipe</div>
-                      <div className="font-semibold">{limits.currentProfessionals} profissionais</div>
+                      <div className="font-semibold">{limits.currentProfessionals} profissiona{limits.currentProfessionals === 1 ? 'l' : 'is'}</div>
                     </div>
                   </div>
                 )}
 
                 {/* Quick Stats */}
                 <div className="pt-4 border-t space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Profissionais restantes</span>
-                    <span className="font-medium">
-                      {limits.professionalsRemaining !== null 
-                        ? limits.professionalsRemaining
-                        : '∞'}
-                    </span>
-                  </div>
+                  {!isTrial && limits.maxProfessionals !== null && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Profissionais restantes</span>
+                      <span className="font-medium">
+                        {limits.professionalsRemaining ?? '∞'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Agendamentos</span>
                     <span className="font-medium">Ilimitados</span>
@@ -216,7 +250,12 @@ export default function Assinatura() {
 
                 {/* Status Indicator */}
                 <div className="pt-2">
-                  {showUpgradeAlert ? (
+                  {isTrial ? (
+                    <div className="flex items-center gap-2 text-amber-600 text-sm">
+                      <Clock className="h-4 w-4" />
+                      <span>{trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} restante{trialDaysLeft !== 1 ? 's' : ''} de teste</span>
+                    </div>
+                  ) : isNearProfessionalsLimit ? (
                     <div className="flex items-center gap-2 text-amber-600 text-sm">
                       <AlertTriangle className="h-4 w-4" />
                       <span>Próximo do limite</span>
@@ -234,14 +273,20 @@ export default function Assinatura() {
         </Card>
       </div>
 
-      {/* Plan Comparison Section */}
-      {displayPlanCode !== 'studio' && (
+      {/* Plan Comparison Section - Show for trial and non-studio */}
+      {(isTrial || displayPlanCode !== 'studio') && (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-primary" />
             <div>
-              <h2 className="text-xl font-bold">Comparar Planos</h2>
-              <p className="text-muted-foreground">Escolha o plano ideal para o seu negócio</p>
+              <h2 className="text-xl font-bold">
+                {isTrial ? 'Escolha seu plano' : 'Comparar Planos'}
+              </h2>
+              <p className="text-muted-foreground">
+                {isTrial
+                  ? 'Assine antes do fim do teste para não perder acesso'
+                  : 'Escolha o plano ideal para o seu negócio'}
+              </p>
             </div>
           </div>
 
@@ -253,18 +298,12 @@ export default function Assinatura() {
                   "relative rounded-2xl border p-6 transition-all flex flex-col h-full",
                   plan.popular
                     ? "bg-primary text-primary-foreground border-primary shadow-strong"
-                    : "bg-card border-border hover:border-foreground/20",
-                  plan.code === displayPlanCode && "ring-2 ring-primary"
+                    : "bg-card border-border hover:border-foreground/20"
                 )}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-background text-foreground text-xs font-semibold whitespace-nowrap z-10">
                     Mais popular
-                  </div>
-                )}
-                {plan.code === displayPlanCode && (
-                  <div className="absolute -top-3 right-4 px-3 py-1 rounded-full bg-muted text-foreground text-xs font-semibold z-10">
-                    {limits?.isTrial ? 'Trial ativo' : 'Plano atual'}
                   </div>
                 )}
                 <h3 className="text-lg font-bold">{plan.name}</h3>
@@ -283,12 +322,12 @@ export default function Assinatura() {
                   ))}
                 </ul>
                 <div className="mt-auto pt-4">
-                  {plan.code === displayPlanCode && !limits?.isTrial ? (
+                  {!isTrial && plan.code === currentPlanCode ? (
                     <Button variant="outline" disabled className="w-full">Plano atual</Button>
                   ) : (
                     <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
                       <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
-                        {limits?.isTrial ? 'Assinar' : 'Assinar'} {plan.name}
+                        Assinar {plan.name}
                         <ExternalLink size={14} className="ml-1" />
                       </a>
                     </Button>
@@ -301,7 +340,7 @@ export default function Assinatura() {
       )}
 
       {/* Studio Plan Success Message */}
-      {displayPlanCode === 'studio' && !limits?.isTrial && (
+      {displayPlanCode === 'studio' && !isTrial && (
         <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
