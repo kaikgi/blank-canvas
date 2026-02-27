@@ -18,7 +18,7 @@ export function usePlans() {
   return useQuery({
     queryKey: ["plans"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("plans")
         .select("*")
         .order("price_cents", { ascending: true });

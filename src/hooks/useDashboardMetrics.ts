@@ -9,7 +9,7 @@ export function useDashboardMetrics(establishmentId: string | undefined) {
   const todayQuery = useQuery({
     queryKey: ['metrics-today', establishmentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('v_dash_today')
         .select('active_today')
         .eq('establishment_id', establishmentId)
@@ -24,7 +24,7 @@ export function useDashboardMetrics(establishmentId: string | undefined) {
   const weekQuery = useQuery({
     queryKey: ['metrics-week', establishmentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('v_dash_week')
         .select('active_week')
         .eq('establishment_id', establishmentId)
@@ -39,7 +39,7 @@ export function useDashboardMetrics(establishmentId: string | undefined) {
   const canceledQuery = useQuery({
     queryKey: ['metrics-canceled', establishmentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('v_dash_canceled_7d')
         .select('canceled_7d')
         .eq('establishment_id', establishmentId)
@@ -54,7 +54,7 @@ export function useDashboardMetrics(establishmentId: string | undefined) {
   const byProfessionalQuery = useQuery({
     queryKey: ['metrics-by-professional', establishmentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('v_dash_by_professional_30d')
         .select('*')
         .eq('establishment_id', establishmentId);
@@ -68,7 +68,7 @@ export function useDashboardMetrics(establishmentId: string | undefined) {
   const topServicesQuery = useQuery({
     queryKey: ['metrics-top-services', establishmentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('v_dash_top_services_30d')
         .select('*')
         .eq('establishment_id', establishmentId)

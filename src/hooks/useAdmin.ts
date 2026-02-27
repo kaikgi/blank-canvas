@@ -54,7 +54,7 @@ export function useAdminAccess() {
     queryFn: async () => {
       if (!user) return { isAdmin: false };
 
-      const { data, error } = await supabase.rpc("is_admin", {
+      const { data, error } = await (supabase.rpc as any)("is_admin", {
         p_user_id: user.id,
       });
 
@@ -73,7 +73,7 @@ export function useAdminStats() {
   return useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_admin_dashboard_stats");
+      const { data, error } = await (supabase.rpc as any)("get_admin_dashboard_stats");
 
       if (error) {
         console.error("Error fetching admin stats:", error);
@@ -89,7 +89,7 @@ export function useAdminEstablishments(search?: string) {
   return useQuery({
     queryKey: ["admin-establishments", search],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_list_establishments", {
+      const { data, error } = await (supabase.rpc as any)("admin_list_establishments", {
         p_search: search || null,
         p_limit: 100,
         p_offset: 0,
@@ -109,7 +109,7 @@ export function useAdminContactMessages(status?: string) {
   return useQuery({
     queryKey: ["admin-contact-messages", status],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_list_contact_messages", {
+      const { data, error } = await (supabase.rpc as any)("admin_list_contact_messages", {
         p_status: status || null,
         p_limit: 100,
         p_offset: 0,
@@ -173,7 +173,7 @@ export function useToggleEstablishment() {
       establishmentId: string;
       active: boolean;
     }) => {
-      const { data, error } = await supabase.rpc("admin_toggle_establishment", {
+      const { data, error } = await (supabase.rpc as any)("admin_toggle_establishment", {
         p_establishment_id: establishmentId,
         p_active: active,
       });
