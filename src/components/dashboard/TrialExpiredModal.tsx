@@ -16,10 +16,10 @@ export function TrialExpiredModal() {
             <span className="font-medium">Acesso bloqueado</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold">
-            Seu acesso está bloqueado
+            Seu período de teste acabou
           </h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Escolha um plano para liberar sua agenda e continuar usando o Agendali.
+            Escolha um de nossos planos abaixo para continuar usando o Agendali.
           </p>
         </div>
 
