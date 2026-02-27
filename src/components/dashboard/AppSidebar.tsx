@@ -15,7 +15,7 @@ import {
   Check,
   CreditCard,
   Star,
-  Shield,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdminAccess } from '@/hooks/useAdmin';
@@ -177,16 +177,16 @@ export function AppSidebar() {
         {isAdmin && (
           <Link to="/admin">
             <Button
-              variant="outline"
+              variant="default"
               size={collapsed ? "icon" : "default"}
               className={cn(
-                "w-full border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground",
+                "w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0 shadow-md",
                 collapsed && "justify-center"
               )}
-              title="Ir para Painel Admin"
+              title="Painel Super Admin"
             >
-              <Shield className="h-4 w-4" />
-              {!collapsed && <span className="ml-2">Painel Admin</span>}
+              <Zap className="h-4 w-4" />
+              {!collapsed && <span className="ml-2">Painel Super Admin</span>}
             </Button>
           </Link>
         )}
