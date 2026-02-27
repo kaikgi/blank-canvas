@@ -9,7 +9,7 @@ import { TrialExpiredModal } from './TrialExpiredModal';
 
 export function DashboardLayout() {
   const { data: establishment } = useUserEstablishment();
-  const { isTrialExpired, isLoading } = useTrialStatus();
+  const { isBlocked, isLoading } = useTrialStatus();
 
   return (
     <SidebarProvider>
@@ -27,10 +27,10 @@ export function DashboardLayout() {
         </main>
       </div>
 
-      {/* Trial Expired Paywall */}
-      {!isLoading && isTrialExpired && <TrialExpiredModal />}
+      {/* Trial/Payment Blocked Paywall */}
+      {!isLoading && isBlocked && <TrialExpiredModal />}
 
-      {/* Completion Prompt Dialog - 1 min after appointment ends */}
+      {/* Completion Prompt Dialog */}
       <CompletionPromptDialog 
         establishmentId={establishment?.id} 
         userType="establishment" 

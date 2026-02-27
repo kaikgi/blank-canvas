@@ -8,32 +8,44 @@ export function useTrialStatus() {
   const isLoading = isLoadingEst || isLoadingSub;
 
   if (isLoading || !establishment) {
-    return { isTrialExpired: false, isLoading, daysLeft: 0 };
+    return { isBlocked: false, isLoading, daysLeft: 0, reason: '' };
   }
 
-  // If user has active subscription, trial doesn't matter
+  const est = establishment as any;
+
+  // If user has active subscription, never blocked
   if (subscription?.status === 'active') {
-    return { isTrialExpired: false, isLoading: false, daysLeft: 0 };
+    return { isBlocked: false, isLoading: false, daysLeft: 0, reason: '' };
   }
 
   // If establishment status is 'active', it's paid
-  if ((establishment as any).status === 'active') {
-    return { isTrialExpired: false, isLoading: false, daysLeft: 0 };
+  if (est.status === 'active') {
+    return { isBlocked: false, isLoading: false, daysLeft: 0, reason: '' };
   }
 
-  // Check trial expiration
-  const trialEndsAt = (establishment as any).trial_ends_at;
-  if (!trialEndsAt) {
-    return { isTrialExpired: false, isLoading: false, daysLeft: 7 };
+  // Block if past_due or canceled
+  if (est.status === 'past_due' || est.status === 'canceled') {
+    return { isBlocked: true, isLoading: false, daysLeft: 0, reason: est.status };
   }
 
-  const now = new Date();
-  const trialEnd = new Date(trialEndsAt);
-  const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  // Check trial expiration (status === 'trial')
+  if (est.status === 'trial') {
+    const trialEndsAt = est.trial_ends_at;
+    if (!trialEndsAt) {
+      // No trial_ends_at set, assume 7 days left
+      return { isBlocked: false, isLoading: false, daysLeft: 7, reason: '' };
+    }
 
-  return {
-    isTrialExpired: now > trialEnd,
-    isLoading: false,
-    daysLeft: Math.max(0, daysLeft),
-  };
+    const now = new Date();
+    const trialEnd = new Date(trialEndsAt);
+    const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (now > trialEnd) {
+      return { isBlocked: true, isLoading: false, daysLeft: 0, reason: 'trial_expired' };
+    }
+
+    return { isBlocked: false, isLoading: false, daysLeft: Math.max(0, daysLeft), reason: '' };
+  }
+
+  return { isBlocked: false, isLoading: false, daysLeft: 0, reason: '' };
 }
