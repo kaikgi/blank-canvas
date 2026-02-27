@@ -45,7 +45,7 @@ export function UpgradePlanDialog({
 
   const handleUpgrade = () => {
     onOpenChange(false);
-    navigate('/precos');
+    navigate('/dashboard/assinatura');
   };
 
   return (

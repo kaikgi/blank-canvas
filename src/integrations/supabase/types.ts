@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           completed_at: string | null
@@ -241,7 +256,7 @@ export type Database = {
           logo_url?: string | null
           max_future_days?: number
           name: string
-          owner_user_id: string
+          owner_user_id?: string
           phone?: string | null
           reminder_hours_before?: number
           require_policy_acceptance?: boolean
