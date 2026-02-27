@@ -58,13 +58,9 @@ export default function Assinatura() {
   const professionalsPercentage = limits?.maxProfessionals 
     ? Math.round((limits.currentProfessionals / limits.maxProfessionals) * 100)
     : 0;
-  const appointmentsPercentage = limits?.maxAppointmentsMonth 
-    ? Math.round((limits.currentAppointmentsMonth / limits.maxAppointmentsMonth) * 100)
-    : 0;
 
-  const isNearProfessionalsLimit = professionalsPercentage >= 80;
-  const isNearAppointmentsLimit = appointmentsPercentage >= 80;
-  const showUpgradeAlert = isNearProfessionalsLimit || isNearAppointmentsLimit;
+  const isNearProfessionalsLimit = limits?.maxProfessionals ? professionalsPercentage >= 80 : false;
+  const showUpgradeAlert = isNearProfessionalsLimit;
 
   // No longer need buildPlanFeatures - using hardcoded PLANS
 
@@ -185,35 +181,36 @@ export default function Assinatura() {
           <CardContent className="space-y-6">
             {limits && (
               <>
-                <UsageProgressBar
-                  current={limits.currentProfessionals}
-                  max={limits.maxProfessionals}
-                  label="Profissionais"
-                  icon={<Users className="h-4 w-4" />}
-                />
-                
-                <UsageProgressBar
-                  current={limits.currentAppointmentsMonth}
-                  max={limits.maxAppointmentsMonth}
-                  label="Agendamentos"
-                  icon={<Calendar className="h-4 w-4" />}
-                />
+                {limits.maxProfessionals !== null ? (
+                  <UsageProgressBar
+                    current={limits.currentProfessionals}
+                    max={limits.maxProfessionals}
+                    label="Equipe"
+                    icon={<Users className="h-4 w-4" />}
+                  />
+                ) : (
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <Users className="h-4 w-4 text-primary" />
+                    <div>
+                      <div className="text-sm text-muted-foreground">Equipe</div>
+                      <div className="font-semibold">{limits.currentProfessionals} profissionais</div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Quick Stats */}
                 <div className="pt-4 border-t space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Restantes (Prof.)</span>
+                    <span className="text-muted-foreground">Profissionais restantes</span>
                     <span className="font-medium">
-                      {limits.professionalsRemaining}
+                      {limits.professionalsRemaining !== null 
+                        ? limits.professionalsRemaining
+                        : '∞'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Restantes (Agend.)</span>
-                    <span className="font-medium">
-                      {limits.appointmentsRemaining !== null 
-                        ? limits.appointmentsRemaining
-                        : '∞'}
-                    </span>
+                    <span className="text-muted-foreground">Agendamentos</span>
+                    <span className="font-medium">Ilimitados</span>
                   </div>
                 </div>
 

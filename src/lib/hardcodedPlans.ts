@@ -4,8 +4,7 @@ export interface HardcodedPlan {
   description: string;
   price: string;
   priceCents: number;
-  maxProfessionals: number;
-  maxAppointmentsMonth: number | null; // null = unlimited
+  maxProfessionals: number | null; // null = unlimited
   features: string[];
   popular: boolean;
   checkoutUrl: string;
@@ -19,10 +18,9 @@ export const PLANS: HardcodedPlan[] = [
     price: '19,90',
     priceCents: 1990,
     maxProfessionals: 1,
-    maxAppointmentsMonth: 50,
     features: [
       '1 profissional',
-      'Até 50 agendamentos/mês',
+      'Agendamentos ilimitados',
       'Notificações por email',
       'Página pública de agendamento',
     ],
@@ -35,11 +33,10 @@ export const PLANS: HardcodedPlan[] = [
     description: 'Para pequenos estabelecimentos',
     price: '49,90',
     priceCents: 4990,
-    maxProfessionals: 3,
-    maxAppointmentsMonth: 120,
+    maxProfessionals: 4,
     features: [
-      'Até 3 profissionais',
-      'Até 120 agendamentos/mês',
+      'Até 4 profissionais',
+      'Agendamentos ilimitados',
       'Notificações por email e WhatsApp',
       'Página pública de agendamento',
       'Relatórios e métricas',
@@ -53,10 +50,9 @@ export const PLANS: HardcodedPlan[] = [
     description: 'Para estúdios e clínicas',
     price: '99,90',
     priceCents: 9990,
-    maxProfessionals: 10,
-    maxAppointmentsMonth: null,
+    maxProfessionals: null,
     features: [
-      'Até 10 profissionais',
+      'Profissionais ilimitados',
       'Agendamentos ilimitados',
       'Notificações por email e WhatsApp',
       'Página pública de agendamento',
@@ -68,12 +64,11 @@ export const PLANS: HardcodedPlan[] = [
   },
 ];
 
-/** Returns plan limits. Trial gets Studio limits. */
+/** Returns plan limits. Trial gets Studio limits (everything unlimited). */
 export function getPlanLimits(planCode: string | undefined, isTrial: boolean) {
   if (isTrial) {
-    const studio = PLANS.find(p => p.code === 'studio')!;
-    return { maxProfessionals: studio.maxProfessionals, maxAppointmentsMonth: studio.maxAppointmentsMonth };
+    return { maxProfessionals: null as number | null };
   }
   const plan = PLANS.find(p => p.code === planCode) || PLANS[0];
-  return { maxProfessionals: plan.maxProfessionals, maxAppointmentsMonth: plan.maxAppointmentsMonth };
+  return { maxProfessionals: plan.maxProfessionals };
 }
