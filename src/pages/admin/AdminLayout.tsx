@@ -85,14 +85,12 @@ export default function AdminLayout() {
 
           {/* Footer */}
           <div className="p-3 border-t border-border space-y-1">
-            {establishment && (
-              <Link to="/dashboard" onClick={() => setSidebarOpen(false)}>
-                <Button variant="outline" size="sm" className="w-full justify-start gap-2 text-xs">
-                  <ArrowLeft size={14} />
-                  Voltar ao Dashboard
-                </Button>
-              </Link>
-            )}
+            <Link to="/dashboard" onClick={() => setSidebarOpen(false)}>
+              <Button variant="outline" size="sm" className="w-full justify-start gap-2 text-xs">
+                <ArrowLeft size={14} />
+                Voltar ao meu Estabelecimento
+              </Button>
+            </Link>
             <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs" onClick={handleSignOut}>
               <LogOut size={14} />
               Sair
