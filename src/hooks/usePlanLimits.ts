@@ -20,29 +20,37 @@ export function usePlanLimits(establishmentId: string | undefined) {
     queryFn: async (): Promise<PlanLimitsData | null> => {
       if (!establishmentId || !user?.id) return null;
 
-      // 1. Get establishment status
+      // 1. Get establishment status + plano
       const { data: est } = await supabase
         .from('establishments')
-        .select('status, trial_ends_at, owner_user_id')
+        .select('status, trial_ends_at, owner_user_id, plano')
         .eq('id', establishmentId)
         .single();
 
       if (!est) return null;
 
       const isTrial = est.status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) > new Date();
+      const isVip = est.status === 'active' && est.plano === 'studio';
 
-      // 2. Get subscription plan_code (if any)
+      // 2. Determine plan code — priority:
+      // Trial/VIP → studio, then subscription, then establishment plano, then basico
       let planCode = 'basico';
-      const { data: sub } = await supabase
-        .from('subscriptions')
-        .select('plan_code, status')
-        .eq('owner_user_id', est.owner_user_id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1);
+      if (isTrial || isVip) {
+        planCode = 'studio';
+      } else {
+        const { data: sub } = await supabase
+          .from('subscriptions')
+          .select('plan_code, status')
+          .eq('owner_user_id', est.owner_user_id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-      if (sub && sub.length > 0) {
-        planCode = sub[0].plan_code;
+        if (sub && sub.length > 0) {
+          planCode = sub[0].plan_code;
+        } else if (est.plano && est.plano !== 'nenhum') {
+          planCode = est.plano;
+        }
       }
 
       // 3. Get limits from hardcoded plans

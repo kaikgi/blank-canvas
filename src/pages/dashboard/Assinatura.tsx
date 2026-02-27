@@ -232,26 +232,32 @@ export default function Assinatura() {
             {limits && (
               <>
                 {/* Professionals usage */}
-                {limits.maxProfessionals !== null && !isTrial ? (
+                {(isTrial || isVip || displayPlanCode === 'studio' || limits.maxProfessionals === null) ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Users className="h-4 w-4 text-primary" />
+                      <div>
+                        <div className="text-sm text-muted-foreground">Equipe</div>
+                        <div className="font-semibold">{limits.currentProfessionals} profissiona{limits.currentProfessionals === 1 ? 'l' : 'is'} cadastrado{limits.currentProfessionals !== 1 ? 's' : ''}</div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Profissionais ilimitados liberados
+                    </p>
+                  </div>
+                ) : (
                   <UsageProgressBar
                     current={limits.currentProfessionals}
                     max={limits.maxProfessionals}
                     label="Equipe"
                     icon={<Users className="h-4 w-4" />}
                   />
-                ) : (
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <Users className="h-4 w-4 text-primary" />
-                    <div>
-                      <div className="text-sm text-muted-foreground">Equipe</div>
-                      <div className="font-semibold">{limits.currentProfessionals} profissiona{limits.currentProfessionals === 1 ? 'l' : 'is'}</div>
-                    </div>
-                  </div>
                 )}
 
                 {/* Quick Stats */}
                 <div className="pt-4 border-t space-y-3">
-                  {!isTrial && limits.maxProfessionals !== null && (
+                  {!isTrial && !isVip && displayPlanCode !== 'studio' && limits.maxProfessionals !== null && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Profissionais restantes</span>
                       <span className="font-medium">
