@@ -35,6 +35,39 @@ export type Database = {
         }
         Relationships: []
       }
+      allowed_establishment_signups: {
+        Row: {
+          activation_sent_at: string | null
+          created_at: string
+          email: string
+          id: string
+          kiwify_order_id: string | null
+          paid_at: string | null
+          plan_id: string
+          used: boolean
+        }
+        Insert: {
+          activation_sent_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          kiwify_order_id?: string | null
+          paid_at?: string | null
+          plan_id: string
+          used?: boolean
+        }
+        Update: {
+          activation_sent_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          kiwify_order_id?: string | null
+          paid_at?: string | null
+          plan_id?: string
+          used?: boolean
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           completed_at: string | null
@@ -114,6 +147,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      billing_webhook_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          id: string
+          ignore_reason: string | null
+          ignored: boolean | null
+          kiwify_product_id: string | null
+          payload: Json
+          processed_at: string | null
+          processing_error: string | null
+          provider: string
+          received_at: string
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          id?: string
+          ignore_reason?: string | null
+          ignored?: boolean | null
+          kiwify_product_id?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          provider?: string
+          received_at?: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          id?: string
+          ignore_reason?: string | null
+          ignored?: boolean | null
+          kiwify_product_id?: string | null
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          provider?: string
+          received_at?: string
+        }
+        Relationships: []
       }
       business_hours: {
         Row: {
@@ -304,6 +379,66 @@ export type Database = {
           status?: string
           timezone?: string
           trial_ends_at?: string | null
+        }
+        Relationships: []
+      }
+      kiwify_products: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kiwify_product_id: string | null
+          plan_code: string
+          product_name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kiwify_product_id?: string | null
+          plan_code: string
+          product_name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kiwify_product_id?: string | null
+          plan_code?: string
+          product_name?: string
+        }
+        Relationships: []
+      }
+      kiwify_webhook_events: {
+        Row: {
+          buyer_email: string | null
+          establishment_id: string | null
+          event_id: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string
+          status: string
+        }
+        Insert: {
+          buyer_email?: string | null
+          establishment_id?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          payload: Json
+          processed_at?: string
+          status?: string
+        }
+        Update: {
+          buyer_email?: string | null
+          establishment_id?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string
+          status?: string
         }
         Relationships: []
       }
