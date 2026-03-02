@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useAdminEstablishments, useUpdateEstablishment, type AdminEstablishment } from "@/hooks/useAdmin";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,35 +8,26 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Search, Building2, Settings2, AlertTriangle, CalendarIcon, Filter } from "lucide-react";
+import { Search, Building2, Settings2, AlertTriangle, CalendarIcon, Filter, Trash2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 const STATUS_OPTIONS = [
   { value: 'trial', label: 'Trial' },
@@ -78,8 +70,16 @@ export default function AdminEstablishments() {
   const [editEst, setEditEst] = useState<AdminEstablishment | null>(null);
   const [editForm, setEditForm] = useState({ status: '', plano: '', trial_ends_at: '' });
 
+  // Delete modal state
+  const [deleteEst, setDeleteEst] = useState<AdminEstablishment | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteAuthUser, setDeleteAuthUser] = useState(false);
+  const [deleteStorageFiles, setDeleteStorageFiles] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const { data, isLoading, error } = useAdminEstablishments(debouncedSearch || undefined);
   const updateEstablishment = useUpdateEstablishment();
+  const queryClient = useQueryClient();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const handleSearchChange = useCallback((value: string) => {
@@ -113,6 +113,43 @@ export default function AdminEstablishments() {
     }
   };
 
+  const handleOpenDelete = (est: AdminEstablishment) => {
+    setDeleteEst(est);
+    setDeleteConfirmText("");
+    setDeleteAuthUser(false);
+    setDeleteStorageFiles(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteEst || deleteConfirmText !== "EXCLUIR") return;
+    setDeleting(true);
+    try {
+      const { data: result, error: fnError } = await supabase.functions.invoke(
+        "admin-delete-establishment",
+        {
+          body: {
+            establishment_id: deleteEst.id,
+            delete_auth_user: deleteAuthUser,
+            delete_storage_files: deleteStorageFiles,
+          },
+        }
+      );
+      if (fnError) throw fnError;
+      if (result?.error) throw new Error(result.error);
+
+      toast.success(`"${deleteEst.name}" excluído permanentemente`, {
+        description: (result?.steps || []).join(", "),
+      });
+      setDeleteEst(null);
+      queryClient.invalidateQueries({ queryKey: ["adminestablishments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao excluir estabelecimento");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="text-center py-12 space-y-2">
@@ -123,7 +160,6 @@ export default function AdminEstablishments() {
     );
   }
 
-  // Client-side filtering
   const filtered = (data?.establishments || []).filter((est) => {
     if (statusFilter !== 'all' && est.status !== statusFilter) return false;
     const estPlan = est.subscription?.plan_code || est.plano || 'nenhum';
@@ -132,6 +168,7 @@ export default function AdminEstablishments() {
   });
 
   const trialDate = editForm.trial_ends_at ? new Date(editForm.trial_ends_at + 'T00:00:00') : undefined;
+  const canDelete = deleteConfirmText === "EXCLUIR";
 
   return (
     <div className="space-y-6">
@@ -199,7 +236,8 @@ export default function AdminEstablishments() {
                   <TableHead>Status</TableHead>
                   <TableHead>Profissionais</TableHead>
                   <TableHead>Fim Trial</TableHead>
-                  <TableHead className="text-right">Ação</TableHead>
+                  <TableHead>Criado em</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,11 +259,19 @@ export default function AdminEstablishments() {
                         ? format(new Date(est.trial_ends_at), "dd/MM/yyyy", { locale: ptBR })
                         : '—'}
                     </TableCell>
+                    <TableCell className="text-sm tabular-nums">
+                      {format(new Date(est.created_at), "dd/MM/yy", { locale: ptBR })}
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleOpenEdit(est)} className="gap-1.5">
-                        <Settings2 className="h-3.5 w-3.5" />
-                        Gerenciar
-                      </Button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button variant="outline" size="sm" onClick={() => handleOpenEdit(est)} className="gap-1.5">
+                          <Settings2 className="h-3.5 w-3.5" />
+                          Gerenciar
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleOpenDelete(est)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -261,9 +307,7 @@ export default function AdminEstablishments() {
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plano</Label>
               <Select value={editForm.plano} onValueChange={(v) => setEditForm({ ...editForm, plano: v })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PLAN_OPTIONS.map((p) => (
                     <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
@@ -275,9 +319,7 @@ export default function AdminEstablishments() {
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</Label>
               <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map((s) => (
                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
@@ -292,10 +334,7 @@ export default function AdminEstablishments() {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !editForm.trial_ends_at && "text-muted-foreground"
-                    )}
+                    className={cn("w-full justify-start text-left font-normal", !editForm.trial_ends_at && "text-muted-foreground")}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {editForm.trial_ends_at
@@ -307,18 +346,12 @@ export default function AdminEstablishments() {
                   <Calendar
                     mode="single"
                     selected={trialDate}
-                    onSelect={(date) =>
-                      setEditForm({
-                        ...editForm,
-                        trial_ends_at: date ? format(date, 'yyyy-MM-dd') : '',
-                      })
-                    }
+                    onSelect={(date) => setEditForm({ ...editForm, trial_ends_at: date ? format(date, 'yyyy-MM-dd') : '' })}
                     className={cn("p-3 pointer-events-auto")}
                     locale={ptBR}
                   />
                 </PopoverContent>
               </Popover>
-              <p className="text-xs text-muted-foreground">Clique para selecionar ou alterar a data de expiração do trial</p>
             </div>
           </div>
 
@@ -330,6 +363,74 @@ export default function AdminEstablishments() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hard Delete Modal */}
+      <AlertDialog open={!!deleteEst} onOpenChange={() => !deleting && setDeleteEst(null)}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Excluir Conta Permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Você está prestes a excluir <strong>{deleteEst?.name}</strong> (/{deleteEst?.slug}).
+              Esta ação é <strong>irreversível</strong> e removerá todos os dados: agendamentos, profissionais, clientes, serviços e configurações.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="delete-auth"
+                  checked={deleteAuthUser}
+                  onCheckedChange={(c) => setDeleteAuthUser(!!c)}
+                />
+                <Label htmlFor="delete-auth" className="text-sm">
+                  Também excluir usuário (auth)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="delete-storage"
+                  checked={deleteStorageFiles}
+                  onCheckedChange={(c) => setDeleteStorageFiles(!!c)}
+                />
+                <Label htmlFor="delete-storage" className="text-sm">
+                  Também remover arquivos (storage)
+                </Label>
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t pt-4">
+              <Label className="text-sm text-destructive font-semibold">
+                Digite EXCLUIR para confirmar:
+              </Label>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="EXCLUIR"
+                className="font-mono border-destructive/30 focus-visible:ring-destructive/30"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setDeleteEst(null)} disabled={deleting}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={!canDelete || deleting}
+            >
+              {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {deleting ? "Excluindo..." : "🔥 Excluir Permanentemente"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

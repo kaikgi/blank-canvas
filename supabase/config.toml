@@ -2,3 +2,6 @@ project_id = "emkcaalgfutbukindxvy"
 
 [functions.kiwify-webhook]
 verify_jwt = false
+
+[functions.admin-delete-establishment]
+verify_jwt = false

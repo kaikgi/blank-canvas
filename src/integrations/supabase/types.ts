@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_establishment_id: string | null
+          target_owner_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_establishment_id?: string | null
+          target_owner_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_establishment_id?: string | null
+          target_owner_user_id?: string | null
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -259,6 +289,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      establishment_deletion_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          establishment_id: string
+          id: string
+          owner_user_id: string | null
+          requested_by_admin_user_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          establishment_id: string
+          id?: string
+          owner_user_id?: string | null
+          requested_by_admin_user_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          establishment_id?: string
+          id?: string
+          owner_user_id?: string | null
+          requested_by_admin_user_id?: string
+          status?: string
+        }
+        Relationships: []
       }
       establishment_members: {
         Row: {
