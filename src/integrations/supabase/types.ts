@@ -912,6 +912,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_get_my_level: { Args: never; Returns: string }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { p_user_id: string }; Returns: boolean }
