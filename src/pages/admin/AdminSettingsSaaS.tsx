@@ -24,7 +24,7 @@ export default function AdminSettingsSaaS() {
         <div className="rounded-lg border bg-card p-6 space-y-2">
           <h3 className="font-semibold">Trial</h3>
           <p className="text-sm text-muted-foreground">
-            Novos estabelecimentos entram com status <code className="bg-muted px-1 rounded text-xs">trial</code> e 7 dias de acesso completo (Studio). Após expirar, um paywall bloqueia o dashboard.
+            Novos estabelecimentos entram com status <code className="bg-muted px-1 rounded text-xs">trial</code> e 7 dias de acesso (3 profissionais, 130 agendamentos). Após expirar, um paywall bloqueia o dashboard.
           </p>
         </div>
         <div className="rounded-lg border bg-card p-6 space-y-2">
