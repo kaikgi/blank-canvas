@@ -5,11 +5,13 @@ import { CompletionPromptDialog } from '@/components/completion/CompletionPrompt
 import { NotificationBell } from './NotificationBell';
 import { useUserEstablishment } from '@/hooks/useUserEstablishment';
 import { useTrialStatus } from '@/hooks/useTrialStatus';
+import { useAuth } from '@/hooks/useAuth';
 import { TrialExpiredModal } from './TrialExpiredModal';
 import { TrialOnboardingPopup } from './TrialOnboardingPopup';
 import { TrialBanner } from './TrialBanner';
 
 export function DashboardLayout() {
+  const { user } = useAuth();
   const { data: establishment } = useUserEstablishment();
   const { isBlocked, isLoading, daysLeft } = useTrialStatus();
 
@@ -38,7 +40,7 @@ export function DashboardLayout() {
       {!isLoading && isBlocked && <TrialExpiredModal />}
 
       {/* Trial Onboarding Popup (first visit only) */}
-      {showTrialUI && <TrialOnboardingPopup daysLeft={daysLeft} />}
+      {showTrialUI && <TrialOnboardingPopup daysLeft={daysLeft} userId={user?.id} />}
 
       {/* Completion Prompt Dialog */}
       <CompletionPromptDialog 

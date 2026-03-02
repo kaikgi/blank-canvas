@@ -2,24 +2,26 @@ import { useState, useEffect } from 'react';
 import { X, Sparkles, Users, Calendar, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const STORAGE_KEY = 'agendali_trial_onboarding_dismissed';
+const STORAGE_KEY_PREFIX = 'agendali_trial_onboarding_dismissed_';
 
 interface TrialOnboardingPopupProps {
   daysLeft: number;
+  userId?: string;
 }
 
-export function TrialOnboardingPopup({ daysLeft }: TrialOnboardingPopupProps) {
+export function TrialOnboardingPopup({ daysLeft, userId }: TrialOnboardingPopupProps) {
   const [visible, setVisible] = useState(false);
+  const storageKey = userId ? `${STORAGE_KEY_PREFIX}${userId}` : `${STORAGE_KEY_PREFIX}default`;
 
   useEffect(() => {
-    const dismissed = localStorage.getItem(STORAGE_KEY);
+    const dismissed = localStorage.getItem(storageKey);
     if (dismissed !== '1') {
       setVisible(true);
     }
-  }, []);
+  }, [storageKey]);
 
   const dismiss = () => {
-    localStorage.setItem(STORAGE_KEY, '1');
+    localStorage.setItem(storageKey, '1');
     setVisible(false);
   };
 
