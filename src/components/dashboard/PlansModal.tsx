@@ -56,7 +56,7 @@ export function PlansModal({ open, onClose }: PlansModalProps) {
               </p>
               <div className="flex items-baseline gap-1 mt-3">
                 <span className="text-sm">R$</span>
-                <span className="text-3xl font-bold">{plan.price}</span>
+                <span className="text-3xl font-bold">{(plan.prices.monthly / 100).toLocaleString('pt-BR')}</span>
                 <span
                   className={cn(
                     'text-sm',

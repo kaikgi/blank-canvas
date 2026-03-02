@@ -1,23 +1,78 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PLANS } from "@/lib/hardcodedPlans";
+import { PLANS, type BillingPeriod, formatCentsBRL } from "@/lib/hardcodedPlans";
+
+const PERIODS: { key: BillingPeriod; label: string }[] = [
+  { key: "monthly", label: "Mensal" },
+  { key: "quarterly", label: "Trimestral" },
+  { key: "annual", label: "Anual" },
+];
+
+function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: BillingPeriod }) {
+  const cents = plan.prices[period];
+  const formatted = formatCentsBRL(cents);
+
+  return (
+    <div className="min-h-[80px] mt-4 transition-all duration-200">
+      <div className="flex items-baseline gap-1">
+        <span className={cn("text-sm", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>R$</span>
+        <span className="text-display-md tabular-nums">{formatted}</span>
+        {period === "monthly" && (
+          <span className={cn("text-body-sm", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>/mês</span>
+        )}
+      </div>
+      {period === "quarterly" && (
+        <p className={cn("text-body-sm mt-1", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
+          à vista por trimestre
+        </p>
+      )}
+      {period === "annual" && (
+        <div>
+          <p className={cn("text-body-sm mt-1", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
+            à vista por ano
+          </p>
+          <p className={cn("text-xs font-semibold mt-1", plan.popular ? "text-primary-foreground" : "text-foreground")}>
+            Economize 25%
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function PricingSection() {
+  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+
   return (
     <section id="precos" className="py-24 md:py-32">
       <div className="container">
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <p className="text-label text-muted-foreground uppercase tracking-wider mb-4">
-            Preços
-          </p>
-          <h2 className="text-display-md md:text-display-lg text-balance mb-6">
-            Planos simples, sem surpresas
-          </h2>
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <p className="text-label text-muted-foreground uppercase tracking-wider mb-4">Preços</p>
+          <h2 className="text-display-md md:text-display-lg text-balance mb-6">Planos simples, sem surpresas</h2>
           <p className="text-body-lg text-muted-foreground">
             Teste grátis por 7 dias. Depois, escolha o plano ideal para o seu negócio.
           </p>
+        </div>
+
+        {/* Period toggle */}
+        <div className="flex items-center justify-center gap-1 mb-12">
+          {PERIODS.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => setPeriod(p.key)}
+              className={cn(
+                "px-5 py-2 rounded-full text-sm font-medium border transition-all duration-200",
+                period === p.key
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-background text-foreground border-border hover:border-foreground/40"
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
 
         {/* Pricing cards */}
@@ -40,54 +95,25 @@ export function PricingSection() {
 
               <div className="min-h-[72px]">
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <p className={cn(
-                  "text-body-sm",
-                  plan.popular ? "text-primary-foreground/80" : "text-muted-foreground"
-                )}>
+                <p className={cn("text-body-sm", plan.popular ? "text-primary-foreground/80" : "text-muted-foreground")}>
                   {plan.description}
                 </p>
               </div>
 
-              <div className="min-h-[80px] mt-4">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm">R$</span>
-                  <span className="text-display-md">{plan.price}</span>
-                  <span className={cn(
-                    "text-body-sm",
-                    plan.popular ? "text-primary-foreground/80" : "text-muted-foreground"
-                  )}>
-                    /mês
-                  </span>
-                </div>
-              </div>
+              <PriceDisplay plan={plan} period={period} />
 
               <ul className="flex-1 space-y-3 mt-6">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-body-sm">
-                    <Check
-                      size={18}
-                      className={cn(
-                        "mt-0.5 shrink-0",
-                        plan.popular ? "text-primary-foreground" : "text-foreground"
-                      )}
-                    />
+                    <Check size={18} className={cn("mt-0.5 shrink-0", plan.popular ? "text-primary-foreground" : "text-foreground")} />
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
 
               <div className="mt-auto pt-6">
-                <Button
-                  variant={plan.popular ? "secondary" : "default"}
-                  size="lg"
-                  className="w-full"
-                  asChild
-                >
-                  <a
-                    href={plan.checkoutUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
+                  <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
                     Escolher plano
                     <ExternalLink size={14} className="ml-1" />
                   </a>
