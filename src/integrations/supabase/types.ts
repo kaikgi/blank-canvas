@@ -842,6 +842,7 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
+      slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
