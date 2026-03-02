@@ -125,6 +125,8 @@ export default function AdminAdmins() {
         .from("v_admin_users")
         .select("*")
         .order("level", { ascending: false });
+      console.log("[AdminAdmins] v_admin_users data:", data);
+      console.log("[AdminAdmins] v_admin_users error:", error);
       if (error) throw error;
       return (data || []) as VAdminUser[];
     },
