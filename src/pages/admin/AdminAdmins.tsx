@@ -82,14 +82,10 @@ function useMyAdminLevel() {
     queryKey: ["my-admin-level", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from("v_admin_users")
-        .select("level")
-        .eq("email", user.email)
-        .maybeSingle();
-      console.log("[useMyAdminLevel] data:", data, "error:", error, "email:", user.email);
+      const { data, error } = await supabase.rpc("admin_get_my_level" as any);
+      console.log("[useMyAdminLevel] rpc result:", data, "error:", error);
       if (error) throw error;
-      return data?.level ?? null;
+      return (data as string) ?? "none";
     },
     enabled: !!user,
   });
