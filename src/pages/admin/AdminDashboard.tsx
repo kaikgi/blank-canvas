@@ -1,6 +1,7 @@
 import { useAdminStats } from "@/hooks/useAdmin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Users, CreditCard, AlertTriangle, Clock, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
@@ -61,7 +62,10 @@ export default function AdminDashboard() {
       <div className="text-center py-12 space-y-2">
         <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
         <p className="text-destructive font-medium">Erro ao carregar estatísticas</p>
-        <p className="text-sm text-muted-foreground">Verifique se você tem permissão de admin.</p>
+        <p className="text-sm text-muted-foreground">{(error as Error)?.message || 'Erro desconhecido'}</p>
+        <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="mt-3">
+          Tentar novamente
+        </Button>
       </div>
     );
   }

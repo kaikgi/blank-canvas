@@ -40,8 +40,8 @@ serve(async (req) => {
     // Check admin access - look for user in admin_users table
     const { data: adminRow } = await adminClient
       .from('admin_users')
-      .select('id')
-      .eq('id', user.id as any)
+      .select('id, level')
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (!adminRow) {

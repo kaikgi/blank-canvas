@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useAdminEstablishments, useUpdateEstablishment, type AdminEstablishment } from "@/hooks/useAdmin";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Building2, Settings2, AlertTriangle, Phone, CalendarIcon } from "lucide-react";
+import { Search, Building2, Settings2, AlertTriangle, CalendarIcon, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -73,18 +73,20 @@ function getPlanLabel(est: AdminEstablishment) {
 export default function AdminEstablishments() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [planFilter, setPlanFilter] = useState<string>("all");
   const [editEst, setEditEst] = useState<AdminEstablishment | null>(null);
   const [editForm, setEditForm] = useState({ status: '', plano: '', trial_ends_at: '' });
 
   const { data, isLoading, error } = useAdminEstablishments(debouncedSearch || undefined);
   const updateEstablishment = useUpdateEstablishment();
 
-  let debounceTimer: ReturnType<typeof setTimeout>;
-  const handleSearchChange = (value: string) => {
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => setDebouncedSearch(value), 400);
-  };
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(value), 400);
+  }, []);
 
   const handleOpenEdit = (est: AdminEstablishment) => {
     setEditEst(est);
@@ -116,9 +118,18 @@ export default function AdminEstablishments() {
       <div className="text-center py-12 space-y-2">
         <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
         <p className="text-destructive font-medium">Erro ao carregar estabelecimentos</p>
+        <p className="text-sm text-muted-foreground">{(error as Error)?.message || 'Verifique sua conexão.'}</p>
       </div>
     );
   }
+
+  // Client-side filtering
+  const filtered = (data?.establishments || []).filter((est) => {
+    if (statusFilter !== 'all' && est.status !== statusFilter) return false;
+    const estPlan = est.subscription?.plan_code || est.plano || 'nenhum';
+    if (planFilter !== 'all' && estPlan !== planFilter) return false;
+    return true;
+  });
 
   const trialDate = editForm.trial_ends_at ? new Date(editForm.trial_ends_at + 'T00:00:00') : undefined;
 
@@ -129,9 +140,9 @@ export default function AdminEstablishments() {
         <p className="text-muted-foreground text-sm">Gerencie todos os salões cadastrados na plataforma</p>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative max-w-md flex-1">
+      {/* Search + Filters */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="relative max-w-md flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome, slug ou e-mail..."
@@ -140,9 +151,34 @@ export default function AdminEstablishments() {
             className="pl-10"
           />
         </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos status</SelectItem>
+              {STATUS_OPTIONS.map(s => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={planFilter} onValueChange={setPlanFilter}>
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue placeholder="Plano" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos planos</SelectItem>
+              {PLAN_OPTIONS.map(p => (
+                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         {data && (
-          <span className="text-sm text-muted-foreground tabular-nums">
-            {data.total} resultado{data.total !== 1 ? 's' : ''}
+          <span className="text-sm text-muted-foreground tabular-nums whitespace-nowrap">
+            {filtered.length} de {data.total}
           </span>
         )}
       </div>
@@ -152,14 +188,13 @@ export default function AdminEstablishments() {
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-14 w-full" />)}
         </div>
-      ) : data?.establishments?.length ? (
+      ) : filtered.length ? (
         <Card>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Estabelecimento</TableHead>
-                  <TableHead>Telefone</TableHead>
                   <TableHead>Plano</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Profissionais</TableHead>
@@ -168,18 +203,12 @@ export default function AdminEstablishments() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.establishments.map((est) => (
+                {filtered.map((est) => (
                   <TableRow key={est.id}>
                     <TableCell>
                       <div>
                         <p className="font-medium">{est.name}</p>
                         <p className="text-xs text-muted-foreground">/{est.slug} · {est.owner_email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Phone className="h-3 w-3" />
-                        <span>{est.owner_email}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -208,7 +237,11 @@ export default function AdminEstablishments() {
         <Card>
           <CardContent className="py-12 text-center">
             <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Nenhum estabelecimento encontrado</p>
+            <p className="text-muted-foreground">
+              {search || statusFilter !== 'all' || planFilter !== 'all'
+                ? 'Nenhum estabelecimento encontrado com esses filtros'
+                : 'Nenhum estabelecimento cadastrado'}
+            </p>
           </CardContent>
         </Card>
       )}
