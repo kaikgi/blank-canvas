@@ -9,6 +9,7 @@ import { useUserEstablishment } from '@/hooks/useUserEstablishment';
 import { useAuth } from '@/hooks/useAuth';
 import { UsageProgressBar } from '@/components/billing/UsageProgressBar';
 import { PLANS } from '@/lib/hardcodedPlans';
+import { getPlanEntitlements, formatLimit } from '@/lib/planEntitlements';
 import { 
   CreditCard, 
   Users, 
@@ -46,7 +47,6 @@ export default function Assinatura() {
   }
 
   const est = establishment as any;
-  // Normalize case from DB to prevent mismatches
   const estStatus = (est?.status || '').toLowerCase();
   const estPlano = (est?.plano || '').toLowerCase();
   
@@ -54,7 +54,10 @@ export default function Assinatura() {
   const isVip = estStatus === 'active' && estPlano === 'studio';
   const hasActiveSubscription = subscription?.status === 'active';
 
-  // Calculate trial days left
+  // Centralized entitlements
+  const entitlements = getPlanEntitlements(estStatus, estPlano, est?.trial_ends_at);
+
+  // Calculate trial days left with Math.ceil
   let trialDaysLeft = 0;
   if (isTrial && est?.trial_ends_at) {
     const now = new Date();
@@ -62,15 +65,10 @@ export default function Assinatura() {
     trialDaysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   }
 
-  // Determine current plan display — priority order:
-  // 1. Trial → show as Studio (unlimited)
-  // 2. VIP (plano='studio' + status='active') → Studio regardless of Kiwify
-  // 3. Active Kiwify subscription → use subscription plan_code
-  // 4. Establishment plano column → use that
-  // 5. Fallback → basico
+  // Determine display plan code for plan comparison
   let displayPlanCode: string;
   if (isTrial) {
-    displayPlanCode = 'studio';
+    displayPlanCode = 'trial';
   } else if (isVip) {
     displayPlanCode = 'studio';
   } else if (hasActiveSubscription) {
@@ -80,15 +78,15 @@ export default function Assinatura() {
   } else {
     displayPlanCode = 'basico';
   }
-  const isUnlimited = displayPlanCode === 'studio' || isTrial;
-  const currentPlanCode = displayPlanCode;
+
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
 
   // Usage percentages
-  const professionalsPercentage = limits?.maxProfessionals 
-    ? Math.round((limits.currentProfessionals / limits.maxProfessionals) * 100)
-    : 0;
-  const isNearProfessionalsLimit = limits?.maxProfessionals ? professionalsPercentage >= 80 : false;
+  const profLimit = entitlements.professionalLimit;
+  const profCurrent = limits?.currentProfessionals ?? 0;
+  const isNearProfessionalsLimit = profLimit !== Infinity && profLimit > 0 
+    ? (profCurrent / profLimit) >= 0.8 
+    : false;
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -139,11 +137,11 @@ export default function Assinatura() {
                   <div className="flex items-center gap-2">
                     {isTrial ? (
                       <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-base px-3 py-1">
-                        Período de Teste (Trial)
+                        Trial
                       </Badge>
                     ) : (
                       <Badge className="text-base px-3 py-1">
-                        {currentPlan.name}
+                        {entitlements.planLabel}
                       </Badge>
                     )}
                   </div>
@@ -175,7 +173,7 @@ export default function Assinatura() {
                   <div className="text-lg font-semibold text-amber-700 dark:text-amber-300">
                     Grátis por 7 dias
                   </div>
-                  <div className="text-sm text-muted-foreground">Acesso Studio completo</div>
+                  <div className="text-sm text-muted-foreground">Até {entitlements.professionalLimit} profissionais</div>
                 </div>
               )}
             </div>
@@ -187,7 +185,7 @@ export default function Assinatura() {
                 <div>
                   <div className="text-sm text-muted-foreground">Profissionais</div>
                   <div className="font-semibold">
-                    {isTrial ? 'Ilimitados' : currentPlan.features[0]}
+                    {formatLimit(entitlements.professionalLimit)}
                   </div>
                 </div>
               </div>
@@ -195,14 +193,14 @@ export default function Assinatura() {
                 <Calendar className="h-5 w-5 text-primary" />
                 <div>
                   <div className="text-sm text-muted-foreground">Agendamentos</div>
-                  <div className="font-semibold">Ilimitados</div>
+                  <div className="font-semibold">{formatLimit(entitlements.appointmentLimit)}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                 <Crown className="h-5 w-5 text-primary" />
                 <div>
                   <div className="text-sm text-muted-foreground">Plano</div>
-                  <div className="font-semibold">{isTrial ? 'Trial (Studio)' : currentPlan.name}</div>
+                  <div className="font-semibold">{entitlements.planLabel}</div>
                 </div>
               </div>
             </div>
@@ -234,69 +232,72 @@ export default function Assinatura() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {limits && (
-              <>
-                {/* Professionals usage */}
-                {isUnlimited ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                      <Users className="h-4 w-4 text-primary" />
-                      <div>
-                        <div className="text-sm text-muted-foreground">Profissionais</div>
-                        <div className="font-semibold">{limits.currentProfessionals} cadastrado{limits.currentProfessionals !== 1 ? 's' : ''}</div>
-                      </div>
-                    </div>
-                    <p className="text-xs text-green-600 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Limites liberados (Ilimitado)
-                    </p>
+            {/* Professionals usage */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Users className="h-4 w-4 text-primary" />
+                <div className="flex-1">
+                  <div className="text-sm text-muted-foreground">Profissionais</div>
+                  <div className="font-semibold">
+                    {profCurrent} / {formatLimit(entitlements.professionalLimit)}
                   </div>
-                ) : (
-                  <UsageProgressBar
-                    current={limits.currentProfessionals}
-                    max={limits.maxProfessionals}
-                    label="Equipe"
-                    icon={<Users className="h-4 w-4" />}
+                </div>
+              </div>
+              {profLimit !== Infinity && profLimit > 0 && (
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all',
+                      profCurrent >= profLimit ? 'bg-destructive' :
+                      isNearProfessionalsLimit ? 'bg-amber-500' : 'bg-primary'
+                    )}
+                    style={{ width: `${Math.min((profCurrent / profLimit) * 100, 100)}%` }}
                   />
-                )}
+                </div>
+              )}
+            </div>
 
-                {/* Quick Stats */}
-                <div className="pt-4 border-t space-y-3">
-                  {!isUnlimited && limits.maxProfessionals !== null && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Profissionais restantes</span>
-                      <span className="font-medium">
-                        {limits.professionalsRemaining ?? '∞'}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Agendamentos</span>
-                    <span className="font-medium">Ilimitados</span>
+            {/* Appointments usage */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Calendar className="h-4 w-4 text-primary" />
+                <div className="flex-1">
+                  <div className="text-sm text-muted-foreground">Agendamentos</div>
+                  <div className="font-semibold">
+                    {isTrial ? (
+                      <>— / {entitlements.appointmentLimit}</>
+                    ) : entitlements.appointmentLimit === Infinity ? (
+                      <>Ilimitados</>
+                    ) : (
+                      <>— / {entitlements.appointmentLimit}</>
+                    )}
                   </div>
-                </div>
-
-                {/* Status Indicator */}
-                <div className="pt-2">
-                  {isTrial ? (
-                    <div className="flex items-center gap-2 text-amber-600 text-sm">
-                      <Clock className="h-4 w-4" />
-                      <span>{trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} restante{trialDaysLeft !== 1 ? 's' : ''} de teste</span>
-                    </div>
-                  ) : isNearProfessionalsLimit ? (
-                    <div className="flex items-center gap-2 text-amber-600 text-sm">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span>Próximo do limite</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-green-600 text-sm">
-                      <CheckCircle2 className="h-4 w-4" />
-                      <span>Uso dentro do limite</span>
-                    </div>
+                  {isTrial && (
+                    <p className="text-xs text-muted-foreground mt-0.5">Contagem em implementação</p>
                   )}
                 </div>
-              </>
-            )}
+              </div>
+            </div>
+
+            {/* Status Indicator */}
+            <div className="pt-2 border-t">
+              {isTrial ? (
+                <div className="flex items-center gap-2 text-amber-600 text-sm">
+                  <Clock className="h-4 w-4" />
+                  <span>{trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} restante{trialDaysLeft !== 1 ? 's' : ''} de teste</span>
+                </div>
+              ) : isNearProfessionalsLimit ? (
+                <div className="flex items-center gap-2 text-amber-600 text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Próximo do limite</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-green-600 text-sm">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Uso dentro do limite</span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -350,7 +351,7 @@ export default function Assinatura() {
                   ))}
                 </ul>
                 <div className="mt-auto pt-4">
-                  {!isTrial && plan.code === currentPlanCode ? (
+                  {!isTrial && plan.code === displayPlanCode ? (
                     <Button variant="outline" disabled className="w-full">Plano atual</Button>
                   ) : (
                     <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>

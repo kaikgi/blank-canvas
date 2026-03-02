@@ -37,9 +37,11 @@ export function usePlanLimits(establishmentId: string | undefined) {
       const isVip = status === 'active' && plano === 'studio';
 
       // 2. Determine plan code — priority:
-      // Trial/VIP → studio, then subscription, then establishment plano, then basico
+      // Trial → trial limits (3 pros), VIP → studio, then subscription, then establishment plano, then basico
       let planCode = 'basico';
-      if (isTrial || isVip) {
+      if (isTrial) {
+        planCode = 'trial';
+      } else if (isVip) {
         planCode = 'studio';
       } else {
         const { data: sub } = await supabase
