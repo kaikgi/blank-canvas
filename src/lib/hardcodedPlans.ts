@@ -7,9 +7,15 @@ export interface HardcodedPlan {
     quarterly: number;
     annual: number;
   };
+  checkoutUrls: {
+    monthly: string;
+    quarterly: string;
+    annual: string;
+  };
   maxProfessionals: number | null;
   features: string[];
   popular: boolean;
+  /** @deprecated Use checkoutUrls[period] instead */
   checkoutUrl: string;
 }
 
@@ -30,7 +36,12 @@ export const PLANS: HardcodedPlan[] = [
       'Suporte padrão',
     ],
     popular: false,
-    checkoutUrl: 'https://pay.kiwify.com.br/6pi4D4u',
+    checkoutUrl: 'https://pay.kiwify.com.br/3Zeym7r',
+    checkoutUrls: {
+      monthly: 'https://pay.kiwify.com.br/3Zeym7r',
+      quarterly: 'https://pay.kiwify.com.br/73RMrpB',
+      annual: 'https://pay.kiwify.com.br/ImV5cuf',
+    },
   },
   {
     code: 'essencial',
@@ -47,7 +58,12 @@ export const PLANS: HardcodedPlan[] = [
       'Relatórios de desempenho',
     ],
     popular: true,
-    checkoutUrl: 'https://pay.kiwify.com.br/XXG8JDp',
+    checkoutUrl: 'https://pay.kiwify.com.br/uc7CCUY',
+    checkoutUrls: {
+      monthly: 'https://pay.kiwify.com.br/uc7CCUY',
+      quarterly: 'https://pay.kiwify.com.br/dQip57V',
+      annual: 'https://pay.kiwify.com.br/g4qeKkm',
+    },
   },
   {
     code: 'studio',
@@ -65,7 +81,12 @@ export const PLANS: HardcodedPlan[] = [
       'Suporte prioritário',
     ],
     popular: false,
-    checkoutUrl: 'https://pay.kiwify.com.br/gDSvrq6',
+    checkoutUrl: 'https://pay.kiwify.com.br/i9OOO1',
+    checkoutUrls: {
+      monthly: 'https://pay.kiwify.com.br/i9OOO1',
+      quarterly: 'https://pay.kiwify.com.br/oQ2rGRC',
+      annual: 'https://pay.kiwify.com.br/kIinvfN',
+    },
   },
 ];
 

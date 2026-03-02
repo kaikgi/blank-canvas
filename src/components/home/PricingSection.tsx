@@ -14,10 +14,11 @@ function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: Billi
   const cents = plan.prices[period];
   const formatted = formatCentsBRL(cents);
   const monthlyCents = plan.prices.monthly;
-  const annualSaving = (monthlyCents * 12) - plan.prices.annual;
+  const fullMonthlyTotal = monthlyCents * 12;
+  const annualSaving = fullMonthlyTotal - plan.prices.annual;
 
   return (
-    <div className="min-h-[100px] mt-4 transition-all duration-200">
+    <div className="min-h-[120px] mt-4 transition-all duration-200">
       <div className="flex items-baseline gap-1">
         <span className={cn("text-sm", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>R$</span>
         <span className="text-display-md tabular-nums">{formatted}</span>
@@ -26,14 +27,19 @@ function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: Billi
         )}
       </div>
       {period === "quarterly" && (
-        <p className={cn("text-body-sm mt-1", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
-          à vista por trimestre
-        </p>
+        <div>
+          <p className={cn("text-body-sm mt-1", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
+            à vista por trimestre
+          </p>
+          <p className={cn("text-xs font-semibold mt-1.5 inline-block px-2 py-0.5 rounded-full", plan.popular ? "bg-primary-foreground/20 text-primary-foreground" : "bg-foreground/10 text-foreground")}>
+            Economize 10%
+          </p>
+        </div>
       )}
       {period === "annual" && (
         <div>
-          <p className={cn("text-body-sm mt-1", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
-            à vista por ano
+          <p className={cn("text-body-sm mt-1 line-through opacity-60", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
+            De R${formatCentsBRL(fullMonthlyTotal)}
           </p>
           <p className={cn("text-xs font-semibold mt-1.5 inline-block px-2 py-0.5 rounded-full", plan.popular ? "bg-primary-foreground/20 text-primary-foreground" : "bg-foreground/10 text-foreground")}>
             Economize R${formatCentsBRL(annualSaving)} por ano
@@ -115,7 +121,7 @@ export function PricingSection() {
 
               <div className="mt-auto pt-6">
                 <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
-                  <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={plan.checkoutUrls[period]} target="_blank" rel="noopener noreferrer">
                     Escolher plano
                     <ExternalLink size={14} className="ml-1" />
                   </a>
