@@ -44,7 +44,8 @@ export function useUserEstablishment() {
       return memberEstablishment;
     },
     enabled: !!user,
-    staleTime: 60000, // 1 minute cache
-    refetchOnWindowFocus: false,
+    staleTime: 30000, // 30s cache
+    refetchInterval: 30000, // poll every 30s
+    refetchOnWindowFocus: true,
   });
 }
