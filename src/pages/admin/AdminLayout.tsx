@@ -11,6 +11,8 @@ import {
   Skull,
   Users,
   Shield,
+  Webhook,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -19,7 +21,9 @@ import { useState } from "react";
 const adminNavItems = [
   { to: "/admin", label: "Visão Geral", icon: LayoutDashboard, end: true },
   { to: "/admin/estabelecimentos", label: "Estabelecimentos", icon: Building2, end: false },
+  { to: "/admin/assinaturas", label: "Assinaturas", icon: CreditCard, end: false },
   { to: "/admin/admins", label: "Administradores", icon: Users, end: false },
+  { to: "/admin/webhooks", label: "Webhooks", icon: Webhook, end: false },
   { to: "/admin/danger-zone", label: "Danger Zone", icon: Skull, end: false, danger: true },
 ];
 
