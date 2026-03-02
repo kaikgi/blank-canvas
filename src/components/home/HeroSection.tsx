@@ -18,19 +18,21 @@ import { Link } from "react-router-dom";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[calc(100vh-4rem)] md:min-h-screen flex items-center pt-20 md:pt-16 overflow-hidden">
+    <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-dots opacity-50" />
       
       {/* Gradient orb */}
       <div className="absolute top-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-muted rounded-full blur-3xl opacity-60" />
       
-      <div className="container relative">
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
+      <div className="relative w-full max-w-[1200px] mx-auto px-6">
+        <div
+          className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-20 items-center"
+        >
           {/* Left content */}
-          <div className="space-y-8 animate-fade-in-up">
+          <div className="animate-fade-in-up text-center lg:text-left">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary border border-border">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary border border-border mb-6">
               <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span className="text-body-sm text-muted-foreground">
                 Teste grátis por 7 dias — sem cartão de crédito
@@ -38,19 +40,19 @@ export function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-display-md sm:text-display-lg lg:text-display-xl text-balance">
+            <h1 className="text-display-md sm:text-display-lg lg:text-display-xl text-balance max-w-[650px] mx-auto lg:mx-0 mb-6">
               Agendamentos simples.{" "}
               <span className="text-muted-foreground">Negócio eficiente.</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-body-lg text-muted-foreground max-w-lg">
+            <p className="text-body-lg text-muted-foreground max-w-[520px] mx-auto lg:mx-0 mb-8">
               Transforme a experiência de agendamento dos seus clientes com uma plataforma 
               minimalista, poderosa e feita para profissionais que valorizam seu tempo.
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex justify-center lg:justify-start mb-8">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/cadastro">
                   Começar grátis
@@ -60,7 +62,7 @@ export function HeroSection() {
             </div>
 
             {/* Social proof */}
-            <div className="flex items-center gap-6 pt-4">
+            <div className="flex items-center justify-center lg:justify-start gap-6">
               <div className="flex -space-x-2">
                 {professionalAvatars.map((avatar, i) => (
                   <img
@@ -78,7 +80,7 @@ export function HeroSection() {
           </div>
 
           {/* Right content - Preview card */}
-          <div className="relative animate-fade-in max-w-md mx-auto lg:max-w-none" style={{ animationDelay: "0.2s" }}>
+          <div className="relative animate-fade-in max-w-[380px] mx-auto lg:max-w-[360px] lg:mx-auto" style={{ animationDelay: "0.2s" }}>
             <div className="relative">
               {/* Main card */}
               <div className="bg-card rounded-2xl border border-border shadow-strong p-6 space-y-6">
@@ -104,7 +106,6 @@ export function HeroSection() {
                     <div
                       key={service.name}
                       className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-premium cursor-pointer"
-                      style={{ animationDelay: `${0.3 + i * 0.1}s` }}
                     >
                       <div>
                         <p className="font-medium text-body-sm">{service.name}</p>
