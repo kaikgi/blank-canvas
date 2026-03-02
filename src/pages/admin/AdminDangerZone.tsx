@@ -1,79 +1,50 @@
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AlertTriangle, Skull, Loader2, CheckCircle2, XCircle, ShieldAlert, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { useAdminEstablishments, useUpdateEstablishment } from "@/hooks/useAdmin";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Skull, AlertTriangle, CheckCircle2, XCircle, Loader2, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface DeletionJob {
+  id: string;
+  establishment_id: string;
+  owner_user_id: string | null;
+  requested_by_admin_user_id: string;
+  status: string;
+  error: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+function StatusIcon({ status }: { status: string }) {
+  switch (status) {
+    case 'done':
+      return <Badge className="gap-1 bg-green-600 hover:bg-green-700"><CheckCircle2 size={12} /> Concluído</Badge>;
+    case 'failed':
+      return <Badge variant="destructive" className="gap-1"><XCircle size={12} /> Falhou</Badge>;
+    case 'running':
+      return <Badge variant="secondary" className="gap-1"><Loader2 size={12} className="animate-spin" /> Executando</Badge>;
+    default:
+      return <Badge variant="outline" className="gap-1"><Clock size={12} /> {status}</Badge>;
+  }
+}
 
 export default function AdminDangerZone() {
-  // Block expired trials
-  const [blockingTrials, setBlockingTrials] = useState(false);
-  const [blockResult, setBlockResult] = useState<{ count: number } | null>(null);
-  const updateEstablishment = useUpdateEstablishment();
-
-  // Delete establishment
-  const [deleteSlug, setDeleteSlug] = useState("");
-  const [confirmDeleteName, setConfirmDeleteName] = useState("");
-  const [deletingEst, setDeletingEst] = useState(false);
-
-  const { data: estData } = useAdminEstablishments();
-
-  const handleBlockExpiredTrials = async () => {
-    setBlockingTrials(true);
-    setBlockResult(null);
-    try {
-      const establishments = estData?.establishments || [];
-      const now = new Date();
-      const expired = establishments.filter(
-        (e) => e.status === "trial" && e.trial_ends_at && new Date(e.trial_ends_at) < now
-      );
-
-      let count = 0;
-      for (const est of expired) {
-        await updateEstablishment.mutateAsync({
-          establishment_id: est.id,
-          status: "canceled",
-        });
-        count++;
-      }
-      setBlockResult({ count });
-      toast.success(`${count} estabelecimento(s) bloqueado(s)`);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao bloquear trials");
-    } finally {
-      setBlockingTrials(false);
-    }
-  };
-
-  const targetEstablishment = estData?.establishments?.find(
-    (e) => e.slug === deleteSlug.trim().toLowerCase()
-  );
-
-  const canDelete =
-    targetEstablishment &&
-    confirmDeleteName.trim().toLowerCase() === targetEstablishment.name.trim().toLowerCase();
-
-  const handleDeleteEstablishment = async () => {
-    if (!canDelete || !targetEstablishment) return;
-    setDeletingEst(true);
-    try {
-      // For now, we mark as canceled (permanent delete would require service_role)
-      await updateEstablishment.mutateAsync({
-        establishment_id: targetEstablishment.id,
-        status: "canceled",
-      });
-      toast.success(`"${targetEstablishment.name}" foi bloqueado permanentemente`);
-      setDeleteSlug("");
-      setConfirmDeleteName("");
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao deletar");
-    } finally {
-      setDeletingEst(false);
-    }
-  };
+  const { data: jobs, isLoading } = useQuery({
+    queryKey: ["admin-deletion-jobs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("establishment_deletion_jobs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data || []) as DeletionJob[];
+    },
+    refetchInterval: 10000,
+  });
 
   return (
     <div className="space-y-6">
@@ -82,12 +53,12 @@ export default function AdminDangerZone() {
           <Skull className="h-6 w-6" />
           Danger Zone
         </h1>
-        <p className="text-muted-foreground">
-          Operações de impacto profundo. Use com extrema cautela.
+        <p className="text-muted-foreground text-sm mt-1">
+          Histórico de exclusões permanentes de estabelecimentos.
         </p>
       </div>
 
-      {/* Warning Banner */}
+      {/* Warning */}
       <Card className="border-destructive/50 bg-destructive/5">
         <CardContent className="py-4">
           <div className="flex items-start gap-3">
@@ -95,103 +66,47 @@ export default function AdminDangerZone() {
             <div>
               <p className="font-semibold text-destructive">Área restrita — Operações irreversíveis</p>
               <p className="text-sm text-muted-foreground mt-1">
-                As ações abaixo podem causar perda permanente de dados. Confirme cada operação antes de executar.
+                As exclusões permanentes são feitas na tela de Estabelecimentos usando o botão de lixeira. Aqui você pode acompanhar o histórico de execução.
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Block All Expired Trials */}
-      <Card className="border-amber-500/30">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-amber-600" />
-            Bloquear todos os trials vencidos
-          </CardTitle>
-          <CardDescription>
-            Marca como "cancelado" todos os estabelecimentos em trial cuja data de expiração já passou.
-          </CardDescription>
+      {/* Deletion Jobs */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold">Histórico de Exclusões</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            variant="outline"
-            className="border-amber-500/50 text-amber-700 hover:bg-amber-500/10"
-            onClick={handleBlockExpiredTrials}
-            disabled={blockingTrials}
-          >
-            {blockingTrials && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {blockingTrials ? "Processando..." : "Bloquear Trials Vencidos"}
-          </Button>
-
-          {blockResult && (
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <span className="text-green-700">{blockResult.count} estabelecimento(s) bloqueado(s) com sucesso.</span>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          ) : !jobs?.length ? (
+            <p className="text-muted-foreground text-center py-8 text-sm">Nenhuma exclusão registrada</p>
+          ) : (
+            <div className="divide-y">
+              {jobs.map((job) => (
+                <div key={job.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-mono">{job.establishment_id.slice(0, 8)}…</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(job.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <StatusIcon status={job.status} />
+                    {job.error && (
+                      <span className="text-xs text-destructive max-w-[200px] truncate" title={job.error}>
+                        {job.error}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Delete Establishment */}
-      <Card className="border-destructive/40">
-        <CardHeader>
-          <CardTitle className="text-lg text-destructive flex items-center gap-2">
-            <Trash2 className="h-5 w-5" />
-            Deletar Estabelecimento permanentemente
-          </CardTitle>
-          <CardDescription>
-            Bloqueia permanentemente um estabelecimento. Esta ação não pode ser desfeita.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="delete-slug">Slug do estabelecimento</Label>
-            <Input
-              id="delete-slug"
-              value={deleteSlug}
-              onChange={(e) => setDeleteSlug(e.target.value)}
-              placeholder="ex: meu-salao"
-              className="font-mono"
-            />
-          </div>
-
-          {targetEstablishment && (
-            <div className="p-3 bg-destructive/5 rounded-lg border border-destructive/20 space-y-3">
-              <p className="text-sm">
-                Encontrado: <strong>{targetEstablishment.name}</strong> — Status: <strong>{targetEstablishment.status}</strong>
-              </p>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-name" className="text-destructive">
-                  Digite o nome "{targetEstablishment.name}" para confirmar:
-                </Label>
-                <Input
-                  id="confirm-name"
-                  value={confirmDeleteName}
-                  onChange={(e) => setConfirmDeleteName(e.target.value)}
-                  placeholder={targetEstablishment.name}
-                  className="font-mono border-destructive/30"
-                />
-              </div>
-            </div>
-          )}
-
-          {deleteSlug && !targetEstablishment && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <XCircle className="h-4 w-4" />
-              Nenhum estabelecimento encontrado com esse slug.
-            </div>
-          )}
-
-          <Button
-            variant="destructive"
-            onClick={handleDeleteEstablishment}
-            disabled={!canDelete || deletingEst}
-            className="w-full"
-          >
-            {deletingEst && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {deletingEst ? "Deletando..." : "🔥 Deletar Permanentemente"}
-          </Button>
         </CardContent>
       </Card>
     </div>
