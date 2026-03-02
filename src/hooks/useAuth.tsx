@@ -94,25 +94,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const userId = data.user.id;
-    const baseSlug = generateSlug(companyName);
-    const slug = `${baseSlug}-${Date.now().toString(36)}`;
 
-    // Create establishment - trial_ends_at and status='trial' are set by DB trigger
+    // Create establishment - slug, status, plano, trial_ends_at are set by DB trigger
     const { data: establishment, error: estError } = await supabase
       .from('establishments')
       .insert({
         owner_user_id: userId,
         name: companyName,
-        slug,
-        booking_enabled: true,
-        reschedule_min_hours: 2,
-        max_future_days: 30,
-        slot_interval_minutes: 15,
-        buffer_minutes: 0,
-        auto_confirm_bookings: true,
-        ask_email: false,
-        ask_notes: true,
-        require_policy_acceptance: true,
       })
       .select('id')
       .single();
