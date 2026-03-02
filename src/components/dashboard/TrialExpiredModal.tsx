@@ -117,7 +117,7 @@ export function TrialExpiredModal() {
               <div className="min-h-[70px] mt-4">
                 <div className="flex items-baseline gap-1">
                   <span className="text-sm">R$</span>
-                  <span className="text-3xl font-bold">{plan.price}</span>
+                  <span className="text-3xl font-bold">{(plan.prices.monthly / 100).toLocaleString('pt-BR')}</span>
                   <span className={cn(
                     "text-body-sm",
                     plan.popular ? "text-primary-foreground/80" : "text-muted-foreground"

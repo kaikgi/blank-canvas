@@ -163,7 +163,7 @@ export default function Assinatura() {
               {!isTrial && (
                 <div className="text-right">
                   <div className="text-3xl font-bold">
-                    R$ {currentPlan.price}
+                    R$ {(currentPlan.prices.monthly / 100).toLocaleString('pt-BR')}
                   </div>
                   <div className="text-sm text-muted-foreground">/mês</div>
                 </div>
@@ -339,7 +339,7 @@ export default function Assinatura() {
                 <p className={cn("text-sm mt-1", plan.popular ? "text-primary-foreground/80" : "text-muted-foreground")}>{plan.description}</p>
                 <div className="flex items-baseline gap-1 mt-4">
                   <span className="text-sm">R$</span>
-                  <span className="text-3xl font-bold">{plan.price}</span>
+                  <span className="text-3xl font-bold">{(plan.prices.monthly / 100).toLocaleString('pt-BR')}</span>
                   <span className={cn("text-sm", plan.popular ? "text-primary-foreground/80" : "text-muted-foreground")}>/mês</span>
                 </div>
                 <ul className="flex-1 space-y-2 mt-4">

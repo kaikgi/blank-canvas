@@ -2,21 +2,25 @@ export interface HardcodedPlan {
   code: string;
   name: string;
   description: string;
-  price: string;
-  priceCents: number;
-  maxProfessionals: number | null; // null = unlimited
+  prices: {
+    monthly: number;
+    quarterly: number;
+    annual: number;
+  };
+  maxProfessionals: number | null;
   features: string[];
   popular: boolean;
   checkoutUrl: string;
 }
 
+export type BillingPeriod = 'monthly' | 'quarterly' | 'annual';
+
 export const PLANS: HardcodedPlan[] = [
   {
     code: 'basico',
-    name: 'Básico',
+    name: 'Solo',
     description: 'Ideal para profissionais autônomos',
-    price: '19,90',
-    priceCents: 1990,
+    prices: { monthly: 3900, quarterly: 10500, annual: 35100 },
     maxProfessionals: 1,
     features: [
       '1 profissional',
@@ -30,10 +34,9 @@ export const PLANS: HardcodedPlan[] = [
   },
   {
     code: 'essencial',
-    name: 'Essencial',
+    name: 'Studio',
     description: 'Para pequenos estabelecimentos',
-    price: '49,90',
-    priceCents: 4990,
+    prices: { monthly: 7900, quarterly: 21300, annual: 71100 },
     maxProfessionals: 4,
     features: [
       'Até 4 profissionais',
@@ -48,10 +51,9 @@ export const PLANS: HardcodedPlan[] = [
   },
   {
     code: 'studio',
-    name: 'Studio',
+    name: 'Pro',
     description: 'Para estúdios e clínicas',
-    price: '99,90',
-    priceCents: 9990,
+    prices: { monthly: 14900, quarterly: 40200, annual: 134100 },
     maxProfessionals: null,
     features: [
       'Profissionais ilimitados',
@@ -74,4 +76,11 @@ export function getPlanLimits(planCode: string | undefined, isTrial: boolean) {
   }
   const plan = PLANS.find(p => p.code === planCode) || PLANS[0];
   return { maxProfessionals: plan.maxProfessionals };
+}
+
+export function formatCentsBRL(cents: number): string {
+  return (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
 }
