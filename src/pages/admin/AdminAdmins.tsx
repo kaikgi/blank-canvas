@@ -83,7 +83,6 @@ function useMyAdminLevel() {
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase.rpc("admin_get_my_level" as any);
-      console.log("[useMyAdminLevel] rpc result:", data, "error:", error);
       if (error) throw error;
       return (data as string) ?? "none";
     },
