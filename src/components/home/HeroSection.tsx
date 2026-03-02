@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Calendar, Clock, Users, Scissors, Sparkles, Heart } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { MockupCarousel } from "./MockupCarousel";
 
 import professional1 from "@/assets/avatars/professional-1.jpg";
 import professional2 from "@/assets/avatars/professional-2.jpg";
@@ -11,70 +11,7 @@ import professional5 from "@/assets/avatars/professional-5.jpg";
 
 const professionalAvatars = [professional1, professional2, professional3, professional4, professional5];
 
-const examples = [
-  {
-    type: "barbearia",
-    label: "Barbearia",
-    icon: Scissors,
-    title: "Barbearia Royal",
-    slug: "barbearia-royal",
-    weekly: 18,
-    services: [
-      { name: "Corte + Barba", duration: "45min", price: "R$ 75" },
-      { name: "Fade", duration: "30min", price: "R$ 55" },
-      { name: "Sobrancelha", duration: "15min", price: "R$ 25" },
-    ],
-  },
-  {
-    type: "nail",
-    label: "Nail Design",
-    icon: Sparkles,
-    title: "Nail Studio",
-    slug: "nail-studio",
-    weekly: 12,
-    services: [
-      { name: "Alongamento em Gel", duration: "2h", price: "R$ 180" },
-      { name: "Manicure Completa", duration: "1h", price: "R$ 60" },
-      { name: "Spa dos Pés", duration: "45min", price: "R$ 75" },
-    ],
-  },
-  {
-    type: "estetica",
-    label: "Estética",
-    icon: Heart,
-    title: "Clínica Estética",
-    slug: "clinica-estetica",
-    weekly: 9,
-    services: [
-      { name: "Limpeza de Pele", duration: "1h", price: "R$ 120" },
-      { name: "Drenagem Linfática", duration: "50min", price: "R$ 150" },
-      { name: "Massagem Relaxante", duration: "1h", price: "R$ 160" },
-    ],
-  },
-];
-
 export function HeroSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const switchTo = useCallback((index: number) => {
-    if (index === activeIndex) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setActiveIndex(index);
-      setIsTransitioning(false);
-    }, 200);
-  }, [activeIndex]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      switchTo((activeIndex + 1) % examples.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [activeIndex, switchTo]);
-
-  const current = examples[activeIndex];
-
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background pattern */}
@@ -134,83 +71,9 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Right content - Mockup card with tabs */}
-          <div className="relative animate-fade-in max-w-[380px] mx-auto lg:max-w-[370px] lg:mx-auto" style={{ animationDelay: "0.2s" }}>
-            {/* Category tabs */}
-            <div className="flex items-center justify-center gap-1.5 mb-4">
-              {examples.map((ex, i) => {
-                const Icon = ex.icon;
-                return (
-                  <button
-                    key={ex.type}
-                    onClick={() => switchTo(i)}
-                    className={`
-                      flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200
-                      ${i === activeIndex
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-                      }
-                    `}
-                  >
-                    <Icon size={13} />
-                    {ex.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Main card */}
-            <div
-              className={`
-                bg-card rounded-2xl border border-border shadow-strong p-6 space-y-5
-                transition-all duration-300 ease-out
-                ${isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"}
-              `}
-            >
-              {/* Header with badge inside */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shrink-0">
-                    <Calendar className="text-primary-foreground" size={22} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm">{current.title}</h3>
-                    <p className="text-xs text-muted-foreground">agendali.com/{current.slug}</p>
-                  </div>
-                </div>
-                {/* Weekly badge - inside card */}
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 shrink-0">
-                  <Users className="text-success" size={13} />
-                  <span className="text-xs font-semibold text-success">+{current.weekly}</span>
-                </div>
-              </div>
-
-              {/* Services preview */}
-              <div className="space-y-2.5">
-                <p className="text-label text-muted-foreground uppercase tracking-wider">Serviços populares</p>
-                {current.services.map((service) => (
-                  <div
-                    key={service.name}
-                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-premium cursor-pointer"
-                  >
-                    <div>
-                      <p className="font-medium text-body-sm">{service.name}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock size={12} />
-                        {service.duration}
-                      </p>
-                    </div>
-                    <span className="font-semibold text-body-sm">{service.price}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA */}
-              <Button variant="default" className="w-full">
-                Agendar horário
-                <ArrowRight size={16} />
-              </Button>
-            </div>
+          {/* Right content - Premium Mockup Carousel */}
+          <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <MockupCarousel />
           </div>
         </div>
       </div>
