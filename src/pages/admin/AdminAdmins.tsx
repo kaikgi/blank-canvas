@@ -83,10 +83,11 @@ function useMyAdminLevel() {
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase
-        .from("admin_users")
+        .from("v_admin_users")
         .select("level")
-        .eq("user_id", user.id)
+        .eq("email", user.email)
         .maybeSingle();
+      console.log("[useMyAdminLevel] data:", data, "error:", error, "email:", user.email);
       if (error) throw error;
       return data?.level ?? null;
     },
@@ -109,7 +110,7 @@ export default function AdminAdmins() {
   } | null>(null);
 
   const queryClient = useQueryClient();
-  const { data: myLevel, isLoading: myLevelLoading } = useMyAdminLevel();
+  const { data: myLevel, isLoading: myLevelLoading, error: myLevelError } = useMyAdminLevel();
   const isMaster = myLevel === "master";
 
   // Fetch admins from view
@@ -230,6 +231,18 @@ export default function AdminAdmins() {
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-64" />
       </div>
+    );
+  }
+
+  if (myLevelError) {
+    return (
+      <Card className="border-destructive/30">
+        <CardContent className="py-6 text-center space-y-2">
+          <AlertTriangle className="h-8 w-8 mx-auto text-destructive" />
+          <p className="text-sm text-destructive font-medium">Erro ao verificar nível de admin</p>
+          <p className="text-xs text-muted-foreground">{(myLevelError as Error).message}</p>
+        </CardContent>
+      </Card>
     );
   }
 

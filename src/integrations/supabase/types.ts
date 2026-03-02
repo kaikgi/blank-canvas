@@ -912,7 +912,10 @@ export type Database = {
       }
     }
     Functions: {
-      is_admin: { Args: { p_user_id: string }; Returns: boolean }
+      is_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { p_user_id: string }; Returns: boolean }
+      is_master_admin: { Args: never; Returns: boolean }
       slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
