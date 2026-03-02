@@ -13,9 +13,11 @@ const PERIODS: { key: BillingPeriod; label: string }[] = [
 function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: BillingPeriod }) {
   const cents = plan.prices[period];
   const formatted = formatCentsBRL(cents);
+  const monthlyCents = plan.prices.monthly;
+  const annualSaving = (monthlyCents * 12) - plan.prices.annual;
 
   return (
-    <div className="min-h-[80px] mt-4 transition-all duration-200">
+    <div className="min-h-[100px] mt-4 transition-all duration-200">
       <div className="flex items-baseline gap-1">
         <span className={cn("text-sm", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>R$</span>
         <span className="text-display-md tabular-nums">{formatted}</span>
@@ -33,8 +35,8 @@ function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: Billi
           <p className={cn("text-body-sm mt-1", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
             à vista por ano
           </p>
-          <p className={cn("text-xs font-semibold mt-1", plan.popular ? "text-primary-foreground" : "text-foreground")}>
-            Economize 25%
+          <p className={cn("text-xs font-semibold mt-1.5 inline-block px-2 py-0.5 rounded-full", plan.popular ? "bg-primary-foreground/20 text-primary-foreground" : "bg-foreground/10 text-foreground")}>
+            Economize R${formatCentsBRL(annualSaving)} por ano
           </p>
         </div>
       )}
