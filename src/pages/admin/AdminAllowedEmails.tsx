@@ -41,7 +41,7 @@ export default function AdminAllowedEmails() {
   const [search, setSearch] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
-  const [newPlan, setNewPlan] = useState("basic");
+  const [newPlan, setNewPlan] = useState("solo");
   const queryClient = useQueryClient();
 
   const { data: signups, isLoading, refetch } = useQuery({
