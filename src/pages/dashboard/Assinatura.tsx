@@ -9,9 +9,9 @@ import { useUserEstablishment } from '@/hooks/useUserEstablishment';
 import { useAuth } from '@/hooks/useAuth';
 import { PLANS, type BillingPeriod } from '@/lib/hardcodedPlans';
 import { getPlanEntitlements, formatLimit } from '@/lib/planEntitlements';
+import { PlanCardsGrid } from '@/components/billing/PlanCardsGrid';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useState } from 'react';
 import {
   CreditCard,
   Users,
