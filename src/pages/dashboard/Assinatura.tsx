@@ -311,18 +311,14 @@ export default function Assinatura() {
       </div>
 
       {/* Plan Comparison Section */}
-      {(isTrial || !isMaxPlan) && (
+      {!isMaxPlan && (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-primary" />
             <div>
-              <h2 className="text-xl font-bold">
-                {isTrial ? 'Escolha seu plano' : 'Comparar Planos'}
-              </h2>
+              <h2 className="text-xl font-bold">Comparar Planos</h2>
               <p className="text-muted-foreground text-sm">
-                {isTrial
-                  ? 'Assine antes do fim do teste para não perder acesso'
-                  : 'Faça upgrade para desbloquear mais recursos'}
+                Faça upgrade para desbloquear mais recursos
               </p>
             </div>
           </div>
