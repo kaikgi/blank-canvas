@@ -585,6 +585,7 @@ export default function AdminAdmins() {
                     role: newRole,
                     level: newRole === "super_admin" ? "master" : "standard",
                   },
+                  auditAction: editAdmin.role !== newRole ? "admin_role_change" : "admin_update",
                 });
               }}
               disabled={updateAdmin.isPending}
