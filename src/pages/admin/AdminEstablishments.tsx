@@ -31,16 +31,15 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const STATUS_OPTIONS = [
   { value: 'trial', label: 'Trial' },
-  { value: 'active', label: 'Active (Pagante)' },
-  { value: 'past_due', label: 'Past Due' },
-  { value: 'canceled', label: 'Cancelado / Bloqueado' },
+  { value: 'active', label: 'Ativo (Pagante)' },
+  { value: 'past_due', label: 'Pagamento Pendente' },
+  { value: 'canceled', label: 'Cancelado' },
 ];
 
 const PLAN_OPTIONS = [
   { value: 'solo', label: 'Solo (1 profissional)' },
   { value: 'studio', label: 'Studio (até 4 profissionais)' },
   { value: 'pro', label: 'Pro (ilimitado)' },
-  { value: 'trial', label: 'Trial' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
@@ -308,18 +307,6 @@ export default function AdminEstablishments() {
           </DialogHeader>
 
           <div className="space-y-5 py-2">
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plano</Label>
-              <Select value={editForm.plano} onValueChange={(v) => setEditForm({ ...editForm, plano: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {PLAN_OPTIONS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</Label>
               <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
