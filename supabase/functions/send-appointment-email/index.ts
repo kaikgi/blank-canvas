@@ -251,7 +251,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send email
-    const fromAddress = `${appointmentData.establishment.name} <noreply@agendali.online>`;
+    const fromAddress = `${appointmentData.establishment.name} <${RESEND_FROM}>`;
     const emailResponse = await sendEmail(
       appointmentData.customer.email,
       getEmailSubject(type, appointmentData.establishment.name),

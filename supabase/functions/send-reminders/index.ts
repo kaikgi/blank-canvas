@@ -205,7 +205,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       try {
-        const fromAddress = `${establishment.name} <noreply@agendali.online>`;
+        const fromAddress = `${establishment.name} <${RESEND_FROM}>`;
         const hoursText = reminder_hours === 1 ? 'em 1 hora' : `em ${reminder_hours} horas`;
         const emailHtml = getReminderEmailHtml({
           customer_name: customer.name,

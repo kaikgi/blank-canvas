@@ -228,7 +228,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     // Send email to establishment owner
-    const fromAddress = `Agendali <noreply@agendali.online>`;
+    const fromAddress = `Agendali <${RESEND_FROM}>`;
     const subject = `⭐ Nova avaliação (${ratingData.stars}/5) - ${ratingData.establishment.name}`;
     
     const emailResponse = await sendEmail(

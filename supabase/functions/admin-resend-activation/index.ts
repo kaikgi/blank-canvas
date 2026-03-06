@@ -159,7 +159,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Agendali <noreply@agendali.online>',
+        from: `Agendali <${Deno.env.get("RESEND_FROM") || "noreply@agendali.online"}>`,
         to: [normalizedEmail],
         subject: 'Ative sua conta do Agendali — Crie sua senha',
         html: emailHtml,
