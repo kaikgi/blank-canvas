@@ -177,23 +177,10 @@ export default function Assinatura() {
                 </div>
               </div>
               <div className="text-right shrink-0">
-                {isTrial ? (
-                  <>
-                    <div className="text-lg font-semibold text-amber-700 dark:text-amber-300">
-                      Grátis por 7 dias
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Até {entitlements.professionalLimit} profissionais
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-3xl font-bold tabular-nums">
-                      R$ {formatPriceBRL(currentPlan.prices.monthly)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">/mês</div>
-                  </>
-                )}
+                <div className="text-3xl font-bold tabular-nums">
+                  R$ {formatPriceBRL(currentPlan.prices.monthly)}
+                </div>
+                <div className="text-sm text-muted-foreground">/mês</div>
               </div>
             </div>
 
