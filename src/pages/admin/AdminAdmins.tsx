@@ -106,19 +106,7 @@ const STATUSES = [
 ] as const;
 
 // ─── Hooks ───
-function useMyAdminLevel() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["my-admin-level", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase.rpc("admin_get_my_level" as any);
-      if (error) throw error;
-      return (data as string) ?? "none";
-    },
-    enabled: !!user,
-  });
-}
+// useMyAdminLevel removed - using useAdminPermissions instead
 
 function useAdminUsers() {
   return useQuery({
