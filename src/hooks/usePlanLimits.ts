@@ -63,7 +63,6 @@ export function usePlanLimits(establishmentId: string | undefined) {
 
       return {
         planCode,
-        isTrial: false,
         maxProfessionals: limits.maxProfessionals,
         currentProfessionals,
         canAddProfessional,

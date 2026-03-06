@@ -389,7 +389,6 @@ export default function AdminSubscriptions() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <MetricCard title="Total" value={String(metrics?.total ?? 0)} icon={CreditCard} color="text-foreground" loading={isLoading} />
         <MetricCard title="Ativas" value={String(metrics?.active ?? 0)} icon={CheckCircle2} color="text-emerald-600" loading={isLoading} />
-        <MetricCard title="Trial" value={String(metrics?.trial ?? 0)} icon={Clock} color="text-sky-600" loading={isLoading} subtitle={metrics?.expired ? `${metrics.expired} expirado(s)` : undefined} />
         <MetricCard title="Canceladas" value={String(metrics?.canceled ?? 0)} icon={XCircle} color="text-red-600" loading={isLoading} />
         <MetricCard title="Past Due" value={String(metrics?.pastDue ?? 0)} icon={AlertCircle} color="text-amber-600" loading={isLoading} />
         <MetricCard title="MRR Estimado" value={metrics ? formatBRL(metrics.mrr) : '—'} icon={TrendingUp} color="text-emerald-600" loading={isLoading} />

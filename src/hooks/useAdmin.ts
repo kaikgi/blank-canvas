@@ -104,7 +104,6 @@ export function useUpdateEstablishment() {
       establishment_id: string;
       status?: string;
       plano?: string;
-      trial_ends_at?: string;
       billing_cycle?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke('admin-data', {

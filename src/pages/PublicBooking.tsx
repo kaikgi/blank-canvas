@@ -372,7 +372,7 @@ export default function PublicBooking() {
     );
   }
 
-  // Show friendly message if establishment has exceeded appointment limit or trial expired
+  // Show friendly message if establishment is blocked
   if (isAppointmentBlocked) {
     const blockReason = isEstablishmentBlocked
       ? 'Estabelecimento temporariamente indisponível para novos agendamentos online.'
