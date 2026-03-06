@@ -304,7 +304,6 @@ export default function AdminEstablishments() {
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <MetricCard title="Total" value={String(metrics.total)} icon={Building2} color="text-foreground" loading={isLoading} />
         <MetricCard title="Ativos" value={String(metrics.active)} icon={CheckCircle2} color="text-emerald-600" loading={isLoading} />
-        <MetricCard title="Trial" value={String(metrics.trial)} icon={Clock} color="text-sky-600" loading={isLoading} subtitle={metrics.trialExpired > 0 ? `${metrics.trialExpired} expirado(s)` : undefined} />
         <MetricCard title="Past Due" value={String(metrics.pastDue)} icon={AlertCircle} color="text-amber-600" loading={isLoading} />
         <MetricCard title="Cancelados" value={String(metrics.canceled)} icon={XCircle} color="text-red-600" loading={isLoading} />
         <MetricCard title="Novos (mês)" value={String(metrics.newThisMonth)} icon={TrendingUp} color="text-emerald-600" loading={isLoading} />

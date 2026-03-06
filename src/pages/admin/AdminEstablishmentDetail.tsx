@@ -345,10 +345,7 @@ export default function AdminEstablishmentDetail() {
               <Separator className="my-2" />
               <InfoRow label="Plano" value={<PlanBadge plan={getPlanCode(est)} />} />
               <InfoRow label="Ciclo" value={<CycleBadge cycle={getCycle(est)} />} />
-              <InfoRow label="Status" value={<StatusBadge status={est.status} trialEndsAt={est.trial_ends_at} />} />
-              {est.trial_ends_at && (
-                <InfoRow label="Validade Trial" value={format(new Date(est.trial_ends_at), "dd/MM/yyyy HH:mm", { locale: ptBR })} />
-              )}
+              <InfoRow label="Status" value={<StatusBadge status={est.status} />} />
               {est.subscription?.current_period_end && (
                 <InfoRow label="Validade Assinatura" value={format(new Date(est.subscription.current_period_end), "dd/MM/yyyy", { locale: ptBR })} />
               )}
