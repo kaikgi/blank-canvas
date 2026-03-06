@@ -202,17 +202,12 @@ export default function AdminEstablishmentDetail() {
     }
   };
 
-  const handleQuickAction = async (action: 'suspend' | 'reactivate' | 'cancel' | 'reset_trial') => {
+  const handleQuickAction = async (action: 'suspend' | 'reactivate' | 'cancel') => {
     if (!est) return;
     try {
-      if (action === 'reset_trial') {
-        const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        await updateEstablishment.mutateAsync({ establishment_id: est.id, status: 'trial', trial_ends_at: trialEnd });
-        toast.success("Trial resetado (7 dias)");
-      } else {
-        const statusMap = { suspend: 'past_due', reactivate: 'active', cancel: 'canceled' } as const;
-        await updateEstablishment.mutateAsync({ establishment_id: est.id, status: statusMap[action] });
-        toast.success(`Estabelecimento ${action === 'suspend' ? 'suspenso' : action === 'reactivate' ? 'reativado' : 'cancelado'}`);
+      const statusMap = { suspend: 'past_due', reactivate: 'active', cancel: 'canceled' } as const;
+      await updateEstablishment.mutateAsync({ establishment_id: est.id, status: statusMap[action] });
+      toast.success(`Estabelecimento ${action === 'suspend' ? 'suspenso' : action === 'reactivate' ? 'reativado' : 'cancelado'}`);
       }
     } catch (err: any) {
       toast.error(err?.message || "Erro na ação");
