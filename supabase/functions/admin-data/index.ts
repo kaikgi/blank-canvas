@@ -309,6 +309,19 @@ serve(async (req) => {
         return respond({ error: 'establishment_id obrigatório' }, 400);
       }
 
+      // 1. Get current state for comparison
+      const { data: currentEst } = await adminClient
+        .from('establishments')
+        .select('status, plano, owner_user_id')
+        .eq('id', establishment_id)
+        .single();
+
+      if (!currentEst) return respond({ error: 'Estabelecimento não encontrado' }, 404);
+
+      const oldPlano = currentEst.plano || 'nenhum';
+      const oldStatus = currentEst.status;
+
+      // 2. Update establishment
       const updateData: Record<string, any> = {};
       if (status !== undefined) updateData.status = status;
       if (plano !== undefined) updateData.plano = plano;
@@ -324,54 +337,85 @@ serve(async (req) => {
         return respond({ error: `Erro ao atualizar: ${updateError.message}` }, 500);
       }
 
-      // If setting to active with a plan, also create/update subscription
-      if (status === 'active' && plano) {
-        const { data: est } = await adminClient
-          .from('establishments')
-          .select('owner_user_id')
-          .eq('id', establishment_id)
-          .single();
+      // 3. Sync subscription whenever plano or billing_cycle changes
+      const effectivePlano = plano ?? oldPlano;
+      const effectiveCycle = billing_cycle || 'monthly';
+      const shouldSyncSub = plano !== undefined || billing_cycle !== undefined || status === 'active';
 
-        if (est) {
-          const { data: existingSub } = await adminClient
-            .from('subscriptions')
-            .select('id')
-            .eq('owner_user_id', est.owner_user_id)
-            .maybeSingle();
+      if (shouldSyncSub && effectivePlano && effectivePlano !== 'nenhum' && effectivePlano !== 'trial') {
+        const { data: existingSub } = await adminClient
+          .from('subscriptions')
+          .select('id, plan_code, billing_cycle, status')
+          .eq('establishment_id', establishment_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-          const days = billing_cycle === 'yearly' ? 365 : billing_cycle === 'quarterly' ? 90 : 30;
-          const cycle = billing_cycle || 'monthly';
+        const oldSubPlan = existingSub?.plan_code || oldPlano;
+        const oldSubCycle = existingSub?.billing_cycle || 'monthly';
 
-          if (existingSub) {
-            await adminClient.from('subscriptions').update({
-              plan_code: plano,
-              plan: plano,
-              status: 'active',
-              billing_cycle: cycle,
-              current_period_start: new Date().toISOString(),
-              current_period_end: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
-              updated_at: new Date().toISOString(),
-            }).eq('owner_user_id', est.owner_user_id);
-          } else {
-            await adminClient.from('subscriptions').insert({
-              owner_user_id: est.owner_user_id,
-              establishment_id: establishment_id,
-              plan_code: plano,
-              plan: plano,
-              billing_cycle: cycle,
-              status: 'active',
-              provider: 'admin',
-            });
-          }
+        const days = effectiveCycle === 'yearly' ? 365 : effectiveCycle === 'quarterly' ? 90 : 30;
+        const now = new Date().toISOString();
+        const periodEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+        const subData: Record<string, any> = {
+          plan_code: effectivePlano,
+          plan: effectivePlano,
+          billing_cycle: effectiveCycle,
+          updated_at: now,
+        };
+
+        // Only reset period if activating or changing cycle
+        if (status === 'active' || billing_cycle !== undefined) {
+          subData.current_period_start = now;
+          subData.current_period_end = periodEnd;
+        }
+        if (status !== undefined) {
+          subData.status = status === 'trial' ? 'trial' : status === 'active' ? 'active' : status;
+        }
+
+        if (existingSub) {
+          await adminClient.from('subscriptions').update(subData).eq('id', existingSub.id);
+        } else {
+          await adminClient.from('subscriptions').insert({
+            owner_user_id: currentEst.owner_user_id,
+            establishment_id: establishment_id,
+            ...subData,
+            status: subData.status || 'active',
+            provider: 'admin',
+            current_period_start: now,
+            current_period_end: periodEnd,
+          });
+        }
+
+        // 4. Log subscription_event if plan or cycle changed
+        const planChanged = plano !== undefined && plano !== oldSubPlan;
+        const cycleChanged = billing_cycle !== undefined && billing_cycle !== oldSubCycle;
+
+        if (planChanged || cycleChanged) {
+          await adminClient.from('subscription_events').insert({
+            establishment_id,
+            plan: effectivePlano,
+            billing_cycle: effectiveCycle,
+            event_type: 'subscription_updated',
+            provider: 'admin',
+            metadata: {
+              old_plan: oldSubPlan,
+              new_plan: effectivePlano,
+              old_cycle: oldSubCycle,
+              new_cycle: effectiveCycle,
+              updated_by: user.email,
+            },
+          });
         }
       }
 
-      // Audit log
+      // 5. Audit log
       await adminClient.from('admin_audit_logs').insert({
         admin_user_id: user.id,
         action: 'update_establishment',
         target_establishment_id: establishment_id,
-        metadata: { changes: updateData },
+        metadata: { changes: updateData, billing_cycle },
       });
 
       console.log(`[admin-data] Admin ${user.email} updated establishment ${establishment_id}:`, updateData);

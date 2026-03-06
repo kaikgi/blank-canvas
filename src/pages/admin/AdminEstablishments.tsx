@@ -624,11 +624,20 @@ export default function AdminEstablishments() {
                       <InfoRow label="Ciclo" value={<CycleBadge cycle={getCycle(manageEst)} />} />
                       {manageEst.subscription && (
                         <>
+                          <InfoRow label="Status Assinatura" value={
+                            <Badge variant="outline" className="text-xs">{manageEst.subscription.status || '—'}</Badge>
+                          } />
                           <InfoRow label="Provider" value={manageEst.subscription.provider || '—'} />
+                          {manageEst.subscription.current_period_start && (
+                            <InfoRow label="Início do período" value={format(new Date(manageEst.subscription.current_period_start), "dd/MM/yyyy", { locale: ptBR })} />
+                          )}
                           {manageEst.subscription.current_period_end && (
-                            <InfoRow label="Válida até" value={format(new Date(manageEst.subscription.current_period_end), "dd/MM/yyyy", { locale: ptBR })} />
+                            <InfoRow label="Expiração" value={format(new Date(manageEst.subscription.current_period_end), "dd/MM/yyyy", { locale: ptBR })} />
                           )}
                         </>
+                      )}
+                      {!manageEst.subscription && (
+                        <p className="text-xs text-muted-foreground italic">Sem assinatura vinculada</p>
                       )}
                     </div>
 
