@@ -4,20 +4,24 @@ import { AppSidebar } from './AppSidebar';
 import { CompletionPromptDialog } from '@/components/completion/CompletionPromptDialog';
 import { NotificationBell } from './NotificationBell';
 import { useUserEstablishment } from '@/hooks/useUserEstablishment';
-import { useTrialStatus } from '@/hooks/useTrialStatus';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
-import { TrialExpiredModal } from './TrialExpiredModal';
-import { TrialOnboardingPopup } from './TrialOnboardingPopup';
-import { TrialBanner } from './TrialBanner';
+import { BlockedAccessModal } from './BlockedAccessModal';
 
 export function DashboardLayout() {
   const { user } = useAuth();
   const { data: establishment } = useUserEstablishment();
-  const { isBlocked, isLoading, daysLeft } = useTrialStatus();
+  const { data: subscription, isLoading: subLoading } = useSubscription();
 
-  const est = establishment as any;
-  const isTrial = (est?.status || '').toLowerCase() === 'trial';
-  const showTrialUI = isTrial && daysLeft > 0 && !isBlocked;
+  // Determine if access is blocked
+  const estStatus = (establishment as any)?.status || '';
+  const subStatus = subscription?.status || '';
+  const isBlocked = !subLoading && (
+    !establishment ||
+    estStatus === 'past_due' ||
+    estStatus === 'canceled' ||
+    (subStatus !== 'active' && estStatus !== 'active')
+  );
 
   return (
     <SidebarProvider>
@@ -29,18 +33,14 @@ export function DashboardLayout() {
             <div className="flex-1" />
             <NotificationBell />
           </header>
-          {showTrialUI && <TrialBanner daysLeft={daysLeft} />}
           <div className="flex-1 p-6 overflow-auto">
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* Trial/Payment Blocked Paywall */}
-      {!isLoading && isBlocked && <TrialExpiredModal />}
-
-      {/* Trial Onboarding Popup (first visit only) */}
-      {showTrialUI && <TrialOnboardingPopup daysLeft={daysLeft} userId={user?.id} />}
+      {/* Payment Blocked Paywall */}
+      {!subLoading && isBlocked && <BlockedAccessModal reason={estStatus || 'no_establishment'} />}
 
       {/* Completion Prompt Dialog */}
       <CompletionPromptDialog 

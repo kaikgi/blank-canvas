@@ -85,11 +85,8 @@ export const PLANS: HardcodedPlan[] = [
   },
 ];
 
-/** Returns plan limits. Trial gets 3 professionals. */
-export function getPlanLimits(planCode: string | undefined, isTrial: boolean) {
-  if (isTrial) {
-    return { maxProfessionals: 3 as number | null };
-  }
+/** Returns plan limits based on plan code. No trial logic. */
+export function getPlanLimits(planCode: string | undefined, _isTrial?: boolean) {
   const plan = PLANS.find(p => p.code === planCode) || PLANS[0];
   return { maxProfessionals: plan.maxProfessionals };
 }
