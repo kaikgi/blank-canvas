@@ -235,8 +235,6 @@ export default function AdminEstablishments() {
     const monthStart = startOfMonth(now);
     const total = establishments.length;
     const active = establishments.filter(e => e.status === 'active').length;
-    const trial = establishments.filter(e => e.status === 'trial' && (!e.trial_ends_at || new Date(e.trial_ends_at) >= now)).length;
-    const trialExpired = establishments.filter(e => e.status === 'trial' && e.trial_ends_at && new Date(e.trial_ends_at) < now).length;
     const canceled = establishments.filter(e => e.status === 'canceled').length;
     const pastDue = establishments.filter(e => e.status === 'past_due').length;
     const newThisMonth = establishments.filter(e => isAfter(new Date(e.created_at), monthStart)).length;
