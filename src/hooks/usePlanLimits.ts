@@ -43,7 +43,7 @@ export function usePlanLimits(establishmentId: string | undefined) {
 
       if (sub && sub.length > 0) {
         planCode = (sub[0].plan_code || 'solo').toLowerCase();
-      } else if (plano && plano !== 'nenhum' && plano !== 'trial') {
+      } else if (plano && plano !== 'nenhum') {
         planCode = plano;
       }
 
