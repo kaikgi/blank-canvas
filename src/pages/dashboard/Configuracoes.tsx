@@ -92,7 +92,7 @@ export default function Configuracoes() {
         booking_enabled: establishment.booking_enabled,
         auto_confirm_bookings: establishment.auto_confirm_bookings,
         reschedule_min_hours: String(establishment.reschedule_min_hours ?? 2),
-        max_future_days: String(establishment.max_future_days ?? 30),
+        max_future_days: String(establishment.max_future_days ?? 7),
         slot_interval_minutes: String(establishment.slot_interval_minutes ?? 15),
         reminder_hours_before: String((establishment as any).reminder_hours_before ?? 3),
       });
