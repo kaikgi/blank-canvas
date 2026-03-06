@@ -343,7 +343,7 @@ export default function Assinatura() {
 
           <div className="grid gap-6 md:grid-cols-3">
             {PLANS.map((plan) => {
-              const isCurrentPlan = !isTrial && plan.code === displayPlanCode;
+              const isCurrentPlan = plan.code === displayPlanCode;
               const price = plan.prices[selectedCycle];
 
               return (
