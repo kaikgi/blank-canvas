@@ -350,7 +350,6 @@ export default function AdminEstablishments() {
   }, [data]);
 
   const canDelete = deleteConfirmText === "EXCLUIR";
-  const canDelete = deleteConfirmText === "EXCLUIR";
 
   if (error) {
     return (
