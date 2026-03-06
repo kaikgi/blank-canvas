@@ -31,9 +31,9 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const STATUS_OPTIONS = [
   { value: 'trial', label: 'Trial' },
-  { value: 'active', label: 'Active (Pagante)' },
-  { value: 'past_due', label: 'Past Due' },
-  { value: 'canceled', label: 'Cancelado / Bloqueado' },
+  { value: 'active', label: 'Ativo (Pagante)' },
+  { value: 'past_due', label: 'Pagamento Pendente' },
+  { value: 'canceled', label: 'Cancelado' },
 ];
 
 const PLAN_OPTIONS = [
