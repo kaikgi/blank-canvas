@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: normalizedEmail,
       password,
       options: {
-        emailRedirectTo: getOAuthRedirectUrl('/dashboard'),
+        emailRedirectTo: `${getPublicBaseUrl()}/dashboard`,
         data: {
           full_name: fullName,
           company_name: companyName,
