@@ -75,14 +75,11 @@ export default function Assinatura() {
   const estStatus = (est?.status || '').toLowerCase();
   const estPlano = (est?.plano || '').toLowerCase();
 
-  const isTrial = estStatus === 'trial';
   const hasActiveSubscription = subscription?.status === 'active';
 
   // Determine display plan code
   let displayPlanCode: string;
-  if (isTrial) {
-    displayPlanCode = 'trial';
-  } else if (hasActiveSubscription) {
+  if (hasActiveSubscription) {
     displayPlanCode = (subscription?.plan_code || subscription?.plan || 'solo').toLowerCase();
   } else if (estPlano && estPlano !== 'nenhum' && estPlano !== 'trial') {
     displayPlanCode = estPlano;
@@ -91,7 +88,7 @@ export default function Assinatura() {
   }
 
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
-  const entitlements = getPlanEntitlements(estStatus, displayPlanCode === 'trial' ? estPlano : displayPlanCode, est?.trial_ends_at);
+  const entitlements = getPlanEntitlements(estStatus, displayPlanCode);
 
   // Billing cycle from subscription
   const billingCycle = (subscription?.billing_cycle || 'monthly').toLowerCase() as BillingPeriod;
@@ -102,13 +99,6 @@ export default function Assinatura() {
     ? format(new Date(subscription.current_period_end), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
     : null;
 
-  // Trial days left
-  let trialDaysLeft = 0;
-  if (isTrial && est?.trial_ends_at) {
-    const now = new Date();
-    const trialEnd = new Date(est.trial_ends_at);
-    trialDaysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-  }
 
   // Usage
   const profLimit = entitlements.professionalLimit;
