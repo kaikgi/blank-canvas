@@ -285,11 +285,10 @@ serve(async (req) => {
 
     // Audit log
     await adminClient.from('admin_audit_logs').insert({
-      actor_user_id: callerUser.id,
+      admin_user_id: callerUser.id,
       action: 'danger_zone_execute',
-      request_hash: btoa(`execute:${Date.now()}`).slice(0, 16),
-      details: { keep_slugs: allowedSlugs, deleted_counts: deletedCounts, allowlist_count: allowlistIds.length },
-    });
+      metadata: { keep_slugs: allowedSlugs, deleted_counts: deletedCounts, allowlist_count: allowlistIds.length },
+    } as any);
 
     console.log(`[danger-zone] COMPLETED. Deleted counts:`, JSON.stringify(deletedCounts));
 
