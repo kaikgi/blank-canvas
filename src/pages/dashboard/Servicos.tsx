@@ -306,15 +306,14 @@ export default function Servicos() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="duration">Duração (minutos)</Label>
-              <Input
+                <Input
                   id="duration"
-                  type="text"
-                  inputMode="numeric"
+                  type="number"
+                  min="5"
+                  step="5"
                   value={form.duration_minutes}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, '');
-                    setForm({ ...form, duration_minutes: val });
-                  }}
+                  onChange={(e) => setForm({ ...form, duration_minutes: e.target.value })}
+                  onFocus={(e) => e.target.select()}
                   placeholder="30"
                 />
               </div>
