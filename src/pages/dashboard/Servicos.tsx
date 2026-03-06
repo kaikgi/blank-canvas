@@ -81,20 +81,30 @@ export default function Servicos() {
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
       toast({ title: 'Nome é obrigatório', variant: 'destructive' });
       return;
     }
 
     const durationNum = parseInt(form.duration_minutes);
-    if (!durationNum || durationNum < 5) {
+    if (isNaN(durationNum) || durationNum < 5) {
       toast({ title: 'Duração deve ser de pelo menos 5 minutos', variant: 'destructive' });
       return;
     }
 
-    const priceNum = form.price.trim() ? Math.round(parseFloat(form.price.replace(',', '.')) * 100) : null;
-    if (form.price.trim() && (isNaN(priceNum!) || priceNum! < 0)) {
-      toast({ title: 'Preço inválido', variant: 'destructive' });
+    let priceNum: number | null = null;
+    if (form.price.trim()) {
+      const parsed = parseFloat(form.price.replace(',', '.'));
+      if (isNaN(parsed) || parsed < 0) {
+        toast({ title: 'Preço inválido', variant: 'destructive' });
+        return;
+      }
+      priceNum = Math.round(parsed * 100);
+    }
+
+    if (!establishment?.id) {
+      toast({ title: 'Estabelecimento não encontrado', variant: 'destructive' });
       return;
     }
 
@@ -102,7 +112,7 @@ export default function Servicos() {
       if (editingId) {
         await update({
           id: editingId,
-          name: form.name.trim(),
+          name: trimmedName,
           description: form.description.trim() || null,
           duration_minutes: durationNum,
           price_cents: priceNum,
@@ -110,19 +120,20 @@ export default function Servicos() {
         toast({ title: 'Serviço atualizado!' });
       } else {
         await create({
-          establishment_id: establishment!.id,
-          name: form.name.trim(),
+          establishment_id: establishment.id,
+          name: trimmedName,
           description: form.description.trim() || undefined,
           duration_minutes: durationNum,
           price_cents: priceNum ?? undefined,
         });
-        toast({ title: 'Serviço criado!' });
+        toast({ title: 'Serviço criado com sucesso!' });
       }
       setDialogOpen(false);
       setEditingId(null);
       setForm({ name: '', description: '', duration_minutes: '30', price: '' });
     } catch (err: any) {
       const msg = err?.message || 'Erro desconhecido';
+      console.error('Erro ao salvar serviço:', err);
       toast({ title: 'Erro ao salvar serviço', description: msg, variant: 'destructive' });
     }
   };
