@@ -346,11 +346,12 @@ export default function Servicos() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isCreating || isUpdating}>
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={isCreating || isUpdating}>
-              {editingId ? 'Salvar' : 'Criar'}
+            <Button onClick={handleSubmit} disabled={isCreating || isUpdating || !form.name.trim()}>
+              {(isCreating || isUpdating) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isCreating ? 'Criando...' : isUpdating ? 'Salvando...' : editingId ? 'Salvar' : 'Criar'}
             </Button>
           </DialogFooter>
         </DialogContent>
