@@ -148,25 +148,30 @@ export default function Profissionais() {
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
       toast({ title: 'Nome é obrigatório', variant: 'destructive' });
       return;
     }
 
-    const capacityNum = parseInt(form.capacity) || 1;
-    if (capacityNum < 1) {
+    const capacityNum = parseInt(form.capacity);
+    if (isNaN(capacityNum) || capacityNum < 1) {
       toast({ title: 'Capacidade deve ser pelo menos 1', variant: 'destructive' });
       return;
     }
 
     try {
       if (editingId) {
-        await update({ id: editingId, name: form.name.trim(), capacity: capacityNum });
+        await update({ id: editingId, name: trimmedName, capacity: capacityNum });
         toast({ title: 'Profissional atualizado!' });
       } else {
+        if (!establishment?.id) {
+          toast({ title: 'Estabelecimento não encontrado', variant: 'destructive' });
+          return;
+        }
         const newProf = await create({
-          establishment_id: establishment!.id,
-          name: form.name.trim(),
+          establishment_id: establishment.id,
+          name: trimmedName,
           capacity: capacityNum,
         });
         
@@ -190,13 +195,14 @@ export default function Profissionais() {
           delete (window as any).__pendingProfessionalPhotoBlob;
         }
         
-        toast({ title: 'Profissional criado!' });
+        toast({ title: 'Profissional criado com sucesso!' });
       }
       setDialogOpen(false);
       setEditingId(null);
       setForm({ name: '', capacity: '1', photo_url: null });
     } catch (err: any) {
       const msg = err?.message || 'Erro desconhecido';
+      console.error('Erro ao salvar profissional:', err);
       toast({ title: 'Erro ao salvar profissional', description: msg, variant: 'destructive' });
     }
   };
