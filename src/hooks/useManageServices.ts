@@ -38,8 +38,9 @@ export function useManageServices(establishmentId: string | undefined) {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateServiceData) => {
-      const { error } = await supabase.from('services').insert(data);
+      const { data: newService, error } = await supabase.from('services').insert(data).select().single();
       if (error) throw error;
+      return newService as Service;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manage-services', establishmentId] });

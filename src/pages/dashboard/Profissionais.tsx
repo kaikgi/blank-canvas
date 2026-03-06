@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, User, Clock, Scissors, RefreshCw, X, Key } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, Pencil, Trash2, User, Clock, Scissors, RefreshCw, X, Key, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -148,25 +148,30 @@ export default function Profissionais() {
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
       toast({ title: 'Nome é obrigatório', variant: 'destructive' });
       return;
     }
 
-    const capacityNum = parseInt(form.capacity) || 1;
-    if (capacityNum < 1) {
+    const capacityNum = parseInt(form.capacity);
+    if (isNaN(capacityNum) || capacityNum < 1) {
       toast({ title: 'Capacidade deve ser pelo menos 1', variant: 'destructive' });
       return;
     }
 
     try {
       if (editingId) {
-        await update({ id: editingId, name: form.name.trim(), capacity: capacityNum });
+        await update({ id: editingId, name: trimmedName, capacity: capacityNum });
         toast({ title: 'Profissional atualizado!' });
       } else {
+        if (!establishment?.id) {
+          toast({ title: 'Estabelecimento não encontrado', variant: 'destructive' });
+          return;
+        }
         const newProf = await create({
-          establishment_id: establishment!.id,
-          name: form.name.trim(),
+          establishment_id: establishment.id,
+          name: trimmedName,
           capacity: capacityNum,
         });
         
@@ -190,13 +195,14 @@ export default function Profissionais() {
           delete (window as any).__pendingProfessionalPhotoBlob;
         }
         
-        toast({ title: 'Profissional criado!' });
+        toast({ title: 'Profissional criado com sucesso!' });
       }
       setDialogOpen(false);
       setEditingId(null);
       setForm({ name: '', capacity: '1', photo_url: null });
     } catch (err: any) {
       const msg = err?.message || 'Erro desconhecido';
+      console.error('Erro ao salvar profissional:', err);
       toast({ title: 'Erro ao salvar profissional', description: msg, variant: 'destructive' });
     }
   };
@@ -424,7 +430,7 @@ export default function Profissionais() {
               {editingId ? 'Editar Profissional' : 'Novo Profissional'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4" onKeyDown={(e) => { if (e.key === 'Enter' && !isCreating && !isUpdating) handleSubmit(); }}>
             {/* Photo upload */}
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
@@ -472,17 +478,20 @@ export default function Profissionais() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Nome do profissional"
+                autoFocus
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="capacity">Capacidade simultânea</Label>
               <Input
                 id="capacity"
-                type="number"
-                min="1"
-                max="99"
+                type="text"
+                inputMode="numeric"
                 value={form.capacity}
-                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, capacity: val });
+                }}
                 onFocus={(e) => e.target.select()}
                 placeholder="1"
               />
@@ -492,11 +501,12 @@ export default function Profissionais() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isCreating || isUpdating}>
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={isCreating || isUpdating}>
-              {editingId ? 'Salvar' : 'Criar'}
+            <Button onClick={handleSubmit} disabled={isCreating || isUpdating || !form.name.trim()}>
+              {(isCreating || isUpdating) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isCreating ? 'Criando...' : isUpdating ? 'Salvando...' : editingId ? 'Salvar' : 'Criar'}
             </Button>
           </DialogFooter>
         </DialogContent>
