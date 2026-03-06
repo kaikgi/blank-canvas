@@ -70,7 +70,7 @@ export default function AdminEstablishments() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [planFilter, setPlanFilter] = useState<string>("all");
   const [editEst, setEditEst] = useState<AdminEstablishment | null>(null);
-  const [editForm, setEditForm] = useState({ status: '', plano: '', trial_ends_at: '' });
+  const [editForm, setEditForm] = useState({ status: '', plano: '', trial_ends_at: '', billing_cycle: 'monthly' });
 
   // Delete modal state
   const [deleteEst, setDeleteEst] = useState<AdminEstablishment | null>(null);
