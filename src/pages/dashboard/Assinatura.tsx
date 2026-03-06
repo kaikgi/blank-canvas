@@ -51,7 +51,7 @@ export default function Assinatura() {
   const estPlano = (est?.plano || '').toLowerCase();
   
   const isTrial = estStatus === 'trial';
-  const isVip = estStatus === 'active' && estPlano === 'studio';
+  const isPro = estStatus === 'active' && estPlano === 'pro';
   const hasActiveSubscription = subscription?.status === 'active';
 
   // Centralized entitlements
