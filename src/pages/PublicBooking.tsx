@@ -205,6 +205,7 @@ export default function PublicBooking() {
           id: data.user.id,
           full_name: signupName,
           phone: signupPhone,
+          account_type: 'customer',
         });
       }
       
