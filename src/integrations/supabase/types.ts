@@ -20,27 +20,33 @@ export type Database = {
           admin_user_id: string
           created_at: string
           id: string
+          ip: string | null
           metadata: Json | null
           target_establishment_id: string | null
           target_owner_user_id: string | null
+          user_agent: string | null
         }
         Insert: {
           action: string
           admin_user_id: string
           created_at?: string
           id?: string
+          ip?: string | null
           metadata?: Json | null
           target_establishment_id?: string | null
           target_owner_user_id?: string | null
+          user_agent?: string | null
         }
         Update: {
           action?: string
           admin_user_id?: string
           created_at?: string
           id?: string
+          ip?: string | null
           metadata?: Json | null
           target_establishment_id?: string | null
           target_owner_user_id?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -1110,6 +1116,29 @@ export type Database = {
       check_has_active_entitlement: {
         Args: { p_email: string }
         Returns: boolean
+      }
+      get_admin_audit_logs: {
+        Args: {
+          p_action?: string
+          p_admin_user_id?: string
+          p_date_from?: string
+          p_date_to?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          action: string
+          admin_email: string
+          admin_name: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          ip: string
+          metadata: Json
+          target_establishment_id: string
+          target_owner_user_id: string
+          user_agent: string
+        }[]
       }
       get_admin_users: {
         Args: never
