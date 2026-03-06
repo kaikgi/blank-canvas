@@ -147,7 +147,7 @@ export function TrialExpiredModal() {
                   asChild
                 >
                   <a
-                    href={plan.checkoutUrl}
+                    href={plan.checkoutUrls.monthly}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

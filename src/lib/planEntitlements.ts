@@ -29,13 +29,13 @@ export function getPlanEntitlements(
   // Active paid plans
   if (normalizedStatus === 'active' || normalizedStatus === '') {
     switch (normalizedPlano) {
+      case 'pro':
+        return { planLabel: 'Pro', professionalLimit: Infinity, appointmentLimit: Infinity };
       case 'studio':
-        return { planLabel: 'Studio', professionalLimit: Infinity, appointmentLimit: Infinity };
-      case 'essencial':
-        return { planLabel: 'Essencial', professionalLimit: 4, appointmentLimit: Infinity };
-      case 'basico':
+        return { planLabel: 'Studio', professionalLimit: 4, appointmentLimit: Infinity };
+      case 'solo':
       default:
-        return { planLabel: 'Básico', professionalLimit: 1, appointmentLimit: Infinity };
+        return { planLabel: 'Solo', professionalLimit: 1, appointmentLimit: Infinity };
     }
   }
 

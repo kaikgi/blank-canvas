@@ -46,7 +46,7 @@ export function useSubscription() {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // No subscription found - return null (user is on basic)
+          // No subscription found - return null (user has no active subscription)
           return null;
         }
         console.error('Error fetching subscription:', error);
@@ -104,19 +104,19 @@ export function useCanEstablishmentAcceptBookings(establishmentId: string | unde
       return data as { can_accept: boolean; reason?: string; error_code?: string };
     },
     enabled: !!establishmentId,
-    staleTime: 10000, // 10 seconds
+    staleTime: 10000,
   });
 }
 
 // Helper to get plan display info
 export function getPlanDisplayInfo(planCode: string | undefined) {
   switch (planCode) {
+    case 'pro':
+      return { name: 'Pro', color: 'text-primary', bgColor: 'bg-primary/10' };
     case 'studio':
-      return { name: 'Studio', color: 'text-primary', bgColor: 'bg-primary/10' };
-    case 'essential':
-      return { name: 'Essencial', color: 'text-blue-600', bgColor: 'bg-blue-50' };
-    case 'basic':
+      return { name: 'Studio', color: 'text-blue-600', bgColor: 'bg-blue-50' };
+    case 'solo':
     default:
-      return { name: 'Básico', color: 'text-gray-600', bgColor: 'bg-gray-50' };
+      return { name: 'Solo', color: 'text-gray-600', bgColor: 'bg-gray-50' };
   }
 }

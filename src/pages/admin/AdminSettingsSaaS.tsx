@@ -30,7 +30,7 @@ export default function AdminSettingsSaaS() {
         <div className="rounded-lg border bg-card p-6 space-y-2">
           <h3 className="font-semibold">Limites</h3>
           <p className="text-sm text-muted-foreground">
-            Básico: 1 profissional • Essencial: 4 profissionais • Studio: Ilimitado. Agendamentos são ilimitados em todos os planos.
+            Solo: 1 profissional • Studio: até 4 profissionais • Pro: Ilimitado. Agendamentos são ilimitados em todos os planos.
           </p>
         </div>
       </div>

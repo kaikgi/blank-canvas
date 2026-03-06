@@ -94,7 +94,7 @@ export default function AdminEstablishments() {
     setEditEst(est);
     setEditForm({
       status: est.status,
-      plano: est.subscription?.plan_code || est.plano || 'basico',
+      plano: est.subscription?.plan_code || est.plano || 'solo',
       trial_ends_at: est.trial_ends_at ? est.trial_ends_at.split('T')[0] : '',
     });
   };

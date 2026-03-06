@@ -81,7 +81,7 @@ export function PlansModal({ open, onClose }: PlansModalProps) {
                   className="w-full"
                   asChild
                 >
-                  <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={plan.checkoutUrls.monthly} target="_blank" rel="noopener noreferrer">
                     Assinar {plan.name}
                     <ExternalLink size={14} className="ml-1" />
                   </a>

@@ -1,17 +1,17 @@
 // Kiwify checkout URLs for each plan
-// Update these with your actual Kiwify checkout URLs
+// These map to the hardcoded plans in hardcodedPlans.ts
 
 export const KIWIFY_CHECKOUT_URLS = {
-  basic: 'https://pay.kiwify.com.br/6pi4D4u',
-  essential: 'https://pay.kiwify.com.br/XXG8JDp',
-  studio: 'https://pay.kiwify.com.br/gDSvrq6',
+  solo: 'https://pay.kiwify.com.br/3Zeym7r',
+  studio: 'https://pay.kiwify.com.br/uc7CCUY',
+  pro: 'https://pay.kiwify.com.br/i9OOO1',
 } as const;
 
 export type PlanCode = keyof typeof KIWIFY_CHECKOUT_URLS;
 
 /**
  * Get the Kiwify checkout URL for a plan, optionally with user tracking
- * @param planCode - The plan code (basic, essential, or studio)
+ * @param planCode - The plan code (solo, studio, or pro)
  * @param userId - Optional user ID to pass for tracking (helps with auto-linking subscription)
  * @param email - Optional email to pre-fill in checkout
  */
@@ -20,8 +20,8 @@ export function getKiwifyCheckoutUrl(
   userId?: string,
   email?: string
 ): string {
-  // Get base URL or default to basic
-  const baseUrl = KIWIFY_CHECKOUT_URLS[planCode as PlanCode] || KIWIFY_CHECKOUT_URLS.basic;
+  // Get base URL or default to solo
+  const baseUrl = KIWIFY_CHECKOUT_URLS[planCode as PlanCode] || KIWIFY_CHECKOUT_URLS.solo;
   
   // Build URL with tracking parameters
   const url = new URL(baseUrl);

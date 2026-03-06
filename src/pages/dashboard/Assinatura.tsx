@@ -51,7 +51,7 @@ export default function Assinatura() {
   const estPlano = (est?.plano || '').toLowerCase();
   
   const isTrial = estStatus === 'trial';
-  const isVip = estStatus === 'active' && estPlano === 'studio';
+  const isPro = estStatus === 'active' && estPlano === 'pro';
   const hasActiveSubscription = subscription?.status === 'active';
 
   // Centralized entitlements
@@ -69,14 +69,14 @@ export default function Assinatura() {
   let displayPlanCode: string;
   if (isTrial) {
     displayPlanCode = 'trial';
-  } else if (isVip) {
-    displayPlanCode = 'studio';
+  } else if (isPro) {
+    displayPlanCode = 'pro';
   } else if (hasActiveSubscription) {
-    displayPlanCode = (subscription?.plan_code || 'basico').toLowerCase();
+    displayPlanCode = (subscription?.plan_code || 'solo').toLowerCase();
   } else if (estPlano && estPlano !== 'nenhum') {
     displayPlanCode = estPlano;
   } else {
-    displayPlanCode = 'basico';
+    displayPlanCode = 'solo';
   }
 
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
@@ -97,7 +97,7 @@ export default function Assinatura() {
       </div>
 
       {/* Upgrade Alert */}
-      {isNearProfessionalsLimit && !isTrial && displayPlanCode !== 'studio' && (
+      {isNearProfessionalsLimit && !isTrial && displayPlanCode !== 'pro' && (
         <Alert variant="default" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
@@ -303,7 +303,7 @@ export default function Assinatura() {
       </div>
 
       {/* Plan Comparison Section - Show for trial and non-studio */}
-      {(isTrial || displayPlanCode !== 'studio') && (
+      {(isTrial || displayPlanCode !== 'pro') && (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-primary" />
@@ -351,11 +351,11 @@ export default function Assinatura() {
                   ))}
                 </ul>
                 <div className="mt-auto pt-4">
-                  {!isTrial && plan.code === displayPlanCode ? (
+                {!isTrial && plan.code === displayPlanCode ? (
                     <Button variant="outline" disabled className="w-full">Plano atual</Button>
                   ) : (
                     <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
-                      <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={plan.checkoutUrls.monthly} target="_blank" rel="noopener noreferrer">
                         Assinar {plan.name}
                         <ExternalLink size={14} className="ml-1" />
                       </a>
@@ -369,7 +369,7 @@ export default function Assinatura() {
       )}
 
       {/* Studio Plan Success Message */}
-      {displayPlanCode === 'studio' && !isTrial && (
+      {displayPlanCode === 'pro' && !isTrial && (
         <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">

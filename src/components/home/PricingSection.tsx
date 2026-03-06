@@ -7,7 +7,7 @@ import { PLANS, type BillingPeriod, formatCentsBRL } from "@/lib/hardcodedPlans"
 const PERIODS: { key: BillingPeriod; label: string }[] = [
   { key: "monthly", label: "Mensal" },
   { key: "quarterly", label: "Trimestral" },
-  { key: "annual", label: "Anual" },
+  { key: "yearly", label: "Anual" },
 ];
 
 function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: BillingPeriod }) {
@@ -15,7 +15,7 @@ function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: Billi
   const formatted = formatCentsBRL(cents);
   const monthlyCents = plan.prices.monthly;
   const fullMonthlyTotal = monthlyCents * 12;
-  const annualSaving = fullMonthlyTotal - plan.prices.annual;
+  const annualSaving = fullMonthlyTotal - plan.prices.yearly;
 
   return (
     <div className="min-h-[120px] mt-4 transition-all duration-200">
@@ -36,7 +36,7 @@ function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: Billi
           </p>
         </div>
       )}
-      {period === "annual" && (
+      {period === "yearly" && (
         <div>
           <p className={cn("text-body-sm mt-1 line-through opacity-60", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
             De R${formatCentsBRL(fullMonthlyTotal)}
