@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { PLANS } from '@/lib/hardcodedPlans';
 
 export interface Subscription {
   id: string;
   owner_user_id: string;
   plan_code: string;
+  plan: string;
+  billing_cycle: string;
   status: string;
   current_period_start: string;
   current_period_end: string;
@@ -13,20 +16,7 @@ export interface Subscription {
   provider_subscription_id: string | null;
   provider_order_id: string | null;
   buyer_email: string | null;
-}
-
-export interface SubscriptionWithPlan extends Subscription {
-  plan: {
-    code: string;
-    name: string;
-    price_cents: number;
-    max_professionals: number;
-    max_appointments_month: number | null;
-    max_establishments: number | null;
-    max_professionals_per_establishment: number | null;
-    allow_multi_establishments: boolean;
-    features: string[];
-  };
+  cancel_at_period_end: boolean;
 }
 
 export function useSubscription() {
@@ -34,89 +24,52 @@ export function useSubscription() {
 
   return useQuery({
     queryKey: ['subscription', user?.id],
-    queryFn: async (): Promise<SubscriptionWithPlan | null> => {
+    queryFn: async (): Promise<Subscription | null> => {
       if (!user?.id) return null;
 
-      const { data: subscription, error } = await supabase
+      const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('owner_user_id', user.id)
-        .eq('status', 'active')
-        .single();
+        .in('status', ['active', 'trial'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No subscription found - return null (user has no active subscription)
-          return null;
-        }
         console.error('Error fetching subscription:', error);
         throw error;
       }
 
-      // Get plan details
-      const { data: plan, error: planError } = await (supabase as any)
-        .from('plans')
-        .select('*')
-        .eq('code', subscription.plan_code)
-        .single();
-
-      if (planError) {
-        console.error('Error fetching plan:', planError);
-        throw planError;
-      }
-
-      return {
-        ...subscription,
-        plan: {
-          code: plan.code,
-          name: plan.name,
-          price_cents: plan.price_cents,
-          max_professionals: plan.max_professionals,
-          max_appointments_month: plan.max_appointments_month,
-          max_establishments: (plan as Record<string, unknown>).max_establishments as number | null,
-          max_professionals_per_establishment: (plan as Record<string, unknown>).max_professionals_per_establishment as number | null,
-          allow_multi_establishments: plan.allow_multi_establishments,
-          features: plan.features as string[],
-        },
-      };
+      return data as Subscription | null;
     },
     enabled: !!user?.id,
     staleTime: 30000,
   });
 }
 
-// Hook to check if establishment can accept bookings (for public booking page)
-export function useCanEstablishmentAcceptBookings(establishmentId: string | undefined) {
-  return useQuery({
-    queryKey: ['can-accept-bookings', establishmentId],
-    queryFn: async () => {
-      if (!establishmentId) return { can_accept: false, reason: 'No establishment' } as { can_accept: boolean; reason?: string; error_code?: string };
-
-      const { data, error } = await (supabase.rpc as any)('can_establishment_accept_bookings', {
-        p_establishment_id: establishmentId,
-      });
-
-      if (error) {
-        console.error('Error checking can_establishment_accept_bookings:', error);
-        return { can_accept: false, reason: error.message } as { can_accept: boolean; reason?: string; error_code?: string };
-      }
-
-      return data as { can_accept: boolean; reason?: string; error_code?: string };
-    },
-    enabled: !!establishmentId,
-    staleTime: 10000,
-  });
-}
-
-// Helper to get plan display info
+// Helper to get plan display info from hardcoded plans
 export function getPlanDisplayInfo(planCode: string | undefined) {
-  switch (planCode) {
+  const plan = PLANS.find(p => p.code === (planCode || '').toLowerCase());
+  if (plan) {
+    return { name: plan.name, code: plan.code };
+  }
+  switch ((planCode || '').toLowerCase()) {
     case 'pro':
-      return { name: 'Pro', color: 'text-primary', bgColor: 'bg-primary/10' };
+      return { name: 'Pro', code: 'pro' };
     case 'studio':
-      return { name: 'Studio', color: 'text-blue-600', bgColor: 'bg-blue-50' };
+      return { name: 'Studio', code: 'studio' };
     case 'solo':
     default:
-      return { name: 'Solo', color: 'text-gray-600', bgColor: 'bg-gray-50' };
+      return { name: 'Solo', code: 'solo' };
+  }
+}
+
+export function getBillingCycleLabel(cycle: string | undefined): string {
+  switch ((cycle || '').toLowerCase()) {
+    case 'yearly': return 'Anual';
+    case 'quarterly': return 'Trimestral';
+    case 'monthly':
+    default: return 'Mensal';
   }
 }
