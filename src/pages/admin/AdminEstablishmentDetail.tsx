@@ -521,7 +521,6 @@ export default function AdminEstablishmentDetail() {
                         ev.event_type.includes('cancel') || ev.event_type.includes('fail') ? 'border-red-500 bg-red-100' :
                         ev.event_type.includes('payment') || ev.event_type.includes('renew') ? 'border-green-500 bg-green-100' :
                         'border-muted-foreground bg-muted'
-                        'border-muted-foreground bg-muted'
                       }`} />
 
                       <div className={`rounded-lg border p-3 ${eventTypeColor(ev.event_type)}`}>
