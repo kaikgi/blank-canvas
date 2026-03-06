@@ -5,7 +5,6 @@ import { useAuth } from './useAuth';
 
 export interface PlanLimitsData {
   planCode: string;
-  isTrial: boolean;
   maxProfessionals: number | null; // null = unlimited
   currentProfessionals: number;
   canAddProfessional: boolean;
@@ -44,7 +43,7 @@ export function usePlanLimits(establishmentId: string | undefined) {
 
       if (sub && sub.length > 0) {
         planCode = (sub[0].plan_code || 'solo').toLowerCase();
-      } else if (plano && plano !== 'nenhum' && plano !== 'trial') {
+      } else if (plano && plano !== 'nenhum') {
         planCode = plano;
       }
 
@@ -64,7 +63,6 @@ export function usePlanLimits(establishmentId: string | undefined) {
 
       return {
         planCode,
-        isTrial: false,
         maxProfessionals: limits.maxProfessionals,
         currentProfessionals,
         canAddProfessional,

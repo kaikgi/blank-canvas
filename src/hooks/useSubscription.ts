@@ -31,7 +31,7 @@ export function useSubscription() {
         .from('subscriptions')
         .select('*')
         .eq('owner_user_id', user.id)
-        .in('status', ['active', 'trial'])
+        .in('status', ['active'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();

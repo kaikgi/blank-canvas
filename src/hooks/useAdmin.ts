@@ -37,15 +37,12 @@ export interface AdminStats {
   total_customers: number;
   active_subscriptions: number;
   by_status: Record<string, number>;
-  trial_active: number;
-  trial_expired: number;
   recent_establishments: Array<{
     id: string;
     name: string;
     slug: string;
     status: string;
     created_at: string;
-    trial_ends_at: string | null;
     owner_email: string;
   }>;
 }
@@ -73,7 +70,6 @@ export interface AdminEstablishment {
   status: string;
   plano: string | null;
   created_at: string;
-  trial_ends_at: string | null;
   booking_enabled: boolean;
   owner_user_id: string;
   owner_email: string;
@@ -99,7 +95,7 @@ export function useAdminEstablishments(search?: string) {
   });
 }
 
-// ─── Update Establishment (plan, status, trial) ───
+// ─── Update Establishment (plan, status) ───
 export function useUpdateEstablishment() {
   const queryClient = useQueryClient();
 
@@ -108,7 +104,6 @@ export function useUpdateEstablishment() {
       establishment_id: string;
       status?: string;
       plano?: string;
-      trial_ends_at?: string;
       billing_cycle?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke('admin-data', {

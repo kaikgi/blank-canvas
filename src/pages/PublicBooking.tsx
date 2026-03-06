@@ -105,14 +105,11 @@ export default function PublicBooking() {
     bufferMinutes: establishment?.buffer_minutes ?? 0,
   });
 
-  // Check if establishment is blocked due to trial/payment status
+  // Check if establishment is blocked due to payment status
   const isEstablishmentBlocked = (() => {
     if (!establishment) return false;
     const est = establishment as any;
     if (est.status === 'past_due' || est.status === 'canceled') return true;
-    if (est.status === 'trial' && est.trial_ends_at) {
-      return new Date() > new Date(est.trial_ends_at);
-    }
     return false;
   })();
   const isAppointmentBlocked = isEstablishmentBlocked || (canAcceptBookings && !canAcceptBookings.canAccept);
@@ -375,7 +372,7 @@ export default function PublicBooking() {
     );
   }
 
-  // Show friendly message if establishment has exceeded appointment limit or trial expired
+  // Show friendly message if establishment is blocked
   if (isAppointmentBlocked) {
     const blockReason = isEstablishmentBlocked
       ? 'Estabelecimento temporariamente indisponível para novos agendamentos online.'

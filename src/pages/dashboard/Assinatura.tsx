@@ -81,7 +81,7 @@ export default function Assinatura() {
   let displayPlanCode: string;
   if (hasActiveSubscription) {
     displayPlanCode = (subscription?.plan_code || subscription?.plan || 'solo').toLowerCase();
-  } else if (estPlano && estPlano !== 'nenhum' && estPlano !== 'trial') {
+  } else if (estPlano && estPlano !== 'nenhum') {
     displayPlanCode = estPlano;
   } else {
     displayPlanCode = 'solo';

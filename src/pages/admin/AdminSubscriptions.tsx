@@ -48,7 +48,7 @@ interface SubscriptionEvent {
 
 // --- Constants ---
 const STATUS_OPTIONS = [
-  { value: 'active', label: 'Ativo' }, { value: 'trial', label: 'Trial' },
+  { value: 'active', label: 'Ativo' },
   { value: 'past_due', label: 'Past Due' }, { value: 'canceled', label: 'Cancelado' },
   { value: 'suspended', label: 'Suspenso' },
 ];
@@ -68,7 +68,6 @@ type SortKey = 'establishment_name' | 'plan_code' | 'status' | 'billing_cycle' |
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { className: string; icon: React.ReactNode; label: string }> = {
     active: { className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400", icon: <CheckCircle2 className="h-3 w-3" />, label: "Ativo" },
-    trial: { className: "bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400", icon: <Clock className="h-3 w-3" />, label: "Trial" },
     past_due: { className: "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400", icon: <AlertCircle className="h-3 w-3" />, label: "Past Due" },
     canceled: { className: "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400", icon: <XCircle className="h-3 w-3" />, label: "Cancelado" },
     suspended: { className: "bg-orange-500/10 text-orange-700 border-orange-500/20 dark:text-orange-400", icon: <Ban className="h-3 w-3" />, label: "Suspenso" },
@@ -128,7 +127,6 @@ function formatBRL(cents: number): string {
 // --- Event Labels ---
 function getEventLabel(eventType: string): { label: string; dotColor: string } {
   const map: Record<string, { label: string; dotColor: string }> = {
-    trial_created: { label: 'Trial criado', dotColor: 'bg-sky-500' },
     payment_confirmed: { label: 'Pagamento confirmado', dotColor: 'bg-emerald-500' },
     subscription_updated: { label: 'Assinatura atualizada', dotColor: 'bg-amber-500' },
     plan_changed: { label: 'Plano alterado', dotColor: 'bg-violet-500' },
@@ -357,17 +355,15 @@ export default function AdminSubscriptions() {
 
     const total = data.length;
     const active = data.filter(s => s.status === 'active').length;
-    const trial = data.filter(s => s.status === 'trial').length;
     const canceled = data.filter(s => s.status === 'canceled').length;
     const pastDue = data.filter(s => s.status === 'past_due').length;
-    const expired = data.filter(s => s.status === 'trial' && s.current_period_end && new Date(s.current_period_end) < new Date()).length;
     const mrr = calculateMRR(data);
 
     const totalFiltered = result.length;
     const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
     const paginatedData = result.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-    return { totalFiltered, totalPages, paginatedData, metrics: { total, active, trial, canceled, pastDue, expired, mrr } };
+    return { totalFiltered, totalPages, paginatedData, metrics: { total, active, canceled, pastDue, mrr } };
   }, [data, statusFilter, planFilter, cycleFilter, providerFilter, search, sortKey, sortDir, page]);
 
   if (error) {
@@ -392,7 +388,6 @@ export default function AdminSubscriptions() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <MetricCard title="Total" value={String(metrics?.total ?? 0)} icon={CreditCard} color="text-foreground" loading={isLoading} />
         <MetricCard title="Ativas" value={String(metrics?.active ?? 0)} icon={CheckCircle2} color="text-emerald-600" loading={isLoading} />
-        <MetricCard title="Trial" value={String(metrics?.trial ?? 0)} icon={Clock} color="text-sky-600" loading={isLoading} subtitle={metrics?.expired ? `${metrics.expired} expirado(s)` : undefined} />
         <MetricCard title="Canceladas" value={String(metrics?.canceled ?? 0)} icon={XCircle} color="text-red-600" loading={isLoading} />
         <MetricCard title="Past Due" value={String(metrics?.pastDue ?? 0)} icon={AlertCircle} color="text-amber-600" loading={isLoading} />
         <MetricCard title="MRR Estimado" value={metrics ? formatBRL(metrics.mrr) : '—'} icon={TrendingUp} color="text-emerald-600" loading={isLoading} />
