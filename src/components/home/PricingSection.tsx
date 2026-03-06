@@ -61,7 +61,7 @@ export function PricingSection() {
           <p className="text-label text-muted-foreground uppercase tracking-wider mb-4">Preços</p>
           <h2 className="text-display-md md:text-display-lg text-balance mb-6">Planos simples, sem surpresas</h2>
           <p className="text-body-lg text-muted-foreground">
-            Teste grátis por 7 dias. Depois, escolha o plano ideal para o seu negócio.
+            Escolha o plano ideal para o seu negócio e comece a usar agora.
           </p>
         </div>
 

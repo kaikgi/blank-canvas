@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Users, CreditCard, AlertTriangle, Clock, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
+import { Building2, Users, CreditCard, AlertTriangle, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -70,10 +70,8 @@ export default function AdminDashboard() {
     );
   }
 
-  const trialCount = stats?.trial_active ?? 0;
   const activeCount = stats?.by_status?.active ?? 0;
   const pastDueCount = (stats?.by_status?.past_due ?? 0) + (stats?.by_status?.canceled ?? 0);
-  const trialExpiredCount = stats?.trial_expired ?? 0;
 
   return (
     <div className="space-y-8">
@@ -100,31 +98,23 @@ export default function AdminDashboard() {
           subtitle="Assinaturas ativas"
         />
         <StatCard
-          title="Em Trial"
-          value={trialCount}
-          icon={Clock}
-          loading={isLoading}
-          variant="warning"
-          subtitle="Período de testes"
-        />
-        <StatCard
           title="Bloqueados / Cancelados"
-          value={pastDueCount + trialExpiredCount}
+          value={pastDueCount}
           icon={XCircle}
           loading={isLoading}
           variant="danger"
           subtitle="Acesso suspenso"
         />
-      </div>
-
-      {/* Secondary metrics */}
-      <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
           title="Total de Clientes"
           value={stats?.total_customers ?? 0}
           icon={Users}
           loading={isLoading}
         />
+      </div>
+
+      {/* Secondary metrics */}
+      <div className="grid gap-4 sm:grid-cols-2">
         <StatCard
           title="Assinaturas Ativas"
           value={stats?.active_subscriptions ?? 0}
@@ -133,11 +123,10 @@ export default function AdminDashboard() {
           variant="success"
         />
         <StatCard
-          title="Trials Expirados"
-          value={trialExpiredCount}
-          icon={AlertTriangle}
+          title="Novos este mês"
+          value={stats?.recent_establishments?.length ?? 0}
+          icon={TrendingUp}
           loading={isLoading}
-          variant="danger"
         />
       </div>
 
@@ -154,11 +143,7 @@ export default function AdminDashboard() {
             <div className="flex flex-wrap gap-4">
               {Object.entries(stats.by_status).map(([status, count]) => (
                 <div key={status} className="flex items-center gap-2 bg-muted/50 px-3 py-2 rounded-lg">
-                  <Badge variant={
-                    status === 'active' ? 'default' :
-                    status === 'trial' ? 'secondary' :
-                    'destructive'
-                  }>
+                  <Badge variant={status === 'active' ? 'default' : 'destructive'}>
                     {status}
                   </Badge>
                   <span className="text-lg font-bold tabular-nums">{count as number}</span>
@@ -196,7 +181,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge variant={est.status === 'active' ? 'default' : est.status === 'trial' ? 'secondary' : 'destructive'}>
+                    <Badge variant={est.status === 'active' ? 'default' : 'destructive'}>
                       {est.status}
                     </Badge>
                     <span className="text-xs text-muted-foreground tabular-nums">
