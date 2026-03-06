@@ -157,7 +157,7 @@ serve(async (req) => {
       .from('appointments')
       .select('id')
       .not('establishment_id', 'in', `(${keptIds.join(',')})`);
-    const aptIds = (aptsToDelete || []).map(a => a.id);
+    const aptIds = (aptsToDelete || []).map((a: any) => a.id);
 
     if (aptIds.length > 0) {
       // Process in batches
