@@ -37,9 +37,10 @@ const STATUS_OPTIONS = [
 ];
 
 const PLAN_OPTIONS = [
-  { value: 'basico', label: 'Básico (R$ 19,90)' },
-  { value: 'essencial', label: 'Essencial (R$ 49,90)' },
-  { value: 'studio', label: 'Studio (R$ 99,90)' },
+  { value: 'solo', label: 'Solo (1 profissional)' },
+  { value: 'studio', label: 'Studio (até 4 profissionais)' },
+  { value: 'pro', label: 'Pro (ilimitado)' },
+  { value: 'trial', label: 'Trial' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
