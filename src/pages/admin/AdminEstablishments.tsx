@@ -195,6 +195,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 // === MAIN COMPONENT ===
 
 export default function AdminEstablishments() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -206,11 +207,6 @@ export default function AdminEstablishments() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(0);
 
-  // Manage modal
-  const [manageEst, setManageEst] = useState<AdminEstablishment | null>(null);
-  const [manageTab, setManageTab] = useState('overview');
-  const [editForm, setEditForm] = useState({ status: '', plano: '', trial_ends_at: '', billing_cycle: 'monthly' });
-
   // Delete modal
   const [deleteEst, setDeleteEst] = useState<AdminEstablishment | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -219,7 +215,6 @@ export default function AdminEstablishments() {
   const [deleting, setDeleting] = useState(false);
 
   const { data, isLoading, error } = useAdminEstablishments(debouncedSearch || undefined);
-  const updateEstablishment = useUpdateEstablishment();
   const queryClient = useQueryClient();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
