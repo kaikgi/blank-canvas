@@ -621,9 +621,9 @@ export default function AdminAdmins() {
                 if (confirmAction.type === "remove") {
                   removeAdmin.mutate(confirmAction.admin.user_id);
                 } else if (confirmAction.type === "suspend") {
-                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "suspenso" } });
+                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "suspenso" }, auditAction: "admin_suspend" });
                 } else if (confirmAction.type === "reactivate") {
-                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "ativo" } });
+                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "ativo" }, auditAction: "admin_reactivate" });
                 }
               }}
             >
