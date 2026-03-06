@@ -98,6 +98,41 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_manage_tokens: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_manage_tokens_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           completed_at: string | null
@@ -1073,6 +1108,33 @@ export type Database = {
         | { Args: never; Returns: boolean }
         | { Args: { p_user_id: string }; Returns: boolean }
       is_master_admin: { Args: never; Returns: boolean }
+      public_create_appointment: {
+        Args: {
+          p_customer_email?: string
+          p_customer_name: string
+          p_customer_notes?: string
+          p_customer_phone: string
+          p_customer_user_id?: string
+          p_end_at: string
+          p_professional_id: string
+          p_service_id: string
+          p_slug: string
+          p_start_at: string
+        }
+        Returns: {
+          appointment_id: string
+          manage_token: string
+        }[]
+      }
+      public_reschedule_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_new_end_at: string
+          p_new_start_at: string
+          p_token: string
+        }
+        Returns: Json
+      }
       slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
