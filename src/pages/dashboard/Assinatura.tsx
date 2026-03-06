@@ -226,7 +226,7 @@ export default function Assinatura() {
                 <Crown className="h-5 w-5 text-primary shrink-0" />
                 <div>
                   <div className="text-xs text-muted-foreground">Plano</div>
-                  <div className="font-semibold text-sm">{isTrial ? 'Trial' : currentPlan.name}</div>
+                  <div className="font-semibold text-sm">{currentPlan.name}</div>
                 </div>
               </div>
             </div>
