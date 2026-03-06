@@ -269,7 +269,7 @@ export default function AdminEstablishmentDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
             {est.name}
-            <StatusBadge status={est.status} trialEndsAt={est.trial_ends_at} />
+            <StatusBadge status={est.status} />
           </h1>
           <p className="text-sm text-muted-foreground">/{est.slug} · {est.owner_email}</p>
         </div>
