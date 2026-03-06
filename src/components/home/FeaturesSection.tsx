@@ -102,48 +102,48 @@ const features: Feature[] = [
 
 export function FeaturesSection() {
   return (
-    <section id="recursos" className="py-24 md:py-32 bg-secondary/30">
-      <div className="container">
+    <section id="recursos" className="py-16 md:py-24 bg-secondary/30">
+      <div className="container max-w-6xl">
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16 md:mb-20">
-          <p className="text-label text-muted-foreground uppercase tracking-wider mb-4">
+        <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+          <p className="text-label text-muted-foreground uppercase tracking-wider mb-3">
             Recursos
           </p>
-          <h2 className="text-display-md md:text-display-lg text-balance mb-6">
+          <h2 className="text-display-sm md:text-display-md text-balance mb-4">
             Tudo que você precisa para gerenciar agendamentos
           </h2>
-          <p className="text-body-lg text-muted-foreground">
+          <p className="text-body-md text-muted-foreground">
             Ferramentas poderosas e simples de usar, criadas para profissionais 
             que querem focar no que importa.
           </p>
         </div>
 
         {/* Features grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="group p-6 rounded-2xl bg-card border border-border hover:border-foreground/20 hover:shadow-elegant transition-premium animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'both' }}
+              className="group p-5 rounded-2xl bg-card border border-border hover:border-foreground/20 hover:shadow-elegant transition-premium animate-fade-in"
+              style={{ animationDelay: `${index * 0.08}s`, animationFillMode: 'both' }}
             >
               {/* Animated icon container */}
-              <div className="w-14 h-14 rounded-xl bg-secondary group-hover:bg-primary flex items-center justify-center mb-5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+              <div className="w-12 h-12 rounded-xl bg-secondary group-hover:bg-primary flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                 <feature.icon 
-                  size={26} 
+                  size={22} 
                   className="text-foreground group-hover:text-primary-foreground transition-colors duration-300" 
                 />
               </div>
               
-              <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors duration-300">
+              <h3 className="font-semibold text-base mb-2 group-hover:text-primary transition-colors duration-300">
                 {feature.title}
               </h3>
               
-              <p className="text-body-sm text-muted-foreground mb-4">
+              <p className="text-body-sm text-muted-foreground mb-3">
                 {feature.description}
               </p>
 
               {/* Feature details list */}
-              <ul className="space-y-2">
+              <ul className="space-y-1.5">
                 {feature.details.map((detail, i) => (
                   <li 
                     key={i} 
