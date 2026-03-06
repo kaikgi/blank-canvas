@@ -279,10 +279,10 @@ export default function Configuracoes() {
           instagram: form.instagram || null,
           booking_enabled: form.booking_enabled,
           auto_confirm_bookings: form.auto_confirm_bookings,
-          reschedule_min_hours: form.reschedule_min_hours,
-          max_future_days: form.max_future_days,
-          slot_interval_minutes: form.slot_interval_minutes,
-          reminder_hours_before: form.reminder_hours_before,
+          reschedule_min_hours: parseInt(form.reschedule_min_hours) || 2,
+          max_future_days: parseInt(form.max_future_days) || 30,
+          slot_interval_minutes: parseInt(form.slot_interval_minutes) || 15,
+          reminder_hours_before: parseInt(form.reminder_hours_before) || 0,
         } as any)
         .eq('id', establishment.id);
 
