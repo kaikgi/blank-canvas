@@ -144,6 +144,7 @@ const App = () => (
                 <Route element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="estabelecimentos" element={<AdminEstablishments />} />
+                  <Route path="estabelecimentos/:id" element={<AdminEstablishmentDetail />} />
                   <Route path="configuracoes" element={<AdminSettingsSaaS />} />
                   <Route path="mensagens" element={<AdminMessages />} />
                   <Route path="assinaturas" element={<AdminSubscriptions />} />
