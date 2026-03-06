@@ -442,7 +442,7 @@ export default function Assinatura() {
       )}
 
       {/* Max Plan Success */}
-      {isMaxPlan && !isTrial && (
+      {isMaxPlan && (
         <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
