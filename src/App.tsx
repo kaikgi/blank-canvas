@@ -49,6 +49,7 @@ import ProfessionalPortalAgenda from "./pages/professional/ProfessionalPortalAge
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminEstablishments from "./pages/admin/AdminEstablishments";
+import AdminEstablishmentDetail from "./pages/admin/AdminEstablishmentDetail";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminAdmins from "./pages/admin/AdminAdmins";
