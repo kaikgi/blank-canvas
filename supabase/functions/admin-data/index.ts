@@ -83,7 +83,7 @@ serve(async (req) => {
       // Recent establishments
       const { data: recent } = await adminClient
         .from('establishments')
-        .select('id, name, slug, status, created_at, owner_user_id, trial_ends_at')
+        .select('id, name, slug, status, created_at, owner_user_id')
         .order('created_at', { ascending: false })
         .limit(5);
 
