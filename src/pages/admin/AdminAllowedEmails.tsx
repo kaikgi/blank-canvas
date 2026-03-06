@@ -41,7 +41,7 @@ export default function AdminAllowedEmails() {
   const [search, setSearch] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
-  const [newPlan, setNewPlan] = useState("basic");
+  const [newPlan, setNewPlan] = useState("solo");
   const queryClient = useQueryClient();
 
   const { data: signups, isLoading, refetch } = useQuery({
@@ -82,7 +82,7 @@ export default function AdminAllowedEmails() {
       queryClient.invalidateQueries({ queryKey: ["admin-allowed-emails"] });
       setAddDialogOpen(false);
       setNewEmail("");
-      setNewPlan("basic");
+      setNewPlan("solo");
     },
     onError: () => toast.error("Erro ao autorizar email"),
   });
@@ -261,9 +261,9 @@ export default function AdminAllowedEmails() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="basic">Básico</SelectItem>
-                  <SelectItem value="essential">Essencial</SelectItem>
+                  <SelectItem value="solo">Solo</SelectItem>
                   <SelectItem value="studio">Studio</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
