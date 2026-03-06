@@ -68,7 +68,6 @@ type SortKey = 'establishment_name' | 'plan_code' | 'status' | 'billing_cycle' |
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { className: string; icon: React.ReactNode; label: string }> = {
     active: { className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400", icon: <CheckCircle2 className="h-3 w-3" />, label: "Ativo" },
-    trial: { className: "bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400", icon: <Clock className="h-3 w-3" />, label: "Trial" },
     past_due: { className: "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400", icon: <AlertCircle className="h-3 w-3" />, label: "Past Due" },
     canceled: { className: "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400", icon: <XCircle className="h-3 w-3" />, label: "Cancelado" },
     suspended: { className: "bg-orange-500/10 text-orange-700 border-orange-500/20 dark:text-orange-400", icon: <Ban className="h-3 w-3" />, label: "Suspenso" },
