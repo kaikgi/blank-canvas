@@ -15,7 +15,11 @@ import { PasswordStrength } from '@/components/ui/password-strength';
 const resetPasswordSchema = z.object({
   password: z
     .string()
-    .min(8, 'Senha deve ter pelo menos 8 caracteres'),
+    .min(8, 'Senha deve ter pelo menos 8 caracteres')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~';]).{8,}$/,
+      'Senha deve conter maiúscula, minúscula, número e caractere especial'
+    ),
   confirmPassword: z.string().min(1, 'Confirmação de senha é obrigatória'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
@@ -28,6 +32,7 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [hasSession, setHasSession] = useState(false);
+  const [redirectPath, setRedirectPath] = useState('/dashboard');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,16 +48,31 @@ export default function ResetPassword() {
   const password = watch('password', '');
 
   useEffect(() => {
-    // Check if user has a valid session from the reset link
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setHasSession(true);
+        // Determine redirect based on account type
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('account_type')
+          .eq('id', session.user.id)
+          .single();
+        if (profile?.account_type === 'customer') {
+          setRedirectPath('/client');
+        }
       } else {
-        // Listen for auth state changes (user clicking email link)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (event === 'PASSWORD_RECOVERY' && session) {
             setHasSession(true);
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('account_type')
+              .eq('id', session.user.id)
+              .single();
+            if (profile?.account_type === 'customer') {
+              setRedirectPath('/client');
+            }
           }
         });
         
@@ -87,9 +107,8 @@ export default function ResetPassword() {
       description: 'Sua nova senha foi salva com sucesso.',
     });
 
-    // Redirect to dashboard after 2 seconds
     setTimeout(() => {
-      navigate('/dashboard');
+      navigate(redirectPath);
     }, 2000);
   };
 
@@ -101,8 +120,8 @@ export default function ResetPassword() {
             <Logo />
           </Link>
           
-          <div className="mx-auto w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-            <CheckCircle2 className="h-6 w-6 text-green-600" />
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <CheckCircle2 className="h-6 w-6 text-primary" />
           </div>
           
           <div>
@@ -110,12 +129,12 @@ export default function ResetPassword() {
               Senha redefinida!
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Você será redirecionado para o painel...
+              Você será redirecionado...
             </p>
           </div>
 
           <Button asChild className="w-full">
-            <Link to="/dashboard">Ir para o painel</Link>
+            <Link to={redirectPath}>Continuar</Link>
           </Button>
         </div>
       </div>
@@ -144,7 +163,7 @@ export default function ResetPassword() {
             <span>Aguardando autenticação...</span>
           </div>
 
-          <Link to="/login">
+          <Link to="/entrar">
             <Button variant="ghost" className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar para o login
@@ -166,7 +185,7 @@ export default function ResetPassword() {
             Nova senha
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Crie uma nova senha para sua conta
+            Crie uma nova senha segura para sua conta
           </p>
         </div>
 
@@ -204,7 +223,7 @@ export default function ResetPassword() {
           </Button>
         </form>
 
-        <Link to="/login">
+        <Link to="/entrar">
           <Button variant="ghost" className="w-full">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar para o login
