@@ -23,44 +23,33 @@ export function usePlanLimits(establishmentId: string | undefined) {
       // 1. Get establishment status + plano
       const { data: est } = await supabase
         .from('establishments')
-        .select('status, trial_ends_at, owner_user_id, plano')
+        .select('status, owner_user_id, plano')
         .eq('id', establishmentId)
         .single();
 
       if (!est) return null;
 
-      // Normalize case from DB
-      const status = (est.status || '').toLowerCase();
       const plano = (est.plano || '').toLowerCase();
 
-      const isTrial = status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) > new Date();
-      const isPro = status === 'active' && plano === 'pro';
-
-      // 2. Determine plan code — priority:
-      // Trial → trial limits (3 pros), Pro → unlimited, then subscription, then establishment plano, then solo
+      // 2. Determine plan code from subscription or establishment
       let planCode = 'solo';
-      if (isTrial) {
-        planCode = 'trial';
-      } else if (isPro) {
-        planCode = 'pro';
-      } else {
-        const { data: sub } = await supabase
-          .from('subscriptions')
-          .select('plan_code, status')
-          .eq('owner_user_id', est.owner_user_id)
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(1);
+      
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan_code, status')
+        .eq('owner_user_id', est.owner_user_id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-        if (sub && sub.length > 0) {
-          planCode = (sub[0].plan_code || 'solo').toLowerCase();
-        } else if (plano && plano !== 'nenhum') {
-          planCode = plano;
-        }
+      if (sub && sub.length > 0) {
+        planCode = (sub[0].plan_code || 'solo').toLowerCase();
+      } else if (plano && plano !== 'nenhum' && plano !== 'trial') {
+        planCode = plano;
       }
 
       // 3. Get limits from hardcoded plans
-      const limits = getPlanLimits(planCode, !!isTrial);
+      const limits = getPlanLimits(planCode);
 
       // 4. Count current active professionals
       const { count: profCount } = await supabase
@@ -74,8 +63,8 @@ export function usePlanLimits(establishmentId: string | undefined) {
       const canAddProfessional = limits.maxProfessionals === null || currentProfessionals < limits.maxProfessionals;
 
       return {
-        planCode: isTrial ? 'trial' : planCode,
-        isTrial: !!isTrial,
+        planCode,
+        isTrial: false,
         maxProfessionals: limits.maxProfessionals,
         currentProfessionals,
         canAddProfessional,
@@ -91,8 +80,7 @@ export function usePlanLimits(establishmentId: string | undefined) {
 
 /**
  * Lightweight check for public booking pages (no auth required).
- * Only checks if establishment is blocked (trial expired / past_due).
- * Appointments are always unlimited — no count check needed.
+ * Only checks if establishment is blocked (past_due/canceled).
  */
 export function usePublicPlanLimits(establishmentId: string | undefined) {
   return useQuery({
@@ -102,16 +90,13 @@ export function usePublicPlanLimits(establishmentId: string | undefined) {
 
       const { data: est } = await supabase
         .from('establishments')
-        .select('status, trial_ends_at')
+        .select('status')
         .eq('id', establishmentId)
         .single();
 
       if (!est) return { canAccept: false, reason: 'Estabelecimento não encontrado.' };
 
       if (est.status === 'past_due' || est.status === 'canceled') {
-        return { canAccept: false, reason: 'Estabelecimento temporariamente indisponível para novos agendamentos online.' };
-      }
-      if (est.status === 'trial' && est.trial_ends_at && new Date() > new Date(est.trial_ends_at)) {
         return { canAccept: false, reason: 'Estabelecimento temporariamente indisponível para novos agendamentos online.' };
       }
 

@@ -15,12 +15,6 @@ export function SubscriptionStatusBadge({ status, className }: SubscriptionStatu
           variant: 'default' as const,
           className: 'bg-green-100 text-green-800 hover:bg-green-100',
         };
-      case 'trial':
-        return {
-          label: 'Período de teste',
-          variant: 'secondary' as const,
-          className: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
-        };
       case 'past_due':
         return {
           label: 'Pagamento pendente',
