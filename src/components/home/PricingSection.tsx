@@ -7,7 +7,7 @@ import { PLANS, type BillingPeriod, formatCentsBRL } from "@/lib/hardcodedPlans"
 const PERIODS: { key: BillingPeriod; label: string }[] = [
   { key: "monthly", label: "Mensal" },
   { key: "quarterly", label: "Trimestral" },
-  { key: "annual", label: "Anual" },
+  { key: "yearly", label: "Anual" },
 ];
 
 function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: BillingPeriod }) {
