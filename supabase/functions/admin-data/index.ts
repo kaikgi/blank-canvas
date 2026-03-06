@@ -328,7 +328,7 @@ serve(async (req) => {
       const effectiveCycle = billing_cycle || 'monthly';
       const shouldSyncSub = plano !== undefined || billing_cycle !== undefined || status === 'active';
 
-      if (shouldSyncSub && effectivePlano && effectivePlano !== 'nenhum' && effectivePlano !== 'trial') {
+      if (shouldSyncSub && effectivePlano && effectivePlano !== 'nenhum') {
         const { data: existingSub } = await adminClient
           .from('subscriptions')
           .select('id, plan_code, billing_cycle, status')
