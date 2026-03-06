@@ -48,8 +48,8 @@ export default function Servicos() {
   const [form, setForm] = useState<ServiceForm>({
     name: '',
     description: '',
-    duration_minutes: 30,
-    price_cents: 0,
+    duration_minutes: '30',
+    price: '',
   });
 
   const handleRetry = () => {
