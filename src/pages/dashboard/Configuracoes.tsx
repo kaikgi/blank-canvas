@@ -600,10 +600,14 @@ export default function Configuracoes() {
               <Label htmlFor="future">Dias no futuro</Label>
               <Input
                 id="future"
-                type="number"
-                min={1}
+                type="text"
+                inputMode="numeric"
                 value={form.max_future_days}
-                onChange={(e) => setForm({ ...form, max_future_days: parseInt(e.target.value) || 30 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, max_future_days: val });
+                }}
+                placeholder="30"
               />
             </div>
           </div>
