@@ -261,9 +261,9 @@ export default function AdminAllowedEmails() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="basic">Básico</SelectItem>
-                  <SelectItem value="essential">Essencial</SelectItem>
+                  <SelectItem value="solo">Solo</SelectItem>
                   <SelectItem value="studio">Studio</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
