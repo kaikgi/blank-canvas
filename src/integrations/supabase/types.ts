@@ -1038,15 +1038,7 @@ export type Database = {
       }
     }
     Views: {
-      v_admin_users: {
-        Row: {
-          email: string | null
-          level: string | null
-          user_created_at: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       activate_subscription: {
@@ -1103,6 +1095,15 @@ export type Database = {
       check_has_active_entitlement: {
         Args: { p_email: string }
         Returns: boolean
+      }
+      get_admin_users: {
+        Args: never
+        Returns: {
+          email: string
+          level: string
+          user_created_at: string
+          user_id: string
+        }[]
       }
       is_admin:
         | { Args: never; Returns: boolean }
