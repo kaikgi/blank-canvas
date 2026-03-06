@@ -81,7 +81,7 @@ export default function Profissionais() {
 
   const handleOpenEdit = (prof: { id: string; name: string; capacity: number; photo_url: string | null }) => {
     setEditingId(prof.id);
-    setForm({ name: prof.name, capacity: prof.capacity, photo_url: prof.photo_url || null });
+    setForm({ name: prof.name, capacity: String(prof.capacity), photo_url: prof.photo_url || null });
     setDialogOpen(true);
   };
 
