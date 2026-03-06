@@ -97,7 +97,6 @@ function getCycle(est: AdminEstablishment): string {
 function eventTypeLabel(type: string): string {
   const map: Record<string, string> = {
     payment_confirmed: 'Pagamento confirmado',
-    payment_confirmed: 'Pagamento confirmado',
     subscription_updated: 'Assinatura atualizada',
     subscription_renewed: 'Renovação',
     subscription_canceled: 'Cancelamento',
