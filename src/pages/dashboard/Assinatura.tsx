@@ -165,13 +165,7 @@ export default function Assinatura() {
                       </Badge>
                     )}
                   </div>
-                  {isTrial ? (
-                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1.5 font-medium">
-                      {trialDaysLeft > 0
-                        ? `Faltam ${trialDaysLeft} dia${trialDaysLeft !== 1 ? 's' : ''} para o fim do seu teste`
-                        : 'Seu período de teste expirou'}
-                    </p>
-                  ) : hasActiveSubscription ? (
+                  {hasActiveSubscription ? (
                     <p className="text-sm text-muted-foreground mt-1.5">
                       Assinatura ativa • {billingCycleLabel}
                     </p>
