@@ -142,7 +142,7 @@ serve(async (req) => {
         return respond({ error: `Erro ao listar: ${estError.message}` }, 500);
       }
 
-      // Enrich with owner email, subscription, professionals count
+      // Enrich with owner email, subscription (full), professionals count
       const enriched = [];
       for (const est of (establishments || [])) {
         let ownerEmail = 'N/A';
@@ -151,10 +151,10 @@ serve(async (req) => {
           ownerEmail = authUser?.user?.email || 'N/A';
         } catch { /* ignore */ }
         
-        // Active subscription
+        // Active subscription — return more fields
         const { data: subs } = await adminClient
           .from('subscriptions')
-          .select('plan_code, status')
+          .select('id, plan_code, plan, status, billing_cycle, current_period_start, current_period_end, provider, provider_ref, buyer_email, cancel_at_period_end')
           .eq('owner_user_id', est.owner_user_id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -179,9 +179,122 @@ serve(async (req) => {
       });
     }
 
+    // ---- ACTION: list_subscriptions ----
+    if (action === 'list_subscriptions') {
+      const { data: subs, error: subsError } = await adminClient
+        .from('subscriptions')
+        .select('id, plan_code, plan, status, billing_cycle, current_period_start, current_period_end, provider, provider_ref, buyer_email, cancel_at_period_end, owner_user_id, establishment_id, created_at, updated_at')
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (subsError) {
+        console.error('Error listing subscriptions:', subsError);
+        return respond({ error: `Erro ao listar: ${subsError.message}` }, 500);
+      }
+
+      // Enrich with establishment name + owner email
+      const enriched = [];
+      for (const sub of (subs || [])) {
+        let establishmentName = '—';
+        let establishmentSlug = '—';
+        let ownerEmail = '—';
+
+        if (sub.establishment_id) {
+          const { data: est } = await adminClient
+            .from('establishments')
+            .select('name, slug')
+            .eq('id', sub.establishment_id)
+            .maybeSingle();
+          if (est) {
+            establishmentName = est.name;
+            establishmentSlug = est.slug;
+          }
+        }
+
+        try {
+          const { data: authUser } = await adminClient.auth.admin.getUserById(sub.owner_user_id);
+          ownerEmail = authUser?.user?.email || sub.buyer_email || '—';
+        } catch {
+          ownerEmail = sub.buyer_email || '—';
+        }
+
+        enriched.push({
+          ...sub,
+          establishment_name: establishmentName,
+          establishment_slug: establishmentSlug,
+          owner_email: ownerEmail,
+        });
+      }
+
+      return respond({ subscriptions: enriched });
+    }
+
+    // ---- ACTION: update_subscription ----
+    if (action === 'update_subscription') {
+      // Only master admins can directly edit subscriptions
+      if (adminRow.level !== 'master') {
+        return respond({ error: 'Apenas admins master podem editar assinaturas diretamente' }, 403);
+      }
+
+      const { subscription_id, plan_code, status, billing_cycle } = params;
+      if (!subscription_id) {
+        return respond({ error: 'subscription_id obrigatório' }, 400);
+      }
+
+      const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
+      if (plan_code !== undefined) {
+        updateData.plan_code = plan_code;
+        updateData.plan = plan_code;
+      }
+      if (status !== undefined) updateData.status = status;
+      if (billing_cycle !== undefined) updateData.billing_cycle = billing_cycle;
+
+      // If activating, set period
+      if (status === 'active' && !params.skip_period_reset) {
+        updateData.current_period_start = new Date().toISOString();
+        const days = billing_cycle === 'yearly' ? 365 : billing_cycle === 'quarterly' ? 90 : 30;
+        updateData.current_period_end = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      const { error: updateError } = await adminClient
+        .from('subscriptions')
+        .update(updateData)
+        .eq('id', subscription_id);
+
+      if (updateError) {
+        console.error('Error updating subscription:', updateError);
+        return respond({ error: `Erro ao atualizar: ${updateError.message}` }, 500);
+      }
+
+      // Also update establishment plano if plan_code changed
+      if (plan_code) {
+        const { data: sub } = await adminClient
+          .from('subscriptions')
+          .select('establishment_id')
+          .eq('id', subscription_id)
+          .maybeSingle();
+
+        if (sub?.establishment_id) {
+          const estUpdate: Record<string, any> = { plano: plan_code };
+          if (status === 'active') estUpdate.status = 'active';
+          await adminClient.from('establishments').update(estUpdate).eq('id', sub.establishment_id);
+        }
+      }
+
+      // Audit log
+      await adminClient.from('admin_audit_logs').insert({
+        admin_user_id: user.id,
+        action: 'update_subscription',
+        metadata: { subscription_id, changes: updateData },
+      });
+
+      console.log(`[admin-data] Admin ${user.email} updated subscription ${subscription_id}:`, updateData);
+      return respond({ success: true });
+    }
+
     // ---- ACTION: update_establishment ----
     if (action === 'update_establishment') {
-      const { establishment_id, status, plano, trial_ends_at } = params;
+      const { establishment_id, status, plano, trial_ends_at, billing_cycle } = params;
       if (!establishment_id) {
         return respond({ error: 'establishment_id obrigatório' }, 400);
       }
@@ -216,13 +329,17 @@ serve(async (req) => {
             .eq('owner_user_id', est.owner_user_id)
             .maybeSingle();
 
+          const days = billing_cycle === 'yearly' ? 365 : billing_cycle === 'quarterly' ? 90 : 30;
+          const cycle = billing_cycle || 'monthly';
+
           if (existingSub) {
             await adminClient.from('subscriptions').update({
               plan_code: plano,
               plan: plano,
               status: 'active',
+              billing_cycle: cycle,
               current_period_start: new Date().toISOString(),
-              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              current_period_end: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
               updated_at: new Date().toISOString(),
             }).eq('owner_user_id', est.owner_user_id);
           } else {
@@ -231,6 +348,7 @@ serve(async (req) => {
               establishment_id: establishment_id,
               plan_code: plano,
               plan: plano,
+              billing_cycle: cycle,
               status: 'active',
               provider: 'admin',
             });
