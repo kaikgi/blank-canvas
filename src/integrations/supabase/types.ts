@@ -290,6 +290,51 @@ export type Database = {
           },
         ]
       }
+      entitlements: {
+        Row: {
+          billing_cycle: string
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          email: string
+          id: string
+          metadata: Json
+          plan: string
+          provider: string | null
+          provider_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle: string
+          created_at?: string
+          current_period_end: string
+          current_period_start?: string
+          email: string
+          id?: string
+          metadata?: Json
+          plan: string
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          email?: string
+          id?: string
+          metadata?: Json
+          plan?: string
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       establishment_deletion_jobs: {
         Row: {
           completed_at: string | null
@@ -797,56 +842,113 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          amount_cents: number | null
+          billing_cycle: string
+          establishment_id: string
+          event_type: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          plan: string
+          provider: string | null
+          provider_ref: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          billing_cycle: string
+          establishment_id: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          plan: string
+          provider?: string | null
+          provider_ref?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          billing_cycle?: string
+          establishment_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          plan?: string
+          provider?: string | null
+          provider_ref?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
+          billing_cycle: string
           buyer_email: string | null
+          cancel_at_period_end: boolean
           created_at: string
           current_period_end: string
           current_period_start: string
+          establishment_id: string | null
           external_id: string | null
           external_provider: string | null
           id: string
+          metadata: Json
           owner_user_id: string
+          plan: string
           plan_code: string
           provider: string | null
           provider_customer_id: string | null
           provider_order_id: string | null
+          provider_ref: string | null
           provider_subscription_id: string | null
           raw_last_event: Json | null
           status: string
           updated_at: string
         }
         Insert: {
+          billing_cycle?: string
           buyer_email?: string | null
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string
           current_period_start?: string
+          establishment_id?: string | null
           external_id?: string | null
           external_provider?: string | null
           id?: string
+          metadata?: Json
           owner_user_id: string
+          plan?: string
           plan_code: string
           provider?: string | null
           provider_customer_id?: string | null
           provider_order_id?: string | null
+          provider_ref?: string | null
           provider_subscription_id?: string | null
           raw_last_event?: Json | null
           status?: string
           updated_at?: string
         }
         Update: {
+          billing_cycle?: string
           buyer_email?: string | null
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string
           current_period_start?: string
+          establishment_id?: string | null
           external_id?: string | null
           external_provider?: string | null
           id?: string
+          metadata?: Json
           owner_user_id?: string
+          plan?: string
           plan_code?: string
           provider?: string | null
           provider_customer_id?: string | null
           provider_order_id?: string | null
+          provider_ref?: string | null
           provider_subscription_id?: string | null
           raw_last_event?: Json | null
           status?: string
@@ -912,7 +1014,57 @@ export type Database = {
       }
     }
     Functions: {
+      activate_subscription: {
+        Args: {
+          p_amount_cents: number
+          p_billing_cycle: string
+          p_establishment_id: string
+          p_metadata?: Json
+          p_plan: string
+          p_provider: string
+          p_provider_ref: string
+          p_status: string
+        }
+        Returns: {
+          billing_cycle: string
+          buyer_email: string | null
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          establishment_id: string | null
+          external_id: string | null
+          external_provider: string | null
+          id: string
+          metadata: Json
+          owner_user_id: string
+          plan: string
+          plan_code: string
+          provider: string | null
+          provider_customer_id: string | null
+          provider_order_id: string | null
+          provider_ref: string | null
+          provider_subscription_id: string | null
+          raw_last_event: Json | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "subscriptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      add_billing_interval: {
+        Args: { p_cycle: string; p_start: string }
+        Returns: string
+      }
       admin_get_my_level: { Args: never; Returns: string }
+      check_has_active_entitlement: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { p_user_id: string }; Returns: boolean }
