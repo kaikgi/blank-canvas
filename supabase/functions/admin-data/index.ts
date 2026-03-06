@@ -103,8 +103,8 @@ serve(async (req) => {
         total_customers: totalCustomers || 0,
         active_subscriptions: activeSubscriptions || 0,
         by_status: byStatus,
-        trial_active: trialActive,
-        trial_expired: trialExpired,
+        canceled: canceledCount,
+        past_due: pastDueCount,
         recent_establishments: recentWithEmails,
       });
     }
