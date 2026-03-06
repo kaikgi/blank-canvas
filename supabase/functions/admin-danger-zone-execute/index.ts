@@ -49,19 +49,19 @@ serve(async (req) => {
     adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // DB-level master check
-    const { data: isMaster } = await adminClient.rpc('is_admin_master', { p_user_id: callerUser.id });
+    const { data: isMaster } = await adminClient.rpc('is_admin_master' as any, { p_user_id: callerUser.id });
     if (!isMaster) {
       return respond({ ok: false, code: 'FORBIDDEN', message: 'Usuário não é MASTER' });
     }
 
     // Check ENV flag
     const { data: envSetting } = await adminClient
-      .from('system_settings')
+      .from('system_settings' as any)
       .select('value')
       .eq('key', 'ENV_ALLOW_DANGER_ZONE')
       .single();
 
-    if (!envSetting || envSetting.value !== 'true') {
+    if (!envSetting || (envSetting as any).value !== 'true') {
       return respond({ ok: false, code: 'DANGER_ZONE_DISABLED', message: 'Danger Zone desativada' });
     }
 
@@ -75,12 +75,12 @@ serve(async (req) => {
 
     // Validate typed slugs
     const { data: slugsSetting } = await adminClient
-      .from('system_settings')
+      .from('system_settings' as any)
       .select('value')
       .eq('key', 'DANGER_ZONE_KEEP_SLUGS')
       .single();
 
-    const allowedSlugs: string[] = slugsSetting ? JSON.parse(slugsSetting.value) : [];
+    const allowedSlugs: string[] = slugsSetting ? JSON.parse((slugsSetting as any).value) : [];
     const sortedTyped = typed_slugs?.split(',').map((s: string) => s.trim().toLowerCase()).sort() || [];
     const sortedAllowed = [...allowedSlugs].sort();
 
@@ -110,7 +110,7 @@ serve(async (req) => {
 
     // Acquire lock
     const { error: lockError } = await adminClient
-      .from('admin_locks')
+      .from('admin_locks' as any)
       .insert({ key: 'danger_zone', locked_by: callerUser.id, locked_at: new Date().toISOString() });
 
     if (lockError) {
@@ -134,12 +134,12 @@ serve(async (req) => {
       return respond({ ok: false, code: 'ESTABLISHMENTS_NOT_FOUND', message: 'Estabelecimentos não encontrados' });
     }
 
-    const keptIds = keptEstablishments.map(e => e.id);
-    const ownerIds = keptEstablishments.map(e => e.owner_user_id);
+    const keptIds = keptEstablishments.map((e: any) => e.id);
+    const ownerIds = keptEstablishments.map((e: any) => e.owner_user_id);
 
     // Build allowlist: owners + all admins
     const { data: adminUsers } = await adminClient.from('admin_users').select('user_id');
-    const adminIds = (adminUsers || []).map(a => a.user_id);
+    const adminIds = (adminUsers || []).map((a: any) => a.user_id);
     const allowlistIds = [...new Set([...ownerIds, ...adminIds])];
 
     const deletedCounts: Record<string, number> = {};
@@ -157,7 +157,7 @@ serve(async (req) => {
       .from('appointments')
       .select('id')
       .not('establishment_id', 'in', `(${keptIds.join(',')})`);
-    const aptIds = (aptsToDelete || []).map(a => a.id);
+    const aptIds = (aptsToDelete || []).map((a: any) => a.id);
 
     if (aptIds.length > 0) {
       // Process in batches
@@ -195,7 +195,7 @@ serve(async (req) => {
       .from('professionals')
       .select('id')
       .not('establishment_id', 'in', `(${keptIds.join(',')})`);
-    const profIds = (profsToDelete || []).map(p => p.id);
+    const profIds = (profsToDelete || []).map((p: any) => p.id);
 
     if (profIds.length > 0) {
       for (let i = 0; i < profIds.length; i += 100) {
@@ -285,11 +285,10 @@ serve(async (req) => {
 
     // Audit log
     await adminClient.from('admin_audit_logs').insert({
-      actor_user_id: callerUser.id,
+      admin_user_id: callerUser.id,
       action: 'danger_zone_execute',
-      request_hash: btoa(`execute:${Date.now()}`).slice(0, 16),
-      details: { keep_slugs: allowedSlugs, deleted_counts: deletedCounts, allowlist_count: allowlistIds.length },
-    });
+      metadata: { keep_slugs: allowedSlugs, deleted_counts: deletedCounts, allowlist_count: allowlistIds.length },
+    } as any);
 
     console.log(`[danger-zone] COMPLETED. Deleted counts:`, JSON.stringify(deletedCounts));
 
@@ -307,11 +306,10 @@ serve(async (req) => {
     if (adminClient) {
       try {
         await adminClient.from('admin_audit_logs').insert({
-          actor_user_id: null,
+          admin_user_id: 'system',
           action: 'danger_zone_error',
-          request_hash: btoa(`error:${Date.now()}`).slice(0, 16),
-          details: { error: String(error) },
-        });
+          metadata: { error: String(error) },
+        } as any);
       } catch { /* best effort */ }
     }
 
@@ -321,7 +319,7 @@ serve(async (req) => {
     // Always release lock
     if (lockAcquired && adminClient) {
       try {
-        await adminClient.from('admin_locks').delete().eq('key', 'danger_zone');
+        await adminClient.from('admin_locks' as any).delete().eq('key', 'danger_zone');
       } catch (e) {
         console.error('[danger-zone] Failed to release lock:', e);
       }
