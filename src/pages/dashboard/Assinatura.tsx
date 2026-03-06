@@ -7,7 +7,7 @@ import { useSubscription, getBillingCycleLabel } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useUserEstablishment } from '@/hooks/useUserEstablishment';
 import { useAuth } from '@/hooks/useAuth';
-import { PLANS, type BillingPeriod } from '@/lib/hardcodedPlans';
+import { PLANS, type BillingPeriod, formatCentsBRL } from '@/lib/hardcodedPlans';
 import { getPlanEntitlements, formatLimit } from '@/lib/planEntitlements';
 import { PlanCardsGrid } from '@/components/billing/PlanCardsGrid';
 import { format } from 'date-fns';
