@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
-import { AlertTriangle, ExternalLink, Check, LogOut } from 'lucide-react';
+import { AlertTriangle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
-import { PLANS } from '@/lib/hardcodedPlans';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { PlanCardsGrid } from '@/components/billing/PlanCardsGrid';
 
 interface BlockedAccessModalProps {
   reason: string;
@@ -15,7 +14,6 @@ export function BlockedAccessModal({ reason }: BlockedAccessModalProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Block scroll and ESC key
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,54 +67,7 @@ export function BlockedAccessModal({ reason }: BlockedAccessModalProps) {
           <p className="text-muted-foreground max-w-lg mx-auto">{subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.code}
-              className={cn(
-                "relative rounded-2xl border p-6 transition-all flex flex-col h-full",
-                plan.popular
-                  ? "bg-primary text-primary-foreground border-primary shadow-strong scale-105"
-                  : "bg-card border-border hover:border-foreground/20 hover:shadow-elegant"
-              )}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-background text-foreground text-xs font-semibold whitespace-nowrap z-10">
-                  Mais popular
-                </div>
-              )}
-              <div className="min-h-[60px]">
-                <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                <p className={cn("text-body-sm", plan.popular ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                  {plan.description}
-                </p>
-              </div>
-              <div className="min-h-[70px] mt-4">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm">R$</span>
-                  <span className="text-3xl font-bold">{(plan.prices.monthly / 100).toLocaleString('pt-BR')}</span>
-                  <span className={cn("text-body-sm", plan.popular ? "text-primary-foreground/80" : "text-muted-foreground")}>/mês</span>
-                </div>
-              </div>
-              <ul className="flex-1 space-y-2 mt-4">
-                {plan.features.slice(0, 4).map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm">
-                    <Check size={16} className={cn("mt-0.5 shrink-0", plan.popular ? "text-primary-foreground" : "text-foreground")} />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-auto pt-4">
-                <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
-                  <a href={plan.checkoutUrls.monthly} target="_blank" rel="noopener noreferrer">
-                    Assinar agora
-                    <ExternalLink size={14} className="ml-1" />
-                  </a>
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <PlanCardsGrid ctaLabel="Assinar agora" />
 
         <div className="text-center">
           <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-foreground">
