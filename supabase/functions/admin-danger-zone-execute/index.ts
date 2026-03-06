@@ -49,7 +49,7 @@ serve(async (req) => {
     adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // DB-level master check
-    const { data: isMaster } = await adminClient.rpc('is_admin_master', { p_user_id: callerUser.id });
+    const { data: isMaster } = await adminClient.rpc('is_admin_master' as any, { p_user_id: callerUser.id });
     if (!isMaster) {
       return respond({ ok: false, code: 'FORBIDDEN', message: 'Usuário não é MASTER' });
     }
