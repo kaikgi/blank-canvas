@@ -27,7 +27,7 @@ export function HeroSection() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary border border-border mb-6">
               <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span className="text-body-sm text-muted-foreground">
-                Teste grátis por 7 dias — sem cartão de crédito
+                Agendamento online para profissionais
               </span>
             </div>
 
