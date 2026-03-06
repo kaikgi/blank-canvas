@@ -59,7 +59,7 @@ export default function Servicos() {
 
   const handleOpenCreate = () => {
     setEditingId(null);
-    setForm({ name: '', description: '', duration_minutes: 30, price_cents: 0 });
+    setForm({ name: '', description: '', duration_minutes: '30', price: '' });
     setDialogOpen(true);
   };
 
