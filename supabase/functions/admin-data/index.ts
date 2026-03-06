@@ -357,7 +357,7 @@ serve(async (req) => {
           subData.current_period_end = periodEnd;
         }
         if (status !== undefined) {
-          subData.status = status === 'trial' ? 'trial' : status === 'active' ? 'active' : status;
+          subData.status = status;
         }
 
         if (existingSub) {
