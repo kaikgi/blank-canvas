@@ -139,7 +139,7 @@ serve(async (req) => {
 
     // Build allowlist: owners + all admins
     const { data: adminUsers } = await adminClient.from('admin_users').select('user_id');
-    const adminIds = (adminUsers || []).map(a => a.user_id);
+    const adminIds = (adminUsers || []).map((a: any) => a.user_id);
     const allowlistIds = [...new Set([...ownerIds, ...adminIds])];
 
     const deletedCounts: Record<string, number> = {};
