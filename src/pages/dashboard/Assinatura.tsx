@@ -75,14 +75,11 @@ export default function Assinatura() {
   const estStatus = (est?.status || '').toLowerCase();
   const estPlano = (est?.plano || '').toLowerCase();
 
-  const isTrial = estStatus === 'trial';
   const hasActiveSubscription = subscription?.status === 'active';
 
   // Determine display plan code
   let displayPlanCode: string;
-  if (isTrial) {
-    displayPlanCode = 'trial';
-  } else if (hasActiveSubscription) {
+  if (hasActiveSubscription) {
     displayPlanCode = (subscription?.plan_code || subscription?.plan || 'solo').toLowerCase();
   } else if (estPlano && estPlano !== 'nenhum' && estPlano !== 'trial') {
     displayPlanCode = estPlano;
@@ -91,7 +88,7 @@ export default function Assinatura() {
   }
 
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
-  const entitlements = getPlanEntitlements(estStatus, displayPlanCode === 'trial' ? estPlano : displayPlanCode, est?.trial_ends_at);
+  const entitlements = getPlanEntitlements(estStatus, displayPlanCode);
 
   // Billing cycle from subscription
   const billingCycle = (subscription?.billing_cycle || 'monthly').toLowerCase() as BillingPeriod;
@@ -102,13 +99,6 @@ export default function Assinatura() {
     ? format(new Date(subscription.current_period_end), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
     : null;
 
-  // Trial days left
-  let trialDaysLeft = 0;
-  if (isTrial && est?.trial_ends_at) {
-    const now = new Date();
-    const trialEnd = new Date(est.trial_ends_at);
-    trialDaysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-  }
 
   // Usage
   const profLimit = entitlements.professionalLimit;
@@ -128,7 +118,7 @@ export default function Assinatura() {
       </div>
 
       {/* Upgrade Alert */}
-      {isNearProfessionalsLimit && !isTrial && !isMaxPlan && (
+      {isNearProfessionalsLimit && !isMaxPlan && (
         <Alert variant="default" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
@@ -147,12 +137,7 @@ export default function Assinatura() {
                 <Crown className="h-5 w-5 text-primary" />
                 Seu Plano
               </CardTitle>
-              {isTrial ? (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Período de Teste
-                </Badge>
-              ) : hasActiveSubscription ? (
+              {hasActiveSubscription ? (
                 <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Ativo
@@ -171,28 +156,16 @@ export default function Assinatura() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {isTrial ? (
-                      <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-base px-3 py-1">
-                        Trial
-                      </Badge>
-                    ) : (
-                      <Badge className="text-base px-3 py-1">
-                        {currentPlan.name}
-                      </Badge>
-                    )}
-                    {hasActiveSubscription && !isTrial && (
+                    <Badge className="text-base px-3 py-1">
+                      {currentPlan.name}
+                    </Badge>
+                    {hasActiveSubscription && (
                       <Badge variant="outline" className="text-xs">
                         {billingCycleLabel}
                       </Badge>
                     )}
                   </div>
-                  {isTrial ? (
-                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1.5 font-medium">
-                      {trialDaysLeft > 0
-                        ? `Faltam ${trialDaysLeft} dia${trialDaysLeft !== 1 ? 's' : ''} para o fim do seu teste`
-                        : 'Seu período de teste expirou'}
-                    </p>
-                  ) : hasActiveSubscription ? (
+                  {hasActiveSubscription ? (
                     <p className="text-sm text-muted-foreground mt-1.5">
                       Assinatura ativa • {billingCycleLabel}
                     </p>
@@ -204,28 +177,15 @@ export default function Assinatura() {
                 </div>
               </div>
               <div className="text-right shrink-0">
-                {isTrial ? (
-                  <>
-                    <div className="text-lg font-semibold text-amber-700 dark:text-amber-300">
-                      Grátis por 7 dias
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Até {entitlements.professionalLimit} profissionais
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-3xl font-bold tabular-nums">
-                      R$ {formatPriceBRL(currentPlan.prices.monthly)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">/mês</div>
-                  </>
-                )}
+                <div className="text-3xl font-bold tabular-nums">
+                  R$ {formatPriceBRL(currentPlan.prices.monthly)}
+                </div>
+                <div className="text-sm text-muted-foreground">/mês</div>
               </div>
             </div>
 
             {/* Subscription Details */}
-            {hasActiveSubscription && !isTrial && (
+            {hasActiveSubscription && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                   <Repeat className="h-4 w-4 text-primary shrink-0" />
@@ -266,7 +226,7 @@ export default function Assinatura() {
                 <Crown className="h-5 w-5 text-primary shrink-0" />
                 <div>
                   <div className="text-xs text-muted-foreground">Plano</div>
-                  <div className="font-semibold text-sm">{isTrial ? 'Trial' : currentPlan.name}</div>
+                  <div className="font-semibold text-sm">{currentPlan.name}</div>
                 </div>
               </div>
             </div>
@@ -334,12 +294,7 @@ export default function Assinatura() {
 
             {/* Status */}
             <div className="pt-2 border-t">
-              {isTrial ? (
-                <div className="flex items-center gap-2 text-amber-600 text-sm">
-                  <Clock className="h-4 w-4 shrink-0" />
-                  <span>{trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} restante{trialDaysLeft !== 1 ? 's' : ''}</span>
-                </div>
-              ) : isNearProfessionalsLimit ? (
+              {isNearProfessionalsLimit ? (
                 <div className="flex items-center gap-2 text-amber-600 text-sm">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   <span>Próximo do limite</span>
@@ -356,18 +311,14 @@ export default function Assinatura() {
       </div>
 
       {/* Plan Comparison Section */}
-      {(isTrial || !isMaxPlan) && (
+      {!isMaxPlan && (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-primary" />
             <div>
-              <h2 className="text-xl font-bold">
-                {isTrial ? 'Escolha seu plano' : 'Comparar Planos'}
-              </h2>
+              <h2 className="text-xl font-bold">Comparar Planos</h2>
               <p className="text-muted-foreground text-sm">
-                {isTrial
-                  ? 'Assine antes do fim do teste para não perder acesso'
-                  : 'Faça upgrade para desbloquear mais recursos'}
+                Faça upgrade para desbloquear mais recursos
               </p>
             </div>
           </div>
@@ -392,7 +343,7 @@ export default function Assinatura() {
 
           <div className="grid gap-6 md:grid-cols-3">
             {PLANS.map((plan) => {
-              const isCurrentPlan = !isTrial && plan.code === displayPlanCode;
+              const isCurrentPlan = plan.code === displayPlanCode;
               const price = plan.prices[selectedCycle];
 
               return (
@@ -477,7 +428,7 @@ export default function Assinatura() {
                         asChild
                       >
                         <a href={plan.checkoutUrls[selectedCycle]} target="_blank" rel="noopener noreferrer">
-                          {isTrial ? 'Assinar' : 'Fazer upgrade'} {plan.name}
+                          Fazer upgrade — {plan.name}
                           <ExternalLink size={14} className="ml-1" />
                         </a>
                       </Button>
@@ -491,7 +442,7 @@ export default function Assinatura() {
       )}
 
       {/* Max Plan Success */}
-      {isMaxPlan && !isTrial && (
+      {isMaxPlan && (
         <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="flex items-center gap-4 py-6">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

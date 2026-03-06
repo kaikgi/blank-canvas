@@ -19,19 +19,10 @@ interface AuthContextType {
   signInWithGoogle: (redirectPath?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  checkEmailAuthorized: (email: string) => Promise<{ authorized: boolean; planId?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .substring(0, 50);
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -72,13 +63,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Sign up for ESTABLISHMENT owners - now with open trial registration.
-   * No Kiwify pre-authorization needed. Trial of 7 days is set automatically.
+   * Check if an email is authorized to create an account.
+   * Must exist in allowed_establishment_signups and not be used yet.
+   */
+  const checkEmailAuthorized = async (email: string): Promise<{ authorized: boolean; planId?: string }> => {
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    const { data, error } = await supabase
+      .from('allowed_establishment_signups')
+      .select('email, plan_id, used')
+      .eq('email', normalizedEmail)
+      .eq('used', false)
+      .limit(1);
+
+    if (error || !data || data.length === 0) {
+      return { authorized: false };
+    }
+
+    return { authorized: true, planId: data[0].plan_id };
+  };
+
+  /**
+   * Sign up for ESTABLISHMENT owners.
+   * Requires pre-authorization via Kiwify payment.
    */
   const signUp = async ({ email, password, fullName, companyName }: SignUpData) => {
-    // Create the auth user directly (no more check_establishment_signup_allowed)
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 1. Check authorization
+    const { authorized, planId } = await checkEmailAuthorized(normalizedEmail);
+    if (!authorized) {
+      return { 
+        error: new Error('Este email não está autorizado. Você precisa assinar um plano antes de criar sua conta.') 
+      };
+    }
+
+    // 2. Create auth user
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         emailRedirectTo: getOAuthRedirectUrl('/dashboard'),
@@ -94,13 +116,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const userId = data.user.id;
+    const resolvedPlan = planId || 'solo';
 
-    // Create establishment - slug, status, plano, trial_ends_at are set by DB trigger
+    // 3. Create establishment with active status and correct plan
     const { data: establishment, error: estError } = await supabase
       .from('establishments')
       .insert({
         owner_user_id: userId,
         name: companyName,
+        status: 'active',
+        plano: resolvedPlan,
       })
       .select('id')
       .single();
@@ -110,14 +135,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: estError || new Error('Erro ao criar estabelecimento') };
     }
 
-    // Create owner member
+    // 4. Create owner member
     await supabase.from('establishment_members').insert({
       establishment_id: establishment.id,
       user_id: userId,
       role: 'owner',
     });
 
-    // Create default business hours
+    // 5. Create default business hours
     const defaultHours = [];
     for (let weekday = 1; weekday <= 6; weekday++) {
       defaultHours.push({
@@ -135,8 +160,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       close_time: null,
       closed: true,
     });
-
     await supabase.from('business_hours').insert(defaultHours);
+
+    // 6. Mark the allowed signup as used
+    await supabase
+      .from('allowed_establishment_signups')
+      .update({ used: true })
+      .eq('email', normalizedEmail);
 
     return { error: null };
   };
@@ -166,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut, resetPassword, checkEmailAuthorized }}>
       {children}
     </AuthContext.Provider>
   );

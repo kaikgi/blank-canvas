@@ -6,25 +6,15 @@ export interface PlanEntitlements {
 
 /**
  * Centralized entitlements for each plan/status.
- * Trial: 3 professionals, 130 appointments.
- * Paid plans: unlimited appointments, varying professional limits.
+ * No trial — only paid plans.
  */
 export function getPlanEntitlements(
   status: string | undefined | null,
   plano: string | undefined | null,
-  trialEndsAt: string | null | undefined,
+  _trialEndsAt?: string | null | undefined,
 ): PlanEntitlements {
   const normalizedStatus = (status || '').toLowerCase();
   const normalizedPlano = (plano || '').toLowerCase();
-
-  // Trial (active trial)
-  if (normalizedStatus === 'trial') {
-    return {
-      planLabel: 'Trial',
-      professionalLimit: 3,
-      appointmentLimit: 130,
-    };
-  }
 
   // Active paid plans
   if (normalizedStatus === 'active' || normalizedStatus === '') {
