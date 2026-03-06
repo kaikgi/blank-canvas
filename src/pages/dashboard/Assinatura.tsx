@@ -166,7 +166,7 @@ export default function Assinatura() {
               </div>
               <div className="text-right shrink-0">
                 <div className="text-3xl font-bold tabular-nums">
-                  R$ {formatPriceBRL(currentPlan.prices.monthly)}
+                  R$ {formatCentsBRL(currentPlan.prices.monthly)}
                 </div>
                 <div className="text-sm text-muted-foreground">/mês</div>
               </div>
