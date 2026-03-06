@@ -13,14 +13,14 @@ const professionalAvatars = [professional1, professional2, professional3, profes
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-dots opacity-50" />
       {/* Gradient orb */}
       <div className="absolute top-1/4 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-muted rounded-full blur-3xl opacity-60" />
 
-      <div className="relative w-full max-w-[1200px] mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-20 items-center">
+      <div className="relative container max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 items-center">
           {/* Left content */}
           <div className="animate-fade-in-up text-center lg:text-left">
             {/* Badge */}
@@ -32,13 +32,13 @@ export function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-display-md sm:text-display-lg lg:text-display-xl text-balance max-w-[650px] mx-auto lg:mx-0 mb-6">
+            <h1 className="text-display-md sm:text-display-lg lg:text-display-xl text-balance max-w-[600px] mx-auto lg:mx-0 mb-5">
               Agendamentos simples.{" "}
               <span className="text-muted-foreground">Negócio eficiente.</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-body-lg text-muted-foreground max-w-[520px] mx-auto lg:mx-0 mb-8">
+            <p className="text-body-lg text-muted-foreground max-w-[500px] mx-auto lg:mx-0 mb-8">
               Transforme a experiência de agendamento dos seus clientes com uma plataforma
               minimalista, poderosa e feita para profissionais que valorizam seu tempo.
             </p>
@@ -54,7 +54,7 @@ export function HeroSection() {
             </div>
 
             {/* Social proof */}
-            <div className="flex items-center justify-center lg:justify-start gap-6">
+            <div className="flex items-center justify-center lg:justify-start gap-4">
               <div className="flex -space-x-2">
                 {professionalAvatars.map((avatar, i) => (
                   <img
