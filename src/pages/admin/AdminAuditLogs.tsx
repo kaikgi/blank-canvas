@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollText, Shield, AlertTriangle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
@@ -11,6 +12,7 @@ const actionIcons: Record<string, typeof Shield> = {
   danger_zone_preview: AlertTriangle,
   danger_zone_execute: Trash2,
   danger_zone_error: AlertTriangle,
+  hard_delete_establishment: Trash2,
 };
 
 const actionLabels: Record<string, string> = {
@@ -18,10 +20,11 @@ const actionLabels: Record<string, string> = {
   danger_zone_preview: "Danger Zone (prévia)",
   danger_zone_execute: "Danger Zone (execução)",
   danger_zone_error: "Danger Zone (erro)",
+  hard_delete_establishment: "Exclusão permanente",
 };
 
 export default function AdminAuditLogs() {
-  const { data: logs, isLoading } = useQuery({
+  const { data: logs, isLoading, error } = useQuery({
     queryKey: ["admin-audit-logs"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -34,6 +37,16 @@ export default function AdminAuditLogs() {
       return data || [];
     },
   });
+
+  if (error) {
+    return (
+      <div className="text-center py-12 space-y-2">
+        <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
+        <p className="text-destructive font-medium">Erro ao carregar logs</p>
+        <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -56,7 +69,7 @@ export default function AdminAuditLogs() {
           {logs.map((log) => {
             const Icon = actionIcons[log.action] || ScrollText;
             const label = actionLabels[log.action] || log.action;
-            const isDanger = log.action.startsWith("danger_zone");
+            const isDanger = log.action.startsWith("danger_zone") || log.action === "hard_delete_establishment";
 
             return (
               <Card key={log.id} className={isDanger ? "border-destructive/30" : ""}>
@@ -68,18 +81,20 @@ export default function AdminAuditLogs() {
                       <Icon className={`h-5 w-5 ${isDanger ? "text-destructive" : "text-primary"}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium">{label}</p>
-                        <span className="text-xs text-muted-foreground font-mono">
-                          {log.request_hash}
-                        </span>
+                        {log.admin_user_id && (
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {log.admin_user_id.substring(0, 8)}…
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {format(new Date(log.created_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
                       </p>
-                      {log.details && (
+                      {log.metadata && Object.keys(log.metadata as object).length > 0 && (
                         <pre className="text-xs mt-2 p-2 bg-muted rounded overflow-x-auto max-h-32">
-                          {JSON.stringify(log.details, null, 2)}
+                          {JSON.stringify(log.metadata, null, 2)}
                         </pre>
                       )}
                     </div>

@@ -76,7 +76,7 @@ serve(async (req) => {
     const validPlans = ['solo', 'studio', 'pro'];
     if (!validPlans.includes(plan_code)) {
       return new Response(
-        JSON.stringify({ error: 'Plano inválido. Use: basic, essential ou studio' }),
+        JSON.stringify({ error: 'Plano inválido. Use: solo, studio ou pro' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

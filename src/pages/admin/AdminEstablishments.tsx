@@ -143,7 +143,7 @@ export default function AdminEstablishments() {
         description: (result?.steps || []).join(", "),
       });
       setDeleteEst(null);
-      queryClient.invalidateQueries({ queryKey: ["adminestablishments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-establishments"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
     } catch (err: any) {
       toast.error(err?.message || "Erro ao excluir estabelecimento");
