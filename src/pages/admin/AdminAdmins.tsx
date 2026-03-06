@@ -135,9 +135,8 @@ export default function AdminAdmins() {
 
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { data: myLevel, isLoading: myLevelLoading, error: myLevelError } = useMyAdminLevel();
+  const { isSuperAdmin, hasPermission, role: myLevel, isLoading: myLevelLoading, error: myLevelError } = useAdminPermissions();
   const { data: admins, isLoading, error, refetch } = useAdminUsers();
-  const isSuperAdmin = myLevel === "super_admin";
 
   // ─── Mutations ───
   const addAdmin = useMutation({
