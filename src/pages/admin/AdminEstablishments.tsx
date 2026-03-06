@@ -333,6 +333,30 @@ export default function AdminEstablishments() {
             </div>
 
             <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plano</Label>
+              <Select value={editForm.plano} onValueChange={(v) => setEditForm({ ...editForm, plano: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PLAN_OPTIONS.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ciclo de Cobrança</Label>
+              <Select value={editForm.billing_cycle} onValueChange={(v) => setEditForm({ ...editForm, billing_cycle: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                  <SelectItem value="quarterly">Trimestral</SelectItem>
+                  <SelectItem value="yearly">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fim do Trial</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -357,6 +381,23 @@ export default function AdminEstablishments() {
                 </PopoverContent>
               </Popover>
             </div>
+
+            {/* Subscription info (read-only) */}
+            {editEst?.subscription && (
+              <div className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm border-t pt-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Assinatura</p>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Provider</span>
+                  <span className="font-medium">{editEst.subscription.provider || '—'}</span>
+                </div>
+                {editEst.subscription.current_period_end && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Válida até</span>
+                    <span className="tabular-nums">{format(new Date(editEst.subscription.current_period_end), "dd/MM/yyyy", { locale: ptBR })}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter>
