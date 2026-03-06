@@ -128,11 +128,11 @@ export default function Profissionais() {
     setUploadingPhoto(true);
     try {
       // Try to remove from storage
-      const urlParts = form.photo_url.split('/professional-photos/');
+      const urlParts = form.photo_url.split('/uploads/');
       if (urlParts.length > 1) {
         const filePath = urlParts[1].split('?')[0]; // Remove cache buster
         await supabase.storage
-          .from('professional-photos')
+          .from('uploads')
           .remove([filePath]);
       }
 
