@@ -92,7 +92,7 @@ export default function Configuracoes() {
         booking_enabled: establishment.booking_enabled,
         auto_confirm_bookings: establishment.auto_confirm_bookings,
         reschedule_min_hours: String(establishment.reschedule_min_hours ?? 2),
-        max_future_days: String(establishment.max_future_days ?? 30),
+        max_future_days: String(establishment.max_future_days ?? 7),
         slot_interval_minutes: String(establishment.slot_interval_minutes ?? 15),
         reminder_hours_before: String((establishment as any).reminder_hours_before ?? 3),
       });
@@ -595,16 +595,22 @@ export default function Configuracoes() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="future">Dias no futuro</Label>
-              <Input
+              <Label htmlFor="future">Janela de agendamento</Label>
+              <select
                 id="future"
-                type="number"
-                min="1"
                 value={form.max_future_days}
                 onChange={(e) => setForm({ ...form, max_future_days: e.target.value })}
-                onFocus={(e) => e.target.select()}
-                placeholder="30"
-              />
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="7">7 dias</option>
+                <option value="14">14 dias</option>
+                <option value="15">15 dias</option>
+                <option value="30">30 dias</option>
+                <option value="60">60 dias</option>
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Até quantos dias no futuro o cliente pode agendar
+              </p>
             </div>
           </div>
 

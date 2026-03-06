@@ -29,6 +29,7 @@ export interface ClientAppointment {
     address: string | null;
     city: string | null;
     state: string | null;
+    max_future_days: number;
   };
 }
 
@@ -57,7 +58,7 @@ export function useClientAppointments(filters?: UseClientAppointmentsFilters) {
           customer_notes,
           service:services(id, name, duration_minutes, price_cents),
           professional:professionals(id, name, photo_url),
-          establishment:establishments(id, name, slug, logo_url, phone, address, city, state)
+          establishment:establishments(id, name, slug, logo_url, phone, address, city, state, max_future_days)
         `)
         .eq('customer_user_id', user.id)
         .order('start_at', { ascending: false });
@@ -135,7 +136,7 @@ export function useClientAppointmentsByMonth(year: number, month: number) {
           customer_notes,
           service:services(id, name, duration_minutes, price_cents),
           professional:professionals(id, name, photo_url),
-          establishment:establishments(id, name, slug, logo_url, phone, address, city, state)
+          establishment:establishments(id, name, slug, logo_url, phone, address, city, state, max_future_days)
         `)
         .eq('customer_user_id', user.id)
         .gte('start_at', startDate.toISOString())
