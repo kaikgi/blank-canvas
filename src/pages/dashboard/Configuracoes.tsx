@@ -586,10 +586,14 @@ export default function Configuracoes() {
               <Label htmlFor="reschedule">Antecedência mínima (horas)</Label>
               <Input
                 id="reschedule"
-                type="number"
-                min={0}
+                type="text"
+                inputMode="numeric"
                 value={form.reschedule_min_hours}
-                onChange={(e) => setForm({ ...form, reschedule_min_hours: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, reschedule_min_hours: val });
+                }}
+                placeholder="2"
               />
             </div>
             <div className="space-y-2">
