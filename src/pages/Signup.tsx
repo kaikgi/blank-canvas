@@ -59,13 +59,14 @@ export default function Signup() {
       return;
     }
 
-    // Save phone to profile
+    // Save phone and account_type to profile
     const { data: userData } = await supabase.auth.getUser();
     if (userData?.user?.id) {
       await supabase.from('profiles').upsert({
         id: userData.user.id,
         full_name: data.fullName,
         phone: data.phone,
+        account_type: 'establishment_owner',
       });
     }
 

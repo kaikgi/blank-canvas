@@ -2,11 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+export type AccountType = 'customer' | 'establishment_owner';
+
 export interface Profile {
   id: string;
   full_name: string | null;
   phone: string | null;
   avatar_url: string | null;
+  account_type: AccountType;
   created_at: string;
   updated_at: string;
 }
