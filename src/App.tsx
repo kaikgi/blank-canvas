@@ -63,6 +63,7 @@ import ResponsiveTestPage from "./pages/dev/ResponsiveTest";
 
 const queryClient = new QueryClient();
 
+
 // Reserved routes that should NOT be treated as establishment slugs
 const RESERVED_ROUTES = [
   'recursos',
