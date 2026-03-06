@@ -351,11 +351,11 @@ export default function Assinatura() {
                   ))}
                 </ul>
                 <div className="mt-auto pt-4">
-                  {!isTrial && plan.code === displayPlanCode ? (
+                {!isTrial && plan.code === displayPlanCode ? (
                     <Button variant="outline" disabled className="w-full">Plano atual</Button>
                   ) : (
                     <Button variant={plan.popular ? "secondary" : "default"} size="lg" className="w-full" asChild>
-                      <a href={plan.checkoutUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={plan.checkoutUrls.monthly} target="_blank" rel="noopener noreferrer">
                         Assinar {plan.name}
                         <ExternalLink size={14} className="ml-1" />
                       </a>

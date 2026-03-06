@@ -36,7 +36,7 @@ function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: Billi
           </p>
         </div>
       )}
-      {period === "annual" && (
+      {period === "yearly" && (
         <div>
           <p className={cn("text-body-sm mt-1 line-through opacity-60", plan.popular ? "text-primary-foreground/70" : "text-muted-foreground")}>
             De R${formatCentsBRL(fullMonthlyTotal)}
