@@ -231,58 +231,9 @@ export default function AdminEstablishments() {
     setPage(0);
   }, [sortKey]);
 
-  // --- Manage Modal ---
+  // --- Navigate to detail page ---
   const handleOpenManage = (est: AdminEstablishment) => {
-    setManageEst(est);
-    setManageTab('overview');
-    setEditForm({
-      status: est.status,
-      plano: getPlanCode(est),
-      trial_ends_at: est.trial_ends_at ? est.trial_ends_at.split('T')[0] : '',
-      billing_cycle: getCycle(est) || 'monthly',
-    });
-  };
-
-  const handleSaveEdit = async () => {
-    if (!manageEst) return;
-    try {
-      await updateEstablishment.mutateAsync({
-        establishment_id: manageEst.id,
-        status: editForm.status,
-        plano: editForm.plano,
-        trial_ends_at: editForm.trial_ends_at ? new Date(editForm.trial_ends_at).toISOString() : undefined,
-        billing_cycle: editForm.billing_cycle,
-      });
-      toast.success(`${manageEst.name} atualizado com sucesso`);
-      setManageEst(null);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao atualizar");
-    }
-  };
-
-  const handleQuickAction = async (action: 'suspend' | 'reactivate' | 'cancel' | 'reset_trial') => {
-    if (!manageEst) return;
-    try {
-      if (action === 'reset_trial') {
-        const newTrialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        await updateEstablishment.mutateAsync({
-          establishment_id: manageEst.id,
-          status: 'trial',
-          trial_ends_at: newTrialEnd,
-        });
-        toast.success("Trial resetado (7 dias)");
-      } else {
-        const statusMap = { suspend: 'past_due', reactivate: 'active', cancel: 'canceled' };
-        await updateEstablishment.mutateAsync({
-          establishment_id: manageEst.id,
-          status: statusMap[action],
-        });
-        toast.success(`Estabelecimento ${action === 'suspend' ? 'suspenso' : action === 'reactivate' ? 'reativado' : 'cancelado'}`);
-      }
-      setManageEst(null);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro na ação");
-    }
+    navigate(`/admin/estabelecimentos/${est.id}`);
   };
 
   // --- Delete ---
