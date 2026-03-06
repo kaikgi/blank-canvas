@@ -202,6 +202,11 @@ export default function Profissionais() {
   };
 
   const handleToggleActive = async (id: string, currentActive: boolean) => {
+    // If reactivating, check plan limits first
+    if (!currentActive && limits && !limits.canAddProfessional) {
+      setUpgradeDialogOpen(true);
+      return;
+    }
     try {
       await update({ id, active: !currentActive });
       toast({ title: currentActive ? 'Profissional desativado' : 'Profissional ativado' });
