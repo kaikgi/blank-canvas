@@ -75,12 +75,12 @@ serve(async (req) => {
 
     // Validate typed slugs
     const { data: slugsSetting } = await adminClient
-      .from('system_settings')
+      .from('system_settings' as any)
       .select('value')
       .eq('key', 'DANGER_ZONE_KEEP_SLUGS')
       .single();
 
-    const allowedSlugs: string[] = slugsSetting ? JSON.parse(slugsSetting.value) : [];
+    const allowedSlugs: string[] = slugsSetting ? JSON.parse((slugsSetting as any).value) : [];
     const sortedTyped = typed_slugs?.split(',').map((s: string) => s.trim().toLowerCase()).sort() || [];
     const sortedAllowed = [...allowedSlugs].sort();
 
