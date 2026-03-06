@@ -617,11 +617,14 @@ export default function Configuracoes() {
               <Label htmlFor="interval">Intervalo de horários (minutos)</Label>
               <Input
                 id="interval"
-                type="number"
-                min={5}
-                step={5}
+                type="text"
+                inputMode="numeric"
                 value={form.slot_interval_minutes}
-                onChange={(e) => setForm({ ...form, slot_interval_minutes: parseInt(e.target.value) || 15 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, slot_interval_minutes: val });
+                }}
+                placeholder="15"
               />
             </div>
             <div className="space-y-2">
