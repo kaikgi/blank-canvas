@@ -473,7 +473,7 @@ async function processKiwifyEvent(
         .update({ used: true })
         .eq('email', buyerEmail)
 
-      // Activate establishment (switch from trial to active)
+      // Activate establishment
       const { error: estUpdateError } = await supabase
         .from('establishments')
         .update({ status: 'active' } as any)
