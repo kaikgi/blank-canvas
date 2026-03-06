@@ -98,15 +98,15 @@ export default function Profissionais() {
     // Upload immediately for existing professional
     setUploadingPhoto(true);
     try {
-      const filePath = `${editingId}/photo.jpg`;
+      const filePath = `professional-photos/${editingId}/photo.jpg`;
       const { error: uploadError } = await supabase.storage
-        .from('professional-photos')
+        .from('uploads')
         .upload(filePath, croppedBlob, { upsert: true, contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('professional-photos')
+        .from('uploads')
         .getPublicUrl(filePath);
 
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
