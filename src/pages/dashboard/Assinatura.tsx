@@ -303,7 +303,7 @@ export default function Assinatura() {
       </div>
 
       {/* Plan Comparison Section - Show for trial and non-studio */}
-      {(isTrial || displayPlanCode !== 'studio') && (
+      {(isTrial || displayPlanCode !== 'pro') && (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-primary" />
