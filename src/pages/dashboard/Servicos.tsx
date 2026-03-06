@@ -74,8 +74,8 @@ export default function Servicos() {
     setForm({
       name: service.name,
       description: service.description || '',
-      duration_minutes: service.duration_minutes,
-      price_cents: service.price_cents || 0,
+      duration_minutes: String(service.duration_minutes),
+      price: service.price_cents ? (service.price_cents / 100).toFixed(2) : '',
     });
     setDialogOpen(true);
   };
