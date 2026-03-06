@@ -56,9 +56,10 @@ function StatusBadge({ status }: { status: string }) {
 function getPlanLabel(est: AdminEstablishment) {
   const planCode = est.subscription?.plan_code || est.plano || 'nenhum';
   switch (planCode) {
-    case 'basico': return 'Básico';
-    case 'essencial': return 'Essencial';
+    case 'solo': return 'Solo';
     case 'studio': return 'Studio';
+    case 'pro': return 'Pro';
+    case 'trial': return 'Trial';
     default: return planCode;
   }
 }
