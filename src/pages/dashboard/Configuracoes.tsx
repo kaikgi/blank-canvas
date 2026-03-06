@@ -631,11 +631,14 @@ export default function Configuracoes() {
               <Label htmlFor="reminder">Lembrete por e-mail (horas antes)</Label>
               <Input
                 id="reminder"
-                type="number"
-                min={0}
-                max={48}
+                type="text"
+                inputMode="numeric"
                 value={form.reminder_hours_before}
-                onChange={(e) => setForm({ ...form, reminder_hours_before: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, reminder_hours_before: val });
+                }}
+                placeholder="3"
               />
               <p className="text-xs text-muted-foreground">
                 0 = desativado
