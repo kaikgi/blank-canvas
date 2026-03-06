@@ -208,7 +208,6 @@ export default function AdminEstablishmentDetail() {
       const statusMap = { suspend: 'past_due', reactivate: 'active', cancel: 'canceled' } as const;
       await updateEstablishment.mutateAsync({ establishment_id: est.id, status: statusMap[action] });
       toast.success(`Estabelecimento ${action === 'suspend' ? 'suspenso' : action === 'reactivate' ? 'reativado' : 'cancelado'}`);
-      }
     } catch (err: any) {
       toast.error(err?.message || "Erro na ação");
     }
