@@ -115,7 +115,7 @@ serve(async (req) => {
       
       let query = adminClient
         .from('establishments')
-        .select('id, name, slug, status, plano, created_at, owner_user_id, trial_ends_at, booking_enabled')
+        .select('id, name, slug, status, plano, created_at, owner_user_id, booking_enabled')
         .order('created_at', { ascending: false })
         .limit(200);
 
