@@ -37,15 +37,12 @@ export interface AdminStats {
   total_customers: number;
   active_subscriptions: number;
   by_status: Record<string, number>;
-  trial_active: number;
-  trial_expired: number;
   recent_establishments: Array<{
     id: string;
     name: string;
     slug: string;
     status: string;
     created_at: string;
-    trial_ends_at: string | null;
     owner_email: string;
   }>;
 }
