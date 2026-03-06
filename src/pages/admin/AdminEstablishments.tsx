@@ -349,7 +349,7 @@ export default function AdminEstablishments() {
     return issues;
   }, [data]);
 
-  const trialDate = editForm.trial_ends_at ? new Date(editForm.trial_ends_at + 'T00:00:00') : undefined;
+  const canDelete = deleteConfirmText === "EXCLUIR";
   const canDelete = deleteConfirmText === "EXCLUIR";
 
   if (error) {
