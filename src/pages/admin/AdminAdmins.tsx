@@ -190,6 +190,11 @@ export default function AdminAdmins() {
         .update({ status: "removido" })
         .eq("user_id", userId);
       if (error) throw error;
+      await supabase.from("admin_audit_logs").insert({
+        admin_user_id: user!.id,
+        action: "admin_remove",
+        metadata: { target_user_id: userId },
+      });
     },
     onSuccess: () => {
       toast.success("Administrador removido");
