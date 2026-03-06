@@ -473,7 +473,7 @@ async function processKiwifyEvent(
         .update({ used: true })
         .eq('email', buyerEmail)
 
-      // Activate establishment (switch from trial to active)
+      // Activate establishment
       const { error: estUpdateError } = await supabase
         .from('establishments')
         .update({ status: 'active' } as any)
@@ -486,17 +486,17 @@ async function processKiwifyEvent(
       }
     }
 
-    // On cancellation, revert establishment to expired trial
+    // On cancellation, mark establishment as canceled
     if (status === 'canceled') {
       const { error: estRevertError } = await supabase
         .from('establishments')
-        .update({ status: 'trial', trial_ends_at: new Date().toISOString() } as any)
+        .update({ status: 'canceled' } as any)
         .eq('owner_user_id', userId)
 
       if (estRevertError) {
-        console.error('[KIWIFY] Error reverting establishment:', estRevertError)
+        console.error('[KIWIFY] Error canceling establishment:', estRevertError)
       } else {
-        console.log(`[KIWIFY] ❌ Establishment reverted to expired trial for user ${userId}`)
+        console.log(`[KIWIFY] ❌ Establishment canceled for user ${userId}`)
       }
     }
   } else {

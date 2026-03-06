@@ -67,22 +67,9 @@ serve(async (req) => {
         byStatus[e.status] = (byStatus[e.status] || 0) + 1;
       });
 
-      // Count trial expired separately
-      const { data: trialEstablishments } = await adminClient
-        .from('establishments')
-        .select('trial_ends_at')
-        .eq('status', 'trial');
-
-      let trialActive = 0;
-      let trialExpired = 0;
-      const now = new Date();
-      (trialEstablishments || []).forEach((e: any) => {
-        if (e.trial_ends_at && new Date(e.trial_ends_at) < now) {
-          trialExpired++;
-        } else {
-          trialActive++;
-        }
-      });
+      // Count canceled separately
+      const canceledCount = byStatus['canceled'] || 0;
+      const pastDueCount = byStatus['past_due'] || 0;
 
       const { count: totalCustomers } = await adminClient
         .from('customers')
@@ -96,7 +83,7 @@ serve(async (req) => {
       // Recent establishments
       const { data: recent } = await adminClient
         .from('establishments')
-        .select('id, name, slug, status, created_at, owner_user_id, trial_ends_at')
+        .select('id, name, slug, status, created_at, owner_user_id')
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -116,8 +103,8 @@ serve(async (req) => {
         total_customers: totalCustomers || 0,
         active_subscriptions: activeSubscriptions || 0,
         by_status: byStatus,
-        trial_active: trialActive,
-        trial_expired: trialExpired,
+        canceled: canceledCount,
+        past_due: pastDueCount,
         recent_establishments: recentWithEmails,
       });
     }
@@ -128,7 +115,7 @@ serve(async (req) => {
       
       let query = adminClient
         .from('establishments')
-        .select('id, name, slug, status, plano, created_at, owner_user_id, trial_ends_at, booking_enabled')
+        .select('id, name, slug, status, plano, created_at, owner_user_id, booking_enabled')
         .order('created_at', { ascending: false })
         .limit(200);
 
@@ -304,7 +291,7 @@ serve(async (req) => {
 
     // ---- ACTION: update_establishment ----
     if (action === 'update_establishment') {
-      const { establishment_id, status, plano, trial_ends_at, billing_cycle } = params;
+      const { establishment_id, status, plano, billing_cycle } = params;
       if (!establishment_id) {
         return respond({ error: 'establishment_id obrigatório' }, 400);
       }
@@ -325,7 +312,6 @@ serve(async (req) => {
       const updateData: Record<string, any> = {};
       if (status !== undefined) updateData.status = status;
       if (plano !== undefined) updateData.plano = plano;
-      if (trial_ends_at !== undefined) updateData.trial_ends_at = trial_ends_at;
 
       const { error: updateError } = await adminClient
         .from('establishments')
@@ -342,7 +328,7 @@ serve(async (req) => {
       const effectiveCycle = billing_cycle || 'monthly';
       const shouldSyncSub = plano !== undefined || billing_cycle !== undefined || status === 'active';
 
-      if (shouldSyncSub && effectivePlano && effectivePlano !== 'nenhum' && effectivePlano !== 'trial') {
+      if (shouldSyncSub && effectivePlano && effectivePlano !== 'nenhum') {
         const { data: existingSub } = await adminClient
           .from('subscriptions')
           .select('id, plan_code, billing_cycle, status')
@@ -371,7 +357,7 @@ serve(async (req) => {
           subData.current_period_end = periodEnd;
         }
         if (status !== undefined) {
-          subData.status = status === 'trial' ? 'trial' : status === 'active' ? 'active' : status;
+          subData.status = status;
         }
 
         if (existingSub) {
