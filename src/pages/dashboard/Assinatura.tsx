@@ -156,16 +156,10 @@ export default function Assinatura() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {isTrial ? (
-                      <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-base px-3 py-1">
-                        Trial
-                      </Badge>
-                    ) : (
-                      <Badge className="text-base px-3 py-1">
-                        {currentPlan.name}
-                      </Badge>
-                    )}
-                    {hasActiveSubscription && !isTrial && (
+                    <Badge className="text-base px-3 py-1">
+                      {currentPlan.name}
+                    </Badge>
+                    {hasActiveSubscription && (
                       <Badge variant="outline" className="text-xs">
                         {billingCycleLabel}
                       </Badge>
