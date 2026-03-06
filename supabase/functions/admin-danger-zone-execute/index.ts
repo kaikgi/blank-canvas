@@ -306,11 +306,10 @@ serve(async (req) => {
     if (adminClient) {
       try {
         await adminClient.from('admin_audit_logs').insert({
-          actor_user_id: null,
+          admin_user_id: 'system',
           action: 'danger_zone_error',
-          request_hash: btoa(`error:${Date.now()}`).slice(0, 16),
-          details: { error: String(error) },
-        });
+          metadata: { error: String(error) },
+        } as any);
       } catch { /* best effort */ }
     }
 
