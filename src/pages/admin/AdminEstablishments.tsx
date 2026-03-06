@@ -261,7 +261,7 @@ export default function AdminEstablishments() {
     const paginatedData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
     return {
-      metrics: { total, active, trial, trialExpired, canceled, pastDue, newThisMonth },
+      metrics: { total, active, canceled, pastDue, newThisMonth },
       paginatedData, totalFiltered, totalPages,
     };
   }, [data, statusFilter, planFilter, cycleFilter, sortKey, sortDir, page]);
