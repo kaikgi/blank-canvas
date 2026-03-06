@@ -586,13 +586,11 @@ export default function Configuracoes() {
               <Label htmlFor="reschedule">Antecedência mínima (horas)</Label>
               <Input
                 id="reschedule"
-                type="text"
-                inputMode="numeric"
+                type="number"
+                min="0"
                 value={form.reschedule_min_hours}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  setForm({ ...form, reschedule_min_hours: val });
-                }}
+                onChange={(e) => setForm({ ...form, reschedule_min_hours: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="2"
               />
             </div>
@@ -600,13 +598,11 @@ export default function Configuracoes() {
               <Label htmlFor="future">Dias no futuro</Label>
               <Input
                 id="future"
-                type="text"
-                inputMode="numeric"
+                type="number"
+                min="1"
                 value={form.max_future_days}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  setForm({ ...form, max_future_days: val });
-                }}
+                onChange={(e) => setForm({ ...form, max_future_days: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="30"
               />
             </div>
@@ -617,13 +613,12 @@ export default function Configuracoes() {
               <Label htmlFor="interval">Intervalo de horários (minutos)</Label>
               <Input
                 id="interval"
-                type="text"
-                inputMode="numeric"
+                type="number"
+                min="5"
+                step="5"
                 value={form.slot_interval_minutes}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  setForm({ ...form, slot_interval_minutes: val });
-                }}
+                onChange={(e) => setForm({ ...form, slot_interval_minutes: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="15"
               />
             </div>
@@ -631,13 +626,11 @@ export default function Configuracoes() {
               <Label htmlFor="reminder">Lembrete por e-mail (horas antes)</Label>
               <Input
                 id="reminder"
-                type="text"
-                inputMode="numeric"
+                type="number"
+                min="0"
                 value={form.reminder_hours_before}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  setForm({ ...form, reminder_hours_before: val });
-                }}
+                onChange={(e) => setForm({ ...form, reminder_hours_before: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="3"
               />
               <p className="text-xs text-muted-foreground">

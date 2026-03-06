@@ -148,17 +148,25 @@ export default function Profissionais() {
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) {
+      toast({ title: 'Nome é obrigatório', variant: 'destructive' });
+      return;
+    }
 
     const capacityNum = parseInt(form.capacity) || 1;
+    if (capacityNum < 1) {
+      toast({ title: 'Capacidade deve ser pelo menos 1', variant: 'destructive' });
+      return;
+    }
+
     try {
       if (editingId) {
-        await update({ id: editingId, name: form.name, capacity: capacityNum });
+        await update({ id: editingId, name: form.name.trim(), capacity: capacityNum });
         toast({ title: 'Profissional atualizado!' });
       } else {
         const newProf = await create({
           establishment_id: establishment!.id,
-          name: form.name,
+          name: form.name.trim(),
           capacity: capacityNum,
         });
         
@@ -185,8 +193,11 @@ export default function Profissionais() {
         toast({ title: 'Profissional criado!' });
       }
       setDialogOpen(false);
-    } catch (error) {
-      toast({ title: 'Erro ao salvar', variant: 'destructive' });
+      setEditingId(null);
+      setForm({ name: '', capacity: '1', photo_url: null });
+    } catch (err: any) {
+      const msg = err?.message || 'Erro desconhecido';
+      toast({ title: 'Erro ao salvar profissional', description: msg, variant: 'destructive' });
     }
   };
 
@@ -194,8 +205,8 @@ export default function Profissionais() {
     try {
       await update({ id, active: !currentActive });
       toast({ title: currentActive ? 'Profissional desativado' : 'Profissional ativado' });
-    } catch (error) {
-      toast({ title: 'Erro ao alterar status', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao alterar status', description: err?.message, variant: 'destructive' });
     }
   };
 
@@ -206,8 +217,17 @@ export default function Profissionais() {
       toast({ title: 'Profissional removido' });
       setDeleteDialogOpen(false);
       setDeletingId(null);
-    } catch (error) {
-      toast({ title: 'Erro ao remover', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao remover profissional', description: err?.message, variant: 'destructive' });
+    }
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingId(null);
+      setForm({ name: '', capacity: '1', photo_url: null });
+      delete (window as any).__pendingProfessionalPhotoBlob;
     }
   };
 
@@ -392,7 +412,7 @@ export default function Profissionais() {
       )}
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -453,13 +473,12 @@ export default function Profissionais() {
               <Label htmlFor="capacity">Capacidade simultânea</Label>
               <Input
                 id="capacity"
-                type="text"
-                inputMode="numeric"
+                type="number"
+                min="1"
+                max="99"
                 value={form.capacity}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  setForm({ ...form, capacity: val });
-                }}
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="1"
               />
               <p className="text-xs text-muted-foreground">
