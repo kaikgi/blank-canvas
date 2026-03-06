@@ -27,7 +27,7 @@ export function useProfile() {
         .single();
       
       if (error) {
-        // Profile might not exist yet for Google sign-in users
+        // Profile might not exist yet for new users
         if (error.code === 'PGRST116') {
           return null;
         }

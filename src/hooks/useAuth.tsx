@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { getOAuthRedirectUrl } from '@/lib/publicUrl';
+import { getPublicBaseUrl } from '@/lib/publicUrl';
 
 interface SignUpData {
   email: string;
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: normalizedEmail,
       password,
       options: {
-        emailRedirectTo: getOAuthRedirectUrl('/dashboard'),
+        emailRedirectTo: `${getPublicBaseUrl()}/dashboard`,
         data: {
           full_name: fullName,
           company_name: companyName,
@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: getOAuthRedirectUrl('/resetar-senha'),
+      redirectTo: `${getPublicBaseUrl()}/resetar-senha`,
     });
     return { error };
   };
