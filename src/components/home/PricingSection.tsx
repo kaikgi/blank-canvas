@@ -15,7 +15,7 @@ function PriceDisplay({ plan, period }: { plan: (typeof PLANS)[0]; period: Billi
   const formatted = formatCentsBRL(cents);
   const monthlyCents = plan.prices.monthly;
   const fullMonthlyTotal = monthlyCents * 12;
-  const annualSaving = fullMonthlyTotal - plan.prices.annual;
+  const annualSaving = fullMonthlyTotal - plan.prices.yearly;
 
   return (
     <div className="min-h-[120px] mt-4 transition-all duration-200">
