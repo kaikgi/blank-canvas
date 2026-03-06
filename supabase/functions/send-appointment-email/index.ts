@@ -244,7 +244,6 @@ function getEmailHtml(type: EmailRequest['type'], data: AppointmentData): string
   </table>
 </body></html>`;
 }
-}
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
