@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from "react";
-import { useAdminEstablishments, useUpdateEstablishment, type AdminEstablishment } from "@/hooks/useAdmin";
+import { useNavigate } from "react-router-dom";
+import { useAdminEstablishments, type AdminEstablishment } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,18 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -26,15 +19,14 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Search, Building2, Settings2, AlertTriangle, CalendarIcon, Filter, Trash2,
-  Loader2, CheckCircle2, Clock, XCircle, AlertCircle, Ban, Play, Users,
-  ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Scissors, UserCheck, CalendarDays,
+  Search, Building2, Settings2, AlertTriangle, Filter, Trash2,
+  Loader2, CheckCircle2, Clock, XCircle, AlertCircle, Ban,
+  ArrowUpDown, ChevronLeft, ChevronRight,
   TrendingUp, ShieldAlert,
 } from "lucide-react";
 import { format, startOfMonth, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
 // --- Constants ---
@@ -194,6 +186,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 // === MAIN COMPONENT ===
 
 export default function AdminEstablishments() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -205,11 +198,6 @@ export default function AdminEstablishments() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(0);
 
-  // Manage modal
-  const [manageEst, setManageEst] = useState<AdminEstablishment | null>(null);
-  const [manageTab, setManageTab] = useState('overview');
-  const [editForm, setEditForm] = useState({ status: '', plano: '', trial_ends_at: '', billing_cycle: 'monthly' });
-
   // Delete modal
   const [deleteEst, setDeleteEst] = useState<AdminEstablishment | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -218,7 +206,6 @@ export default function AdminEstablishments() {
   const [deleting, setDeleting] = useState(false);
 
   const { data, isLoading, error } = useAdminEstablishments(debouncedSearch || undefined);
-  const updateEstablishment = useUpdateEstablishment();
   const queryClient = useQueryClient();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -235,58 +222,9 @@ export default function AdminEstablishments() {
     setPage(0);
   }, [sortKey]);
 
-  // --- Manage Modal ---
+  // --- Navigate to detail page ---
   const handleOpenManage = (est: AdminEstablishment) => {
-    setManageEst(est);
-    setManageTab('overview');
-    setEditForm({
-      status: est.status,
-      plano: getPlanCode(est),
-      trial_ends_at: est.trial_ends_at ? est.trial_ends_at.split('T')[0] : '',
-      billing_cycle: getCycle(est) || 'monthly',
-    });
-  };
-
-  const handleSaveEdit = async () => {
-    if (!manageEst) return;
-    try {
-      await updateEstablishment.mutateAsync({
-        establishment_id: manageEst.id,
-        status: editForm.status,
-        plano: editForm.plano,
-        trial_ends_at: editForm.trial_ends_at ? new Date(editForm.trial_ends_at).toISOString() : undefined,
-        billing_cycle: editForm.billing_cycle,
-      });
-      toast.success(`${manageEst.name} atualizado com sucesso`);
-      setManageEst(null);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro ao atualizar");
-    }
-  };
-
-  const handleQuickAction = async (action: 'suspend' | 'reactivate' | 'cancel' | 'reset_trial') => {
-    if (!manageEst) return;
-    try {
-      if (action === 'reset_trial') {
-        const newTrialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        await updateEstablishment.mutateAsync({
-          establishment_id: manageEst.id,
-          status: 'trial',
-          trial_ends_at: newTrialEnd,
-        });
-        toast.success("Trial resetado (7 dias)");
-      } else {
-        const statusMap = { suspend: 'past_due', reactivate: 'active', cancel: 'canceled' };
-        await updateEstablishment.mutateAsync({
-          establishment_id: manageEst.id,
-          status: statusMap[action],
-        });
-        toast.success(`Estabelecimento ${action === 'suspend' ? 'suspenso' : action === 'reactivate' ? 'reativado' : 'cancelado'}`);
-      }
-      setManageEst(null);
-    } catch (err: any) {
-      toast.error(err?.message || "Erro na ação");
-    }
+    navigate(`/admin/estabelecimentos/${est.id}`);
   };
 
   // --- Delete ---
@@ -402,7 +340,6 @@ export default function AdminEstablishments() {
     return issues;
   }, [data]);
 
-  const trialDate = editForm.trial_ends_at ? new Date(editForm.trial_ends_at + 'T00:00:00') : undefined;
   const canDelete = deleteConfirmText === "EXCLUIR";
 
   if (error) {
@@ -581,177 +518,6 @@ export default function AdminEstablishments() {
         </Card>
       )}
 
-      {/* Manage Modal */}
-      <Dialog open={!!manageEst} onOpenChange={() => setManageEst(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5 text-primary" />
-              Gerenciar Estabelecimento
-            </DialogTitle>
-            <DialogDescription>{manageEst?.name} — /{manageEst?.slug}</DialogDescription>
-          </DialogHeader>
-
-          <Tabs value={manageTab} onValueChange={setManageTab} className="flex-1 min-h-0">
-            <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="edit">Editar</TabsTrigger>
-              <TabsTrigger value="actions">Ações</TabsTrigger>
-            </TabsList>
-
-            {/* Overview Tab */}
-            <TabsContent value="overview" className="mt-4">
-              <ScrollArea className="h-[380px] pr-3">
-                {manageEst && (
-                  <div className="space-y-4">
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Informações Gerais</p>
-                      <InfoRow label="Nome" value={manageEst.name} />
-                      <InfoRow label="Slug" value={`/${manageEst.slug}`} />
-                      <InfoRow label="Email do Owner" value={manageEst.owner_email} />
-                      <InfoRow label="Status" value={<StatusBadge status={manageEst.status} trialEndsAt={manageEst.trial_ends_at} />} />
-                      <InfoRow label="Criado em" value={format(new Date(manageEst.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })} />
-                      {manageEst.trial_ends_at && (
-                        <InfoRow label="Fim do Trial" value={format(new Date(manageEst.trial_ends_at), "dd/MM/yyyy", { locale: ptBR })} />
-                      )}
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Plano & Assinatura</p>
-                      <InfoRow label="Plano" value={<PlanBadge plan={getPlanCode(manageEst)} />} />
-                      <InfoRow label="Ciclo" value={<CycleBadge cycle={getCycle(manageEst)} />} />
-                      {manageEst.subscription && (
-                        <>
-                          <InfoRow label="Status Assinatura" value={
-                            <Badge variant="outline" className="text-xs">{manageEst.subscription.status || '—'}</Badge>
-                          } />
-                          <InfoRow label="Provider" value={manageEst.subscription.provider || '—'} />
-                          {manageEst.subscription.current_period_start && (
-                            <InfoRow label="Início do período" value={format(new Date(manageEst.subscription.current_period_start), "dd/MM/yyyy", { locale: ptBR })} />
-                          )}
-                          {manageEst.subscription.current_period_end && (
-                            <InfoRow label="Expiração" value={format(new Date(manageEst.subscription.current_period_end), "dd/MM/yyyy", { locale: ptBR })} />
-                          )}
-                        </>
-                      )}
-                      {!manageEst.subscription && (
-                        <p className="text-xs text-muted-foreground italic">Sem assinatura vinculada</p>
-                      )}
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Números</p>
-                      <InfoRow label="Profissionais ativos" value={<span className="tabular-nums">{manageEst.professionals_count}</span>} />
-                      <InfoRow label="Serviços ativos" value={<span className="tabular-nums">{manageEst.services_count}</span>} />
-                      <InfoRow label="Clientes" value={<span className="tabular-nums">{manageEst.customers_count}</span>} />
-                      <InfoRow label="Agendamentos" value={<span className="tabular-nums">{manageEst.appointments_count}</span>} />
-                    </div>
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-
-            {/* Edit Tab */}
-            <TabsContent value="edit" className="mt-4">
-              <ScrollArea className="h-[340px] pr-3">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</Label>
-                    <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plano</Label>
-                    <Select value={editForm.plano} onValueChange={(v) => setEditForm({ ...editForm, plano: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {PLAN_OPTIONS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ciclo de Cobrança</Label>
-                    <Select value={editForm.billing_cycle} onValueChange={(v) => setEditForm({ ...editForm, billing_cycle: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {CYCLE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fim do Trial</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !editForm.trial_ends_at && "text-muted-foreground")}>
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {editForm.trial_ends_at ? format(new Date(editForm.trial_ends_at + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "Sem data definida"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={trialDate} onSelect={(date) => setEditForm({ ...editForm, trial_ends_at: date ? format(date, 'yyyy-MM-dd') : '' })} className={cn("p-3 pointer-events-auto")} locale={ptBR} />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-              </ScrollArea>
-
-              <DialogFooter className="pt-3">
-                <Button variant="outline" onClick={() => setManageEst(null)}>Cancelar</Button>
-                <Button onClick={handleSaveEdit} disabled={updateEstablishment.isPending}>
-                  {updateEstablishment.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {updateEstablishment.isPending ? "Salvando..." : "Salvar Alterações"}
-                </Button>
-              </DialogFooter>
-            </TabsContent>
-
-            {/* Actions Tab */}
-            <TabsContent value="actions" className="mt-4">
-              <div className="space-y-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ações Rápidas</p>
-
-                <div className="grid gap-2">
-                  {manageEst?.status !== 'canceled' && (
-                    <Button variant="outline" className="justify-start text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleQuickAction('cancel')} disabled={updateEstablishment.isPending}>
-                      <XCircle className="h-4 w-4 mr-2" /> Cancelar Estabelecimento
-                    </Button>
-                  )}
-                  {manageEst?.status === 'active' && (
-                    <Button variant="outline" className="justify-start text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => handleQuickAction('suspend')} disabled={updateEstablishment.isPending}>
-                      <Ban className="h-4 w-4 mr-2" /> Suspender (Past Due)
-                    </Button>
-                  )}
-                  {(manageEst?.status === 'canceled' || manageEst?.status === 'past_due') && (
-                    <Button variant="outline" className="justify-start text-green-600 border-green-200 hover:bg-green-50" onClick={() => handleQuickAction('reactivate')} disabled={updateEstablishment.isPending}>
-                      <Play className="h-4 w-4 mr-2" /> Reativar Estabelecimento
-                    </Button>
-                  )}
-                  <Button variant="outline" className="justify-start text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => handleQuickAction('reset_trial')} disabled={updateEstablishment.isPending}>
-                    <RefreshCw className="h-4 w-4 mr-2" /> Resetar Trial (7 dias)
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Zona de Perigo</p>
-                <Button variant="destructive" className="w-full justify-start" onClick={() => { setManageEst(null); if (manageEst) handleOpenDelete(manageEst); }} disabled={updateEstablishment.isPending}>
-                  <Trash2 className="h-4 w-4 mr-2" /> Excluir Permanentemente
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
 
       {/* Hard Delete Modal */}
       <AlertDialog open={!!deleteEst} onOpenChange={() => !deleting && setDeleteEst(null)}>
