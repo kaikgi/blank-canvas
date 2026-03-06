@@ -40,7 +40,6 @@ const PLAN_OPTIONS = [
   { value: 'solo', label: 'Solo (1 profissional)' },
   { value: 'studio', label: 'Studio (até 4 profissionais)' },
   { value: 'pro', label: 'Pro (ilimitado)' },
-  { value: 'trial', label: 'Trial' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
