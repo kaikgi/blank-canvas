@@ -73,7 +73,7 @@ serve(async (req) => {
     }
 
     // Validate plan code
-    const validPlans = ['basic', 'essential', 'studio'];
+    const validPlans = ['solo', 'studio', 'pro'];
     if (!validPlans.includes(plan_code)) {
       return new Response(
         JSON.stringify({ error: 'Plano inválido. Use: basic, essential ou studio' }),
