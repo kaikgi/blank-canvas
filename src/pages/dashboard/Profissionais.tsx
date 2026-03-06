@@ -166,13 +166,13 @@ export default function Profissionais() {
         const pendingBlob = (window as any).__pendingProfessionalPhotoBlob;
         if (pendingBlob && newProf?.id) {
           try {
-            const filePath = `${newProf.id}/photo.jpg`;
+            const filePath = `professional-photos/${newProf.id}/photo.jpg`;
             await supabase.storage
-              .from('professional-photos')
+              .from('uploads')
               .upload(filePath, pendingBlob, { upsert: true, contentType: 'image/jpeg' });
 
             const { data: { publicUrl } } = supabase.storage
-              .from('professional-photos')
+              .from('uploads')
               .getPublicUrl(filePath);
 
             await update({ id: newProf.id, photo_url: `${publicUrl}?t=${Date.now()}` });
