@@ -82,7 +82,7 @@ export default function AdminAllowedEmails() {
       queryClient.invalidateQueries({ queryKey: ["admin-allowed-emails"] });
       setAddDialogOpen(false);
       setNewEmail("");
-      setNewPlan("basic");
+      setNewPlan("solo");
     },
     onError: () => toast.error("Erro ao autorizar email"),
   });
