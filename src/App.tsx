@@ -59,6 +59,7 @@ import AdminWhatsAppAnalytics from "./pages/admin/AdminWhatsAppAnalytics";
 import AdminAllowedEmails from "./pages/admin/AdminAllowedEmails";
 import AdminWebhooks from "./pages/admin/AdminWebhooks";
 import AdminSettingsSaaS from "./pages/admin/AdminSettingsSaaS";
+import { AdminPermissionGuard } from "./components/AdminPermissionGuard";
 import ResponsiveTestPage from "./pages/dev/ResponsiveTest";
 
 const queryClient = new QueryClient();
