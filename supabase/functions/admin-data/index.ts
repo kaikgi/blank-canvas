@@ -312,7 +312,6 @@ serve(async (req) => {
       const updateData: Record<string, any> = {};
       if (status !== undefined) updateData.status = status;
       if (plano !== undefined) updateData.plano = plano;
-      if (trial_ends_at !== undefined) updateData.trial_ends_at = trial_ends_at;
 
       const { error: updateError } = await adminClient
         .from('establishments')
