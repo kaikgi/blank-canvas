@@ -127,7 +127,7 @@ function formatBRL(cents: number): string {
 // --- Event Labels ---
 function getEventLabel(eventType: string): { label: string; dotColor: string } {
   const map: Record<string, { label: string; dotColor: string }> = {
-    trial_created: { label: 'Trial criado', dotColor: 'bg-sky-500' },
+    payment_confirmed: { label: 'Pagamento confirmado', dotColor: 'bg-emerald-500' },
     payment_confirmed: { label: 'Pagamento confirmado', dotColor: 'bg-emerald-500' },
     subscription_updated: { label: 'Assinatura atualizada', dotColor: 'bg-amber-500' },
     plan_changed: { label: 'Plano alterado', dotColor: 'bg-violet-500' },
