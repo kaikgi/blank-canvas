@@ -29,6 +29,7 @@ export interface ClientAppointment {
     address: string | null;
     city: string | null;
     state: string | null;
+    max_future_days: number;
   };
 }
 
