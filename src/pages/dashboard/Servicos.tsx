@@ -81,17 +81,29 @@ export default function Servicos() {
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) {
+      toast({ title: 'Nome é obrigatório', variant: 'destructive' });
+      return;
+    }
 
-    const durationNum = parseInt(form.duration_minutes) || 30;
+    const durationNum = parseInt(form.duration_minutes);
+    if (!durationNum || durationNum < 5) {
+      toast({ title: 'Duração deve ser de pelo menos 5 minutos', variant: 'destructive' });
+      return;
+    }
+
     const priceNum = form.price.trim() ? Math.round(parseFloat(form.price.replace(',', '.')) * 100) : null;
+    if (form.price.trim() && (isNaN(priceNum!) || priceNum! < 0)) {
+      toast({ title: 'Preço inválido', variant: 'destructive' });
+      return;
+    }
 
     try {
       if (editingId) {
         await update({
           id: editingId,
-          name: form.name,
-          description: form.description || null,
+          name: form.name.trim(),
+          description: form.description.trim() || null,
           duration_minutes: durationNum,
           price_cents: priceNum,
         });
@@ -99,16 +111,19 @@ export default function Servicos() {
       } else {
         await create({
           establishment_id: establishment!.id,
-          name: form.name,
-          description: form.description || undefined,
+          name: form.name.trim(),
+          description: form.description.trim() || undefined,
           duration_minutes: durationNum,
-          price_cents: priceNum || undefined,
+          price_cents: priceNum ?? undefined,
         });
         toast({ title: 'Serviço criado!' });
       }
       setDialogOpen(false);
-    } catch (error) {
-      toast({ title: 'Erro ao salvar', variant: 'destructive' });
+      setEditingId(null);
+      setForm({ name: '', description: '', duration_minutes: '30', price: '' });
+    } catch (err: any) {
+      const msg = err?.message || 'Erro desconhecido';
+      toast({ title: 'Erro ao salvar serviço', description: msg, variant: 'destructive' });
     }
   };
 
@@ -116,8 +131,8 @@ export default function Servicos() {
     try {
       await update({ id, active: !currentActive });
       toast({ title: currentActive ? 'Serviço desativado' : 'Serviço ativado' });
-    } catch (error) {
-      toast({ title: 'Erro ao alterar status', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao alterar status', description: err?.message, variant: 'destructive' });
     }
   };
 
@@ -128,8 +143,16 @@ export default function Servicos() {
       toast({ title: 'Serviço removido' });
       setDeleteDialogOpen(false);
       setDeletingId(null);
-    } catch (error) {
-      toast({ title: 'Erro ao remover', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao remover serviço', description: err?.message, variant: 'destructive' });
+    }
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingId(null);
+      setForm({ name: '', description: '', duration_minutes: '30', price: '' });
     }
   };
 
