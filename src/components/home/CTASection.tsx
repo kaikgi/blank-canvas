@@ -11,12 +11,12 @@ export function CTASection() {
             Pronto para transformar seus agendamentos?
           </h2>
           <p className="text-body-lg text-primary-foreground/80 mb-8">
-            Teste grátis por 7 dias. Junte-se a milhares de profissionais que já simplificaram sua rotina com Agendali.
+            Junte-se a milhares de profissionais que já simplificaram sua rotina com Agendali.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="secondary" size="xl" asChild>
-              <Link to="/cadastro">
-                Começar grátis
+              <Link to="/precos">
+                Ver planos e assinar
                 <ArrowRight size={18} />
               </Link>
             </Button>
