@@ -48,12 +48,9 @@ const CYCLE_OPTIONS = [
 ];
 
 // --- Badge helpers ---
-function StatusBadge({ status, trialEndsAt }: { status: string; trialEndsAt?: string | null }) {
-  const isTrialExpired = status === 'trial' && trialEndsAt && new Date(trialEndsAt) < new Date();
-  if (isTrialExpired) return <Badge className="bg-red-600/15 text-red-700 border-red-600/30"><XCircle className="h-3 w-3 mr-1" /> Trial Expirado</Badge>;
+function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'active': return <Badge className="bg-green-600/15 text-green-700 border-green-600/30"><CheckCircle2 className="h-3 w-3 mr-1" /> Ativo</Badge>;
-    case 'trial': return <Badge className="bg-blue-600/15 text-blue-700 border-blue-600/30"><Clock className="h-3 w-3 mr-1" /> Trial</Badge>;
     case 'past_due': return <Badge className="bg-amber-600/15 text-amber-700 border-amber-600/30"><AlertCircle className="h-3 w-3 mr-1" /> Past Due</Badge>;
     case 'canceled': return <Badge className="bg-red-600/15 text-red-700 border-red-600/30"><XCircle className="h-3 w-3 mr-1" /> Cancelado</Badge>;
     case 'suspended': return <Badge className="bg-orange-600/15 text-orange-700 border-orange-600/30"><Ban className="h-3 w-3 mr-1" /> Suspenso</Badge>;
@@ -67,7 +64,6 @@ function PlanBadge({ plan }: { plan: string }) {
     case 'pro': return <Badge className="bg-purple-600/15 text-purple-700 border-purple-600/30 font-semibold">Pro</Badge>;
     case 'studio': return <Badge className="bg-primary/15 text-primary border-primary/30 font-semibold">Studio</Badge>;
     case 'solo': return <Badge className="bg-zinc-600/15 text-zinc-700 border-zinc-600/30 font-semibold">Solo</Badge>;
-    case 'trial': return <Badge className="bg-blue-600/15 text-blue-700 border-blue-600/30 font-semibold">Trial</Badge>;
     default: return <Badge variant="outline">{plan || 'Nenhum'}</Badge>;
   }
 }
