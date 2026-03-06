@@ -272,10 +272,8 @@ export default function AdminEstablishments() {
     for (const est of data.establishments) {
       const plan = getPlanCode(est);
       if (est.status === 'active' && !est.subscription) issues.push({ est, issue: 'Ativo sem assinatura' });
-      if (est.subscription && est.plano && est.subscription.plan_code !== est.plano && est.plano !== 'trial' && est.plano !== 'nenhum')
+      if (est.subscription && est.plano && est.subscription.plan_code !== est.plano && est.plano !== 'nenhum')
         issues.push({ est, issue: `Plano divergente: est=${est.plano} vs sub=${est.subscription.plan_code}` });
-      if (est.status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) < new Date())
-        issues.push({ est, issue: 'Trial expirado (não migrado)' });
       if (plan === 'solo' && est.professionals_count > 1) issues.push({ est, issue: `Solo com ${est.professionals_count} profissionais` });
       if (plan === 'studio' && est.professionals_count > 4) issues.push({ est, issue: `Studio com ${est.professionals_count} profissionais` });
     }
