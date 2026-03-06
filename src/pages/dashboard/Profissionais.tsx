@@ -39,7 +39,7 @@ import { UsageBadge } from '@/components/dashboard/UsageBadge';
 
 interface ProfessionalForm {
   name: string;
-  capacity: number;
+  capacity: string;
   photo_url: string | null;
 }
 
@@ -58,7 +58,7 @@ export default function Profissionais() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<{ id: string; name: string; slug: string | null; portal_enabled: boolean | null } | null>(null);
-  const [form, setForm] = useState<ProfessionalForm>({ name: '', capacity: 1, photo_url: null });
+  const [form, setForm] = useState<ProfessionalForm>({ name: '', capacity: '1', photo_url: null });
   
   // Photo upload state
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -75,13 +75,13 @@ export default function Profissionais() {
       return;
     }
     setEditingId(null);
-    setForm({ name: '', capacity: 1, photo_url: null });
+    setForm({ name: '', capacity: '1', photo_url: null });
     setDialogOpen(true);
   };
 
   const handleOpenEdit = (prof: { id: string; name: string; capacity: number; photo_url: string | null }) => {
     setEditingId(prof.id);
-    setForm({ name: prof.name, capacity: prof.capacity, photo_url: prof.photo_url || null });
+    setForm({ name: prof.name, capacity: String(prof.capacity), photo_url: prof.photo_url || null });
     setDialogOpen(true);
   };
 
@@ -98,15 +98,15 @@ export default function Profissionais() {
     // Upload immediately for existing professional
     setUploadingPhoto(true);
     try {
-      const filePath = `${editingId}/photo.jpg`;
+      const filePath = `professional-photos/${editingId}/photo.jpg`;
       const { error: uploadError } = await supabase.storage
-        .from('professional-photos')
+        .from('uploads')
         .upload(filePath, croppedBlob, { upsert: true, contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('professional-photos')
+        .from('uploads')
         .getPublicUrl(filePath);
 
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
@@ -128,11 +128,11 @@ export default function Profissionais() {
     setUploadingPhoto(true);
     try {
       // Try to remove from storage
-      const urlParts = form.photo_url.split('/professional-photos/');
+      const urlParts = form.photo_url.split('/uploads/');
       if (urlParts.length > 1) {
         const filePath = urlParts[1].split('?')[0]; // Remove cache buster
         await supabase.storage
-          .from('professional-photos')
+          .from('uploads')
           .remove([filePath]);
       }
 
@@ -150,28 +150,29 @@ export default function Profissionais() {
   const handleSubmit = async () => {
     if (!form.name.trim()) return;
 
+    const capacityNum = parseInt(form.capacity) || 1;
     try {
       if (editingId) {
-        await update({ id: editingId, name: form.name, capacity: form.capacity });
+        await update({ id: editingId, name: form.name, capacity: capacityNum });
         toast({ title: 'Profissional atualizado!' });
       } else {
         const newProf = await create({
           establishment_id: establishment!.id,
           name: form.name,
-          capacity: form.capacity,
+          capacity: capacityNum,
         });
         
         // Upload pending photo if exists
         const pendingBlob = (window as any).__pendingProfessionalPhotoBlob;
         if (pendingBlob && newProf?.id) {
           try {
-            const filePath = `${newProf.id}/photo.jpg`;
+            const filePath = `professional-photos/${newProf.id}/photo.jpg`;
             await supabase.storage
-              .from('professional-photos')
+              .from('uploads')
               .upload(filePath, pendingBlob, { upsert: true, contentType: 'image/jpeg' });
 
             const { data: { publicUrl } } = supabase.storage
-              .from('professional-photos')
+              .from('uploads')
               .getPublicUrl(filePath);
 
             await update({ id: newProf.id, photo_url: `${publicUrl}?t=${Date.now()}` });
@@ -452,10 +453,14 @@ export default function Profissionais() {
               <Label htmlFor="capacity">Capacidade simultânea</Label>
               <Input
                 id="capacity"
-                type="number"
-                min={1}
+                type="text"
+                inputMode="numeric"
                 value={form.capacity}
-                onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 1 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, capacity: val });
+                }}
+                placeholder="1"
               />
               <p className="text-xs text-muted-foreground">
                 Quantos clientes este profissional pode atender ao mesmo tempo

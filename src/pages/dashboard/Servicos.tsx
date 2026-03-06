@@ -32,8 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 interface ServiceForm {
   name: string;
   description: string;
-  duration_minutes: number;
-  price_cents: number;
+  duration_minutes: string;
+  price: string;
 }
 
 export default function Servicos() {
@@ -48,8 +48,8 @@ export default function Servicos() {
   const [form, setForm] = useState<ServiceForm>({
     name: '',
     description: '',
-    duration_minutes: 30,
-    price_cents: 0,
+    duration_minutes: '30',
+    price: '',
   });
 
   const handleRetry = () => {
@@ -59,7 +59,7 @@ export default function Servicos() {
 
   const handleOpenCreate = () => {
     setEditingId(null);
-    setForm({ name: '', description: '', duration_minutes: 30, price_cents: 0 });
+    setForm({ name: '', description: '', duration_minutes: '30', price: '' });
     setDialogOpen(true);
   };
 
@@ -74,8 +74,8 @@ export default function Servicos() {
     setForm({
       name: service.name,
       description: service.description || '',
-      duration_minutes: service.duration_minutes,
-      price_cents: service.price_cents || 0,
+      duration_minutes: String(service.duration_minutes),
+      price: service.price_cents ? (service.price_cents / 100).toFixed(2) : '',
     });
     setDialogOpen(true);
   };
@@ -83,14 +83,17 @@ export default function Servicos() {
   const handleSubmit = async () => {
     if (!form.name.trim()) return;
 
+    const durationNum = parseInt(form.duration_minutes) || 30;
+    const priceNum = form.price.trim() ? Math.round(parseFloat(form.price.replace(',', '.')) * 100) : null;
+
     try {
       if (editingId) {
         await update({
           id: editingId,
           name: form.name,
           description: form.description || null,
-          duration_minutes: form.duration_minutes,
-          price_cents: form.price_cents || null,
+          duration_minutes: durationNum,
+          price_cents: priceNum,
         });
         toast({ title: 'Serviço atualizado!' });
       } else {
@@ -98,8 +101,8 @@ export default function Servicos() {
           establishment_id: establishment!.id,
           name: form.name,
           description: form.description || undefined,
-          duration_minutes: form.duration_minutes,
-          price_cents: form.price_cents || undefined,
+          duration_minutes: durationNum,
+          price_cents: priceNum || undefined,
         });
         toast({ title: 'Serviço criado!' });
       }
@@ -280,24 +283,30 @@ export default function Servicos() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="duration">Duração (minutos)</Label>
-                <Input
+              <Input
                   id="duration"
-                  type="number"
-                  min={5}
-                  step={5}
+                  type="text"
+                  inputMode="numeric"
                   value={form.duration_minutes}
-                  onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) || 30 })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setForm({ ...form, duration_minutes: val });
+                  }}
+                  placeholder="30"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price">Preço (R$)</Label>
                 <Input
                   id="price"
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={form.price_cents / 100}
-                  onChange={(e) => setForm({ ...form, price_cents: Math.round(parseFloat(e.target.value) * 100) || 0 })}
+                  type="text"
+                  inputMode="decimal"
+                  value={form.price}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.,]/g, '');
+                    setForm({ ...form, price: val });
+                  }}
+                  placeholder="0,00"
                 />
               </div>
             </div>
