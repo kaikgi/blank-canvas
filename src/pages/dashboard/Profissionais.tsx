@@ -75,7 +75,7 @@ export default function Profissionais() {
       return;
     }
     setEditingId(null);
-    setForm({ name: '', capacity: 1, photo_url: null });
+    setForm({ name: '', capacity: '1', photo_url: null });
     setDialogOpen(true);
   };
 
