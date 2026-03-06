@@ -193,21 +193,15 @@ export default function PublicBooking() {
           emailRedirectTo: buildPublicUrl(`/${slug}`),
           data: {
             full_name: signupName,
+            phone: signupPhone,
+            account_type: 'customer',
           },
         },
       });
       
       if (error) throw error;
       
-      // Create profile with phone number
-      if (data.user) {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          full_name: signupName,
-          phone: signupPhone,
-          account_type: 'customer',
-        });
-      }
+      // Profile is auto-created by database trigger (handle_new_user)
       
       setShowLoginModal(false);
       toast({
