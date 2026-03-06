@@ -370,6 +370,27 @@ serve(async (req) => {
       return respond({ success: true });
     }
 
+    // ---- ACTION: list_subscription_events ----
+    if (action === 'list_subscription_events') {
+      const { establishment_id } = params;
+      if (!establishment_id) {
+        return respond({ error: 'establishment_id obrigatório' }, 400);
+      }
+
+      const { data: events, error: evError } = await adminClient
+        .from('subscription_events')
+        .select('*')
+        .eq('establishment_id', establishment_id)
+        .order('occurred_at', { ascending: false })
+        .limit(50);
+
+      if (evError) {
+        return respond({ error: `Erro ao listar eventos: ${evError.message}` }, 500);
+      }
+
+      return respond({ events: events || [] });
+    }
+
     return respond({ error: `Ação desconhecida: ${action}` }, 400);
 
   } catch (error) {
