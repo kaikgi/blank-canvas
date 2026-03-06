@@ -157,12 +157,20 @@ export default function AdminAdmins() {
   });
 
   const updateAdmin = useMutation({
-    mutationFn: async ({ userId, updates }: { userId: string; updates: Record<string, any> }) => {
+    mutationFn: async ({ userId, updates, auditAction }: { userId: string; updates: Record<string, any>; auditAction?: string }) => {
       const { error } = await supabase
         .from("admin_users")
         .update(updates)
         .eq("user_id", userId);
       if (error) throw error;
+      // Audit log
+      if (auditAction) {
+        await supabase.from("admin_audit_logs").insert({
+          admin_user_id: user!.id,
+          action: auditAction,
+          metadata: { target_user_id: userId, updates },
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Administrador atualizado");
