@@ -122,9 +122,9 @@ serve(async (req) => {
     }
 
     const planNames: Record<string, string> = {
-      basic: 'Básico',
-      essential: 'Essencial',
+      solo: 'Solo',
       studio: 'Studio',
+      pro: 'Pro',
     }
 
     const emailHtml = `
