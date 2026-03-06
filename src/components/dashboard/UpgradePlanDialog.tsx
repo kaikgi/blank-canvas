@@ -21,11 +21,15 @@ interface UpgradePlanDialogProps {
 const featureMessages = {
   professionals: {
     title: 'Limite de profissionais atingido',
-    description: 'Você atingiu o limite máximo de profissionais do seu plano atual. Faça upgrade para adicionar mais profissionais ao seu estabelecimento.',
+    description: 'Você atingiu o número máximo de profissionais do seu plano atual. Faça upgrade para adicionar mais membros à sua equipe.',
+  },
+  appointments: {
+    title: 'Limite de agendamentos atingido',
+    description: 'Você atingiu o limite de agendamentos do período de teste. Assine um plano para ter agendamentos ilimitados.',
   },
   establishments: {
-    title: 'Limite de estabelecimentos atingido',
-    description: 'Seu plano atual não permite múltiplos estabelecimentos. Faça upgrade para o plano Studio para gerenciar várias unidades.',
+    title: 'Recurso disponível no plano Pro',
+    description: 'Múltiplos estabelecimentos estão disponíveis no plano Pro. Faça upgrade para gerenciar várias unidades.',
   },
 };
 
@@ -60,7 +64,7 @@ export function UpgradePlanDialog({
         </DialogHeader>
         <DialogFooter className="flex flex-col sm:flex-col gap-2 mt-4">
           <Button onClick={handleUpgrade} className="w-full">
-            Ver planos
+            Ver planos e preços
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <Button
