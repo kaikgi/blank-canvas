@@ -291,7 +291,7 @@ serve(async (req) => {
 
     // ---- ACTION: update_establishment ----
     if (action === 'update_establishment') {
-      const { establishment_id, status, plano, trial_ends_at, billing_cycle } = params;
+      const { establishment_id, status, plano, billing_cycle } = params;
       if (!establishment_id) {
         return respond({ error: 'establishment_id obrigatório' }, 400);
       }
