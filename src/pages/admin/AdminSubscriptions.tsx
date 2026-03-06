@@ -48,7 +48,7 @@ interface SubscriptionEvent {
 
 // --- Constants ---
 const STATUS_OPTIONS = [
-  { value: 'active', label: 'Ativo' }, { value: 'trial', label: 'Trial' },
+  { value: 'active', label: 'Ativo' },
   { value: 'past_due', label: 'Past Due' }, { value: 'canceled', label: 'Cancelado' },
   { value: 'suspended', label: 'Suspenso' },
 ];
