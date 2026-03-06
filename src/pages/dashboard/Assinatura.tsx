@@ -69,14 +69,14 @@ export default function Assinatura() {
   let displayPlanCode: string;
   if (isTrial) {
     displayPlanCode = 'trial';
-  } else if (isVip) {
-    displayPlanCode = 'studio';
+  } else if (isPro) {
+    displayPlanCode = 'pro';
   } else if (hasActiveSubscription) {
-    displayPlanCode = (subscription?.plan_code || 'basico').toLowerCase();
+    displayPlanCode = (subscription?.plan_code || 'solo').toLowerCase();
   } else if (estPlano && estPlano !== 'nenhum') {
     displayPlanCode = estPlano;
   } else {
-    displayPlanCode = 'basico';
+    displayPlanCode = 'solo';
   }
 
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
