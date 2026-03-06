@@ -9,7 +9,7 @@ interface PlanLimitAlertProps {
 
 export function PlanLimitAlert({
   title = 'Limite do plano atingido',
-  description = 'Este estabelecimento atingiu o limite do plano e não pode receber agendamentos no momento.',
+  description = 'Este estabelecimento atingiu o limite de profissionais do plano atual. Faça upgrade para continuar adicionando.',
   variant = 'destructive',
 }: PlanLimitAlertProps) {
   return (

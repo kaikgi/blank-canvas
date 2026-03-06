@@ -45,7 +45,7 @@ export function TrialExpiredModal() {
       ? 'Assinatura cancelada'
       : reason === 'no_establishment'
         ? 'Conta não configurada'
-        : 'Seu acesso está bloqueado';
+        : 'Período de teste encerrado';
 
   const subtitle = reason === 'past_due'
     ? 'Regularize seu pagamento para continuar usando o Agendali.'
@@ -53,7 +53,7 @@ export function TrialExpiredModal() {
       ? 'Sua assinatura foi cancelada. Assine novamente para continuar.'
       : reason === 'no_establishment'
         ? 'Nenhum estabelecimento encontrado para sua conta.'
-        : 'Assine um plano para continuar usando o Agendali.';
+        : 'Seu teste gratuito terminou. Escolha um plano para continuar usando o Agendali.';
 
   const trialDateFormatted = trialEndsAt
     ? format(new Date(trialEndsAt), "dd/MM/yyyy", { locale: ptBR })
@@ -71,7 +71,9 @@ export function TrialExpiredModal() {
           <Logo />
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            <span className="font-medium">Acesso bloqueado</span>
+            <span className="font-medium">
+              {reason === 'past_due' ? 'Pagamento pendente' : reason === 'canceled' ? 'Assinatura cancelada' : 'Teste encerrado'}
+            </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold">
             {title}

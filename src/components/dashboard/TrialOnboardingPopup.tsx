@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Users, Calendar, ShieldAlert } from 'lucide-react';
+import { X, Sparkles, Users, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const STORAGE_KEY_PREFIX = 'agendali_trial_onboarding_dismissed_';
@@ -60,8 +60,8 @@ export function TrialOnboardingPopup({ daysLeft, userId }: TrialOnboardingPopupP
             <span className="text-sm">Até <strong>130 agendamentos</strong> no período</span>
           </div>
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <ShieldAlert className="h-4 w-4 text-amber-500 shrink-0" />
-            <span className="text-sm">Após os 7 dias, o acesso será bloqueado até você assinar um plano.</span>
+            <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+            <span className="text-sm">Após o teste, assine um plano para manter o acesso.</span>
           </div>
         </div>
 

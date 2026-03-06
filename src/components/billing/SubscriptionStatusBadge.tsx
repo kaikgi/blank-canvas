@@ -15,6 +15,12 @@ export function SubscriptionStatusBadge({ status, className }: SubscriptionStatu
           variant: 'default' as const,
           className: 'bg-green-100 text-green-800 hover:bg-green-100',
         };
+      case 'trial':
+        return {
+          label: 'Período de teste',
+          variant: 'secondary' as const,
+          className: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+        };
       case 'past_due':
         return {
           label: 'Pagamento pendente',
@@ -26,12 +32,6 @@ export function SubscriptionStatusBadge({ status, className }: SubscriptionStatu
           label: 'Cancelado',
           variant: 'destructive' as const,
           className: 'bg-red-100 text-red-800 hover:bg-red-100',
-        };
-      case 'trialing':
-        return {
-          label: 'Período de teste',
-          variant: 'secondary' as const,
-          className: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
         };
       default:
         return {
