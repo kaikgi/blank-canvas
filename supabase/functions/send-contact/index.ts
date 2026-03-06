@@ -77,7 +77,7 @@ serve(async (req: Request) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Agendali <noreply@agendali.online>",
+            from: `Agendali <${Deno.env.get("RESEND_FROM") || "noreply@agendali.online"}>`,
             to: ["contato@agendali.online"],
             subject: `[Agendali] Nova mensagem de contato: ${name}`,
             html: `
@@ -112,7 +112,7 @@ serve(async (req: Request) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Agendali <noreply@agendali.online>",
+            from: `Agendali <${Deno.env.get("RESEND_FROM") || "noreply@agendali.online"}>`,
             to: [email],
             subject: "Recebemos sua mensagem - Agendali",
             html: `

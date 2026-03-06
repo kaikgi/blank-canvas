@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const RESEND_FROM = Deno.env.get("RESEND_FROM") || "noreply@agendali.online";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -204,7 +205,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       try {
-        const fromAddress = `${establishment.name} <noreply@agendali.online>`;
+        const fromAddress = `${establishment.name} <${RESEND_FROM}>`;
         const hoursText = reminder_hours === 1 ? 'em 1 hora' : `em ${reminder_hours} horas`;
         const emailHtml = getReminderEmailHtml({
           customer_name: customer.name,
