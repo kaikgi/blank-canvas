@@ -157,12 +157,20 @@ export default function AdminAdmins() {
   });
 
   const updateAdmin = useMutation({
-    mutationFn: async ({ userId, updates }: { userId: string; updates: Record<string, any> }) => {
+    mutationFn: async ({ userId, updates, auditAction }: { userId: string; updates: Record<string, any>; auditAction?: string }) => {
       const { error } = await supabase
         .from("admin_users")
         .update(updates)
         .eq("user_id", userId);
       if (error) throw error;
+      // Audit log
+      if (auditAction) {
+        await supabase.from("admin_audit_logs").insert({
+          admin_user_id: user!.id,
+          action: auditAction,
+          metadata: { target_user_id: userId, updates },
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Administrador atualizado");
@@ -182,6 +190,11 @@ export default function AdminAdmins() {
         .update({ status: "removido" })
         .eq("user_id", userId);
       if (error) throw error;
+      await supabase.from("admin_audit_logs").insert({
+        admin_user_id: user!.id,
+        action: "admin_remove",
+        metadata: { target_user_id: userId },
+      });
     },
     onSuccess: () => {
       toast.success("Administrador removido");
@@ -572,6 +585,7 @@ export default function AdminAdmins() {
                     role: newRole,
                     level: newRole === "super_admin" ? "master" : "standard",
                   },
+                  auditAction: editAdmin.role !== newRole ? "admin_role_change" : "admin_update",
                 });
               }}
               disabled={updateAdmin.isPending}
@@ -607,9 +621,9 @@ export default function AdminAdmins() {
                 if (confirmAction.type === "remove") {
                   removeAdmin.mutate(confirmAction.admin.user_id);
                 } else if (confirmAction.type === "suspend") {
-                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "suspenso" } });
+                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "suspenso" }, auditAction: "admin_suspend" });
                 } else if (confirmAction.type === "reactivate") {
-                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "ativo" } });
+                  updateAdmin.mutate({ userId: confirmAction.admin.user_id, updates: { status: "ativo" }, auditAction: "admin_reactivate" });
                 }
               }}
             >
