@@ -283,24 +283,30 @@ export default function Servicos() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="duration">Duração (minutos)</Label>
-                <Input
+              <Input
                   id="duration"
-                  type="number"
-                  min={5}
-                  step={5}
+                  type="text"
+                  inputMode="numeric"
                   value={form.duration_minutes}
-                  onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) || 30 })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setForm({ ...form, duration_minutes: val });
+                  }}
+                  placeholder="30"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price">Preço (R$)</Label>
                 <Input
                   id="price"
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={form.price_cents / 100}
-                  onChange={(e) => setForm({ ...form, price_cents: Math.round(parseFloat(e.target.value) * 100) || 0 })}
+                  type="text"
+                  inputMode="decimal"
+                  value={form.price}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.,]/g, '');
+                    setForm({ ...form, price: val });
+                  }}
+                  placeholder="0,00"
                 />
               </div>
             </div>

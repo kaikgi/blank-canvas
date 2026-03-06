@@ -453,10 +453,14 @@ export default function Profissionais() {
               <Label htmlFor="capacity">Capacidade simultânea</Label>
               <Input
                 id="capacity"
-                type="number"
-                min={1}
+                type="text"
+                inputMode="numeric"
                 value={form.capacity}
-                onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 1 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, capacity: val });
+                }}
+                placeholder="1"
               />
               <p className="text-xs text-muted-foreground">
                 Quantos clientes este profissional pode atender ao mesmo tempo
