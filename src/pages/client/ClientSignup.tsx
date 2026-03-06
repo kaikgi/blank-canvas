@@ -63,11 +63,12 @@ export default function ClientSignup() {
         throw new Error('Erro ao criar usuário');
       }
 
-      // 2. Create profile (upsert to handle edge cases)
+      // 2. Create profile with account_type = 'customer'
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: authData.user.id,
         full_name: data.full_name,
         phone: data.phone,
+        account_type: 'customer',
       });
 
       if (profileError) {
