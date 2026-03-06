@@ -59,15 +59,13 @@ export default function Signup() {
       return;
     }
 
-    // Save phone and account_type to profile
+    // Profile is auto-created by database trigger with account_type from metadata.
+    // Update phone number since it's not in the signUp metadata.
     const { data: userData } = await supabase.auth.getUser();
     if (userData?.user?.id) {
-      await supabase.from('profiles').upsert({
-        id: userData.user.id,
-        full_name: data.fullName,
+      await supabase.from('profiles').update({
         phone: data.phone,
-        account_type: 'establishment_owner',
-      });
+      }).eq('id', userData.user.id);
     }
 
     setIsLoading(false);

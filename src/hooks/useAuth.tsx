@@ -106,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: fullName,
           company_name: companyName,
+          account_type: 'establishment_owner',
         },
       },
     });
