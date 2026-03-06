@@ -108,6 +108,7 @@ export default function AdminEstablishments() {
         status: editForm.status,
         plano: editForm.plano,
         trial_ends_at: editForm.trial_ends_at ? new Date(editForm.trial_ends_at).toISOString() : undefined,
+        billing_cycle: editForm.billing_cycle,
       });
       toast.success(`${editEst.name} atualizado com sucesso`);
       setEditEst(null);
