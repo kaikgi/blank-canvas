@@ -32,8 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 interface ServiceForm {
   name: string;
   description: string;
-  duration_minutes: number;
-  price_cents: number;
+  duration_minutes: string;
+  price: string;
 }
 
 export default function Servicos() {
