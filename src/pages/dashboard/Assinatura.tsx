@@ -185,7 +185,7 @@ export default function Assinatura() {
             </div>
 
             {/* Subscription Details */}
-            {hasActiveSubscription && !isTrial && (
+            {hasActiveSubscription && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                   <Repeat className="h-4 w-4 text-primary shrink-0" />
