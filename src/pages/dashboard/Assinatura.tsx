@@ -22,29 +22,17 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
-  Check,
   Clock,
   CalendarDays,
   Repeat,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const CYCLE_OPTIONS: { key: BillingPeriod; label: string }[] = [
-  { key: 'monthly', label: 'Mensal' },
-  { key: 'quarterly', label: 'Trimestral' },
-  { key: 'yearly', label: 'Anual' },
-];
-
-function formatPriceBRL(cents: number): string {
-  return (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 export default function Assinatura() {
   const { user } = useAuth();
   const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
   const { data: establishment, isLoading: establishmentLoading } = useUserEstablishment();
   const { data: limits, isLoading: limitsLoading } = usePlanLimits(establishment?.id);
-  const [selectedCycle, setSelectedCycle] = useState<BillingPeriod>('monthly');
 
   const isLoading = subscriptionLoading || establishmentLoading || limitsLoading;
 
