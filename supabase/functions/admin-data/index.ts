@@ -159,18 +159,27 @@ serve(async (req) => {
           .order('created_at', { ascending: false })
           .limit(1);
 
-        // Professionals count (only active)
-        const { count: profCount } = await adminClient
-          .from('professionals')
-          .select('id', { count: 'exact', head: true })
-          .eq('establishment_id', est.id)
-          .eq('active', true);
+        // Counts
+        const [
+          { count: profCount },
+          { count: svcCount },
+          { count: custCount },
+          { count: apptCount },
+        ] = await Promise.all([
+          adminClient.from('professionals').select('id', { count: 'exact', head: true }).eq('establishment_id', est.id).eq('active', true),
+          adminClient.from('services').select('id', { count: 'exact', head: true }).eq('establishment_id', est.id).eq('active', true),
+          adminClient.from('customers').select('id', { count: 'exact', head: true }).eq('establishment_id', est.id),
+          adminClient.from('appointments').select('id', { count: 'exact', head: true }).eq('establishment_id', est.id),
+        ]);
 
         enriched.push({
           ...est,
           owner_email: ownerEmail,
           subscription: subs?.[0] || null,
           professionals_count: profCount || 0,
+          services_count: svcCount || 0,
+          customers_count: custCount || 0,
+          appointments_count: apptCount || 0,
         });
       }
 
