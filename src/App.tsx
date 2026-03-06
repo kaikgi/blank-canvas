@@ -1,5 +1,4 @@
 import { Toaster } from "@/components/ui/sonner";
-
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -63,132 +62,114 @@ import ResponsiveTestPage from "./pages/dev/ResponsiveTest";
 
 const queryClient = new QueryClient();
 
-// Reserved routes that should NOT be treated as establishment slugs
-const RESERVED_ROUTES = [
-  'recursos',
-  'precos',
-  'sobre',
-  'contato',
-  'termos',
-  'privacidade',
-  'login',
-  'entrar',
-  'cadastro',
-  'criar-conta',
-  'esqueci-senha',
-  'dashboard',
-  'client',
-  'cliente',
-];
-
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Home */}
-            <Route path="/" element={<Index />} />
-            
-            {/* Institutional pages - MUST be before :slug route */}
-            <Route path="/recursos" element={<Recursos />} />
-            <Route path="/precos" element={<Precos />} />
-            <Route path="/sobre" element={<Sobre />} />
-            <Route path="/contato" element={<Contato />} />
-            <Route path="/termos" element={<Termos />} />
-            <Route path="/privacidade" element={<Privacidade />} />
-            
-            {/* Dev tools (responsive test) */}
-            <Route path="/dev/responsive" element={<ResponsiveTestPage />} />
-            
-            {/* Auth pages */}
-            <Route path="/entrar" element={<Entrar />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Signup />} />
-            <Route path="/criar-conta" element={<Signup />} />
-            <Route path="/esqueci-senha" element={<ForgotPassword />} />
-            <Route path="/resetar-senha" element={<ResetPassword />} />
-            <Route path="/auth/activate" element={<Activate />} />
-            
-            {/* Client Login & Signup */}
-            <Route path="/cliente/login" element={<ClientLogin />} />
-            <Route path="/cliente/cadastro" element={<ClientSignup />} />
-            <Route path="/cliente/esqueci-senha" element={<ClientForgotPassword />} />
-            <Route path="/cliente/resetar-senha" element={<ClientResetPassword />} />
-            <Route path="/client/login" element={<ClientLogin />} />
-            <Route path="/client/signup" element={<ClientSignup />} />
-            
-            {/* Client Portal (protected) */}
-            <Route
-              path="/client"
-              element={
-                <ClientProtectedRoute>
-                  <ClientLayout />
-                </ClientProtectedRoute>
-              }
-            >
-              <Route index element={<ClientDashboard />} />
-              <Route path="search" element={<ClientSearch />} />
-              <Route path="appointments" element={<ClientAppointments />} />
-              <Route path="history" element={<ClientHistory />} />
-              <Route path="profile" element={<ClientProfile />} />
-            </Route>
-            
-            {/* Establishment Dashboard (protected) */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<DashboardHome />} />
-              <Route path="agenda" element={<Agenda />} />
-              <Route path="clientes" element={<Clientes />} />
-              <Route path="profissionais" element={<Profissionais />} />
-              <Route path="servicos" element={<Servicos />} />
-              <Route path="horarios" element={<Horarios />} />
-              <Route path="bloqueios" element={<Bloqueios />} />
-              <Route path="avaliacoes" element={<Avaliacoes />} />
-              <Route path="assinatura" element={<Assinatura />} />
-              <Route path="configuracoes" element={<Configuracoes />} />
-            </Route>
-            
-            {/* Admin Panel (protected) */}
-            <Route path="/admin" element={<AdminProtectedRoute />}>
-              <Route element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="estabelecimentos" element={<AdminEstablishments />} />
-                <Route path="configuracoes" element={<AdminSettingsSaaS />} />
-                <Route path="mensagens" element={<AdminMessages />} />
-                <Route path="assinaturas" element={<AdminSubscriptions />} />
-                <Route path="admins" element={<AdminAdmins />} />
-                <Route path="auditoria" element={<AdminAuditLogs />} />
-                <Route path="whatsapp" element={<AdminWhatsAppAnalytics />} />
-                <Route path="emails-autorizados" element={<AdminAllowedEmails />} />
-                <Route path="webhooks" element={<AdminWebhooks />} />
-                <Route path="danger-zone" element={<AdminDangerZone />} />
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              {/* Home */}
+              <Route path="/" element={<Index />} />
+              
+              {/* Institutional pages */}
+              <Route path="/recursos" element={<Recursos />} />
+              <Route path="/precos" element={<Precos />} />
+              <Route path="/sobre" element={<Sobre />} />
+              <Route path="/contato" element={<Contato />} />
+              <Route path="/termos" element={<Termos />} />
+              <Route path="/privacidade" element={<Privacidade />} />
+              
+              {/* Dev tools */}
+              <Route path="/dev/responsive" element={<ResponsiveTestPage />} />
+              
+              {/* Auth pages */}
+              <Route path="/entrar" element={<Entrar />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/cadastro" element={<Signup />} />
+              <Route path="/criar-conta" element={<Signup />} />
+              <Route path="/esqueci-senha" element={<ForgotPassword />} />
+              <Route path="/resetar-senha" element={<ResetPassword />} />
+              <Route path="/auth/activate" element={<Activate />} />
+              
+              {/* Client Login & Signup */}
+              <Route path="/cliente/login" element={<ClientLogin />} />
+              <Route path="/cliente/cadastro" element={<ClientSignup />} />
+              <Route path="/cliente/esqueci-senha" element={<ClientForgotPassword />} />
+              <Route path="/cliente/resetar-senha" element={<ClientResetPassword />} />
+              <Route path="/client/login" element={<ClientLogin />} />
+              <Route path="/client/signup" element={<ClientSignup />} />
+              
+              {/* Client Portal (protected) */}
+              <Route
+                path="/client"
+                element={
+                  <ClientProtectedRoute>
+                    <ClientLayout />
+                  </ClientProtectedRoute>
+                }
+              >
+                <Route index element={<ClientDashboard />} />
+                <Route path="search" element={<ClientSearch />} />
+                <Route path="appointments" element={<ClientAppointments />} />
+                <Route path="history" element={<ClientHistory />} />
+                <Route path="profile" element={<ClientProfile />} />
               </Route>
-            </Route>
-            
-            {/* Professional Portal */}
-            <Route path="/:establishmentSlug/p/:professionalSlug" element={<ProfessionalPortalLogin />} />
-            <Route path="/:establishmentSlug/p/:professionalSlug/agenda" element={<ProfessionalPortalAgenda />} />
-            
-            {/* Public booking routes - MUST be last to avoid conflicts with institutional pages */}
-            <Route path="/:slug" element={<PublicBooking />} />
-            <Route path="/:slug/gerenciar/:token" element={<ManageAppointment />} />
-            
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+              
+              {/* Establishment Dashboard (protected) */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<DashboardHome />} />
+                <Route path="agenda" element={<Agenda />} />
+                <Route path="clientes" element={<Clientes />} />
+                <Route path="profissionais" element={<Profissionais />} />
+                <Route path="servicos" element={<Servicos />} />
+                <Route path="horarios" element={<Horarios />} />
+                <Route path="bloqueios" element={<Bloqueios />} />
+                <Route path="avaliacoes" element={<Avaliacoes />} />
+                <Route path="assinatura" element={<Assinatura />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
+              </Route>
+              
+              {/* Admin Panel (protected) */}
+              <Route path="/admin" element={<AdminProtectedRoute />}>
+                <Route element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="estabelecimentos" element={<AdminEstablishments />} />
+                  <Route path="configuracoes" element={<AdminSettingsSaaS />} />
+                  <Route path="mensagens" element={<AdminMessages />} />
+                  <Route path="assinaturas" element={<AdminSubscriptions />} />
+                  <Route path="admins" element={<AdminAdmins />} />
+                  <Route path="auditoria" element={<AdminAuditLogs />} />
+                  <Route path="whatsapp" element={<AdminWhatsAppAnalytics />} />
+                  <Route path="emails-autorizados" element={<AdminAllowedEmails />} />
+                  <Route path="webhooks" element={<AdminWebhooks />} />
+                  <Route path="danger-zone" element={<AdminDangerZone />} />
+                </Route>
+              </Route>
+              
+              {/* Professional Portal */}
+              <Route path="/:establishmentSlug/p/:professionalSlug" element={<ProfessionalPortalLogin />} />
+              <Route path="/:establishmentSlug/p/:professionalSlug/agenda" element={<ProfessionalPortalAgenda />} />
+              
+              {/* Public booking routes - MUST be last */}
+              <Route path="/:slug" element={<PublicBooking />} />
+              <Route path="/:slug/gerenciar/:token" element={<ManageAppointment />} />
+              
+              {/* 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </ErrorBoundary>
 );
 
