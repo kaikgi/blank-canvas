@@ -224,25 +224,6 @@ export default function PublicBooking() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsAuthLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: buildPublicUrl(`/${slug}`),
-        },
-      });
-      if (error) throw error;
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro no login',
-        description: error instanceof Error ? error.message : 'Não foi possível fazer login com Google.',
-      });
-      setIsAuthLoading(false);
-    }
-  };
 
   // Called after login to complete booking
   const handleConfirmedSubmit = async (customerData: CustomerFormData) => {
