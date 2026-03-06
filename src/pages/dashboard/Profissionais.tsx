@@ -150,15 +150,16 @@ export default function Profissionais() {
   const handleSubmit = async () => {
     if (!form.name.trim()) return;
 
+    const capacityNum = parseInt(form.capacity) || 1;
     try {
       if (editingId) {
-        await update({ id: editingId, name: form.name, capacity: form.capacity });
+        await update({ id: editingId, name: form.name, capacity: capacityNum });
         toast({ title: 'Profissional atualizado!' });
       } else {
         const newProf = await create({
           establishment_id: establishment!.id,
           name: form.name,
-          capacity: form.capacity,
+          capacity: capacityNum,
         });
         
         // Upload pending photo if exists
