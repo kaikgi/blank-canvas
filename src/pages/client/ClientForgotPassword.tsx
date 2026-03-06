@@ -30,7 +30,7 @@ export default function ClientForgotPassword() {
     setIsLoading(true);
     
     const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: getOAuthRedirectUrl('/cliente/resetar-senha'),
+      redirectTo: `${getPublicBaseUrl()}/cliente/resetar-senha`,
     });
     
     setIsLoading(false);

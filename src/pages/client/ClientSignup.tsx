@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,11 +12,12 @@ import { PasswordStrength } from '@/components/ui/password-strength';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
-import { getOAuthRedirectUrl } from '@/lib/publicUrl';
 import { clientSignupSchema, type ClientSignupFormData } from '@/lib/validations/auth';
 
 export default function ClientSignup() {
   const [isLoading, setIsLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [successEmail, setSuccessEmail] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -41,11 +42,12 @@ export default function ClientSignup() {
     setIsLoading(true);
 
     try {
-      const { data: authData, error } = await supabase.auth.signUp({
+      // 1. Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: getOAuthRedirectUrl(from),
+          emailRedirectTo: `${window.location.origin}/client`,
           data: {
             full_name: data.full_name,
             phone: data.phone,
@@ -53,34 +55,49 @@ export default function ClientSignup() {
         },
       });
 
-      if (error) throw error;
-
-      if (authData.user) {
-        await supabase.from('profiles').upsert({
-          id: authData.user.id,
-          full_name: data.full_name,
-          phone: data.phone,
-        });
+      if (authError) {
+        throw authError;
       }
 
+      if (!authData.user) {
+        throw new Error('Erro ao criar usuário');
+      }
+
+      // 2. Create profile (upsert to handle edge cases)
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: authData.user.id,
+        full_name: data.full_name,
+        phone: data.phone,
+      });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't throw - the auth user was created, profile can be retried on login
+      }
+
+      // 3. Handle session state
       if (authData.session) {
+        // Auto-confirmed: redirect immediately
         toast({
           title: 'Conta criada com sucesso!',
-          description: 'Você foi autenticado automaticamente.',
+          description: 'Bem-vindo ao Agendali.',
         });
         navigate(from, { replace: true });
       } else {
-        toast({
-          title: 'Conta criada!',
-          description: 'Verifique seu email para confirmar o cadastro.',
-        });
+        // Email confirmation required
+        setSuccessEmail(data.email);
+        setSignupSuccess(true);
       }
     } catch (error) {
-      let errorMessage = 'Não foi possível criar a conta.';
+      let errorMessage = 'Não foi possível criar a conta. Tente novamente.';
       
       if (error instanceof Error) {
-        if (error.message.includes('already registered')) {
+        if (error.message.includes('already registered') || error.message.includes('already been registered')) {
           errorMessage = 'Este email já está cadastrado. Tente fazer login.';
+        } else if (error.message.includes('password')) {
+          errorMessage = 'A senha não atende aos requisitos mínimos.';
+        } else if (error.message.includes('rate limit') || error.message.includes('too many')) {
+          errorMessage = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
         } else {
           errorMessage = error.message;
         }
@@ -95,6 +112,42 @@ export default function ClientSignup() {
       setIsLoading(false);
     }
   };
+
+  // Success state - email confirmation needed
+  if (signupSuccess) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-sm space-y-6 text-center">
+          <Link to="/" className="inline-block">
+            <Logo />
+          </Link>
+          
+          <div className="mx-auto w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <CheckCircle2 className="h-6 w-6 text-green-600" />
+          </div>
+          
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Conta criada!</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Enviamos um email de confirmação para{' '}
+              <span className="font-medium text-foreground">{successEmail}</span>.
+              Clique no link para ativar sua conta.
+            </p>
+          </div>
+
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>Não recebeu o email? Verifique sua pasta de spam.</p>
+          </div>
+
+          <Link to="/cliente/login" state={{ from }}>
+            <Button variant="outline" className="w-full">
+              Ir para o login
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-8">
