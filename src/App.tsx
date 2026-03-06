@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { cn } from "./lib/utils";
 
 const App = () => (
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<div><Button>Test Button</Button></div>} />
+      <Route path="/" element={<div className={cn("p-4")}>Home with cn() works</div>} />
     </Routes>
   </BrowserRouter>
 );
