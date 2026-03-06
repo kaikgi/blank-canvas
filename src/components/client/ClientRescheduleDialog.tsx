@@ -85,9 +85,10 @@ export function ClientRescheduleDialog({
     ignoreAppointmentId: appointment?.id, // Ignore current appointment
   });
 
-  // Date limits
+  // Date limits - use establishment's max_future_days setting
+  const maxFutureDays = appointment?.establishment?.max_future_days ?? 7;
   const minDate = addDays(new Date(), 1);
-  const maxDate = addDays(new Date(), 30);
+  const maxDate = addDays(new Date(), maxFutureDays);
 
   const disabledDays = (date: Date) => {
     return isBefore(date, minDate) || isAfter(date, maxDate);
