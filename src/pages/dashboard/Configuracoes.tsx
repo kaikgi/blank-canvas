@@ -68,10 +68,10 @@ export default function Configuracoes() {
     instagram: '',
     booking_enabled: true,
     auto_confirm_bookings: true,
-    reschedule_min_hours: 2,
-    max_future_days: 30,
-    slot_interval_minutes: 15,
-    reminder_hours_before: 3,
+    reschedule_min_hours: '',
+    max_future_days: '',
+    slot_interval_minutes: '',
+    reminder_hours_before: '',
   });
 
   // Initialize form when establishment loads
