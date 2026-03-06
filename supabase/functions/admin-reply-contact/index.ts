@@ -128,24 +128,42 @@ serve(async (req) => {
             from: `Agendali <${Deno.env.get("RESEND_FROM") || "contato@agendali.online"}>`,
             to: [message.email],
             subject: `Re: Sua mensagem para o Agendali`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Olá, ${message.name}!</h2>
-                <p>Recebemos sua mensagem e aqui está nossa resposta:</p>
-                <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
-                  <p style="color: #666; font-style: italic; margin-bottom: 8px;">Sua mensagem original:</p>
-                  <p style="color: #333;">${message.message}</p>
-                </div>
-                <div style="background-color: #e8f4ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
-                  <p style="color: #666; font-style: italic; margin-bottom: 8px;">Nossa resposta:</p>
-                  <p style="color: #333;">${reply_text}</p>
-                </div>
-                <p style="color: #666; font-size: 14px; margin-top: 24px;">
-                  Atenciosamente,<br/>
-                  Equipe Agendali
-                </p>
-              </div>
-            `,
+            html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
+<table width="100%" style="max-width:560px;">
+  <tr><td style="text-align:center;padding-bottom:24px;">
+    <img src="https://www.agendali.online/logo-192.png" alt="Agendali" width="40" height="40" style="border-radius:8px;" />
+    <p style="margin:10px 0 0;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">AGENDALI</p>
+  </td></tr>
+  <tr><td>
+    <p style="margin:0 0 16px;font-size:16px;color:#374151;">Olá, <strong style="color:#111827;">${message.name}</strong>!</p>
+    <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#374151;">Recebemos sua mensagem e aqui está nossa resposta:</p>
+  </td></tr>
+  <tr><td style="padding-bottom:16px;">
+    <table width="100%" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Sua mensagem</p>
+        <p style="margin:0;font-size:14px;color:#6b7280;line-height:1.5;font-style:italic;">${message.message}</p>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding-bottom:24px;">
+    <table width="100%" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#16a34a;">Nossa resposta</p>
+        <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">${reply_text}</p>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td>
+    <p style="margin:0;font-size:14px;color:#374151;">Atenciosamente,<br/><strong>Equipe Agendali</strong></p>
+  </td></tr>
+  <tr><td style="padding-top:24px;border-top:1px solid #e5e7eb;">
+    <p style="margin:24px 0 0;text-align:center;font-size:12px;"><a href="https://www.agendali.online" style="color:#9ca3af;text-decoration:underline;">agendali.online</a></p>
+  </td></tr>
+</table>
+</td></tr></table></body></html>`,
           }),
         });
 

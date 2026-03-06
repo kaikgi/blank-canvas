@@ -81,60 +81,82 @@ function getStarsColor(stars: number): string {
   return '#dc2626'; // red
 }
 
-function getRatingEmailHtml(data: RatingData, ownerEmail: string): string {
+function getRatingEmailHtml(data: RatingData, _ownerEmail: string): string {
   const { customer, appointment, establishment, stars, comment, created_at } = data;
   const starsColor = getStarsColor(stars);
-  
-  return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #7c3aed;">⭐ Nova Avaliação Recebida!</h1>
-      <p>Olá!</p>
-      <p>Um cliente deixou uma nova avaliação para <strong>${establishment.name}</strong>.</p>
-      
-      <div style="background-color: #f8f9fa; padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid ${starsColor};">
-        <div style="font-size: 24px; margin-bottom: 15px; letter-spacing: 2px;">
-          ${getStarsHtml(stars)}
-        </div>
-        <p style="font-size: 20px; font-weight: bold; margin: 0 0 5px 0; color: ${starsColor};">
-          ${stars}/5 estrelas
-        </p>
-        <p style="margin: 0; color: #666; font-size: 14px;">
-          Avaliado por <strong>${customer.name}</strong> em ${formatDate(created_at)}
-        </p>
-      </div>
+  const logoUrl = 'https://www.agendali.online/logo-192.png';
+  const feedbackMsg = stars >= 4 ? '🎉 Ótimo trabalho! Continue assim!' : stars >= 3 ? '💪 Bom trabalho! Há espaço para melhorar.' : '⚠️ Esta avaliação precisa de atenção.';
 
-      ${comment ? `
-        <div style="background-color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
-          <h3 style="margin: 0 0 10px 0; color: #333; font-size: 14px; text-transform: uppercase;">Comentário do cliente:</h3>
-          <p style="margin: 0; font-style: italic; color: #374151; font-size: 16px; line-height: 1.6;">
-            "${comment}"
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
+    <tr><td align="center" style="padding:40px 20px 0;">
+      <table width="100%" style="max-width:560px;">
+        <!-- Header -->
+        <tr><td style="text-align:center;padding-bottom:32px;">
+          <img src="${logoUrl}" alt="Agendali" width="48" height="48" style="display:inline-block;border-radius:10px;" />
+          <p style="margin:12px 0 0;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">AGENDALI</p>
+        </td></tr>
+
+        <!-- Title -->
+        <tr><td style="text-align:center;padding-bottom:24px;">
+          <h1 style="margin:0;font-size:22px;font-weight:700;color:#111827;">Nova Avaliação Recebida</h1>
+          <p style="margin:8px 0 0;font-size:15px;color:#6b7280;">Um cliente avaliou <strong style="color:#111827;">${establishment.name}</strong></p>
+        </td></tr>
+
+        <!-- Stars card -->
+        <tr><td style="padding-bottom:24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;border-left:4px solid ${starsColor};">
+            <tr><td style="padding:24px;">
+              <div style="font-size:28px;letter-spacing:4px;margin-bottom:8px;">${getStarsHtml(stars)}</div>
+              <p style="margin:0 0 4px;font-size:22px;font-weight:700;color:${starsColor};">${stars}/5 estrelas</p>
+              <p style="margin:0;font-size:13px;color:#6b7280;">Por <strong>${customer.name}</strong> em ${formatDate(created_at)}</p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        ${comment ? `
+        <!-- Comment -->
+        <tr><td style="padding-bottom:24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;">
+            <tr><td style="padding:20px;">
+              <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Comentário do cliente</p>
+              <p style="margin:0;font-size:15px;font-style:italic;color:#374151;line-height:1.6;">"${comment}"</p>
+            </td></tr>
+          </table>
+        </td></tr>` : ''}
+
+        <!-- Service details -->
+        <tr><td style="padding-bottom:24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Atendimento avaliado</p>
+              <p style="margin:8px 0 2px;font-size:14px;color:#374151;"><strong>Serviço:</strong> ${appointment.service.name}</p>
+              <p style="margin:2px 0;font-size:14px;color:#374151;"><strong>Profissional:</strong> ${appointment.professional.name}</p>
+              <p style="margin:2px 0;font-size:14px;color:#374151;"><strong>Data:</strong> ${formatDate(appointment.start_at)}</p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Feedback + CTA -->
+        <tr><td style="padding-bottom:24px;text-align:center;">
+          <p style="margin:0 0 16px;font-size:14px;font-weight:600;color:${starsColor};">${feedbackMsg}</p>
+          <a href="https://www.agendali.online/dashboard/avaliacoes" style="display:inline-block;padding:14px 32px;background-color:#111827;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
+            Ver no Painel
+          </a>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding-top:24px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;text-align:center;font-size:12px;color:#9ca3af;line-height:1.6;">
+            Enviado pelo <a href="https://www.agendali.online" style="color:#9ca3af;text-decoration:underline;">Agendali</a> — Sistema de Agendamento Online
           </p>
-        </div>
-      ` : ''}
-
-      <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin: 0 0 10px 0; color: #333; font-size: 14px;">Detalhes do atendimento avaliado:</h3>
-        <p style="margin: 5px 0; color: #666;"><strong>Serviço:</strong> ${appointment.service.name}</p>
-        <p style="margin: 5px 0; color: #666;"><strong>Profissional:</strong> ${appointment.professional.name}</p>
-        <p style="margin: 5px 0; color: #666;"><strong>Data:</strong> ${formatDate(appointment.start_at)}</p>
-      </div>
-
-      <div style="margin-top: 30px; padding: 20px; background-color: #faf5ff; border-radius: 8px; text-align: center;">
-        <p style="margin: 0 0 15px 0; color: #7c3aed; font-weight: bold;">
-          ${stars >= 4 ? '🎉 Ótimo trabalho! Continue assim!' : stars >= 3 ? '💪 Bom trabalho! Há espaço para melhorar.' : '⚠️ Atenção: Esta avaliação precisa de atenção.'}
-        </p>
-        <a href="https://www.agendali.online/dashboard" 
-           style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-          Ver no Painel
-        </a>
-      </div>
-
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
-        <p>Este email foi enviado pelo Agendali - Sistema de Agendamento Online.</p>
-        <p><a href="https://www.agendali.online" style="color: #7c3aed;">www.agendali.online</a></p>
-      </div>
-    </div>
-  `;
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
 }
 
 const handler = async (req: Request): Promise<Response> => {

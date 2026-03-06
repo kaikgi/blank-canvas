@@ -60,34 +60,66 @@ function getReminderEmailHtml(appointment: {
   reminder_hours: number;
 }): string {
   const baseUrl = `https://www.agendali.online/${appointment.establishment_slug}`;
+  const logoUrl = 'https://www.agendali.online/logo-192.png';
   const hoursText = appointment.reminder_hours === 1 ? '1 hora' : `${appointment.reminder_hours} horas`;
   
-  return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #f59e0b;">⏰ Lembrete de Agendamento</h1>
-      <p>Olá, <strong>${appointment.customer_name}</strong>!</p>
-      <p>Este é um lembrete do seu agendamento <strong>em ${hoursText}</strong> em <strong>${appointment.establishment_name}</strong>.</p>
-      
-      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px 0; color: #333;">Detalhes do Agendamento</h3>
-        <p style="margin: 5px 0;"><strong>📅 Data:</strong> ${formatDate(appointment.start_at)}</p>
-        <p style="margin: 5px 0;"><strong>🕐 Horário:</strong> ${formatTime(appointment.start_at)}</p>
-        <p style="margin: 5px 0;"><strong>💇 Serviço:</strong> ${appointment.service_name} (${appointment.service_duration} min)</p>
-        <p style="margin: 5px 0;"><strong>👤 Profissional:</strong> ${appointment.professional_name}</p>
-        ${appointment.establishment_address ? `<p style="margin: 5px 0;"><strong>📍 Local:</strong> ${appointment.establishment_address}</p>` : ''}
-        ${appointment.establishment_phone ? `<p style="margin: 5px 0;"><strong>📞 Telefone:</strong> ${appointment.establishment_phone}</p>` : ''}
-      </div>
-      
-      <p style="background-color: #fef3c7; padding: 15px; border-radius: 8px; color: #92400e;">
-        <strong>⚠️ Importante:</strong> Caso não possa comparecer, por favor avise com antecedência.
-      </p>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
-        <p>Este email foi enviado por ${appointment.establishment_name} através do Agendali.</p>
-        <p><a href="${baseUrl}" style="color: #7c3aed;">Agendar outro horário</a></p>
-      </div>
-    </div>
-  `;
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
+    <tr><td align="center" style="padding:40px 20px 0;">
+      <table width="100%" style="max-width:560px;">
+        <tr><td style="text-align:center;padding-bottom:32px;">
+          <img src="${logoUrl}" alt="Agendali" width="48" height="48" style="display:inline-block;border-radius:10px;" />
+          <p style="margin:12px 0 0;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">AGENDALI</p>
+        </td></tr>
+
+        <tr><td align="center" style="padding-bottom:24px;">
+          <table cellpadding="0" cellspacing="0"><tr>
+            <td style="background-color:#fffbeb;border:1px solid #fde68a;border-radius:100px;padding:8px 20px;">
+              <span style="font-size:14px;font-weight:600;color:#d97706;">⏰ Lembrete de Agendamento</span>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <tr><td>
+          <p style="margin:0 0 6px;font-size:16px;color:#374151;">Olá, <strong style="color:#111827;">${appointment.customer_name}</strong>!</p>
+          <p style="margin:0;font-size:16px;line-height:1.6;color:#374151;">Seu agendamento em <strong>${appointment.establishment_name}</strong> é <strong>em ${hoursText}</strong>.</p>
+        </td></tr>
+
+        <tr><td style="padding:24px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+            <tr><td style="padding:24px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding:6px 0;font-size:14px;color:#6b7280;width:120px;">📅 Data</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${formatDate(appointment.start_at)}</td></tr>
+                <tr><td style="padding:6px 0;font-size:14px;color:#6b7280;">🕐 Horário</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${formatTime(appointment.start_at)}</td></tr>
+                <tr><td style="padding:6px 0;font-size:14px;color:#6b7280;">💇 Serviço</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${appointment.service_name} <span style="font-weight:400;color:#6b7280;">(${appointment.service_duration} min)</span></td></tr>
+                <tr><td style="padding:6px 0;font-size:14px;color:#6b7280;">👤 Profissional</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${appointment.professional_name}</td></tr>
+                ${appointment.establishment_address ? `<tr><td style="padding:6px 0;font-size:14px;color:#6b7280;">📍 Local</td><td style="padding:6px 0;font-size:14px;color:#111827;">${appointment.establishment_address}</td></tr>` : ''}
+                ${appointment.establishment_phone ? `<tr><td style="padding:6px 0;font-size:14px;color:#6b7280;">📞 Telefone</td><td style="padding:6px 0;font-size:14px;color:#111827;">${appointment.establishment_phone}</td></tr>` : ''}
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding-bottom:24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+            <tr><td style="padding:14px 18px;font-size:14px;color:#92400e;line-height:1.5;">
+              <strong>⚠️ Importante:</strong> Caso não possa comparecer, por favor avise com antecedência.
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding-top:24px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;text-align:center;font-size:12px;color:#9ca3af;line-height:1.6;">
+            Enviado por ${appointment.establishment_name} através do <a href="https://www.agendali.online" style="color:#9ca3af;text-decoration:underline;">Agendali</a>
+          </p>
+          <p style="margin:8px 0 0;text-align:center;"><a href="${baseUrl}" style="font-size:12px;color:#6b7280;text-decoration:underline;">Agendar outro horário</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
 }
 
 const handler = async (req: Request): Promise<Response> => {

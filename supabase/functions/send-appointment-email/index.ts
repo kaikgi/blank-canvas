@@ -92,95 +92,157 @@ function getEmailSubject(type: EmailRequest['type'], establishmentName: string):
   }
 }
 
+function getStatusColor(type: EmailRequest['type']): { accent: string; bg: string } {
+  switch (type) {
+    case 'confirmation': return { accent: '#16a34a', bg: '#f0fdf4' };
+    case 'reminder': return { accent: '#d97706', bg: '#fffbeb' };
+    case 'cancellation': return { accent: '#dc2626', bg: '#fef2f2' };
+    case 'reschedule': return { accent: '#2563eb', bg: '#eff6ff' };
+    default: return { accent: '#111827', bg: '#f9fafb' };
+  }
+}
+
+function getStatusIcon(type: EmailRequest['type']): string {
+  switch (type) {
+    case 'confirmation': return '✅';
+    case 'reminder': return '⏰';
+    case 'cancellation': return '❌';
+    case 'reschedule': return '🔄';
+    default: return '📋';
+  }
+}
+
+function getStatusTitle(type: EmailRequest['type']): string {
+  switch (type) {
+    case 'confirmation': return 'Agendamento Confirmado';
+    case 'reminder': return 'Lembrete de Agendamento';
+    case 'cancellation': return 'Agendamento Cancelado';
+    case 'reschedule': return 'Agendamento Reagendado';
+    default: return 'Atualização de Agendamento';
+  }
+}
+
+function getStatusMessage(type: EmailRequest['type'], establishmentName: string): string {
+  switch (type) {
+    case 'confirmation': return `Seu agendamento em <strong>${establishmentName}</strong> foi confirmado com sucesso.`;
+    case 'reminder': return `Este é um lembrete do seu próximo agendamento em <strong>${establishmentName}</strong>.`;
+    case 'cancellation': return `Seu agendamento em <strong>${establishmentName}</strong> foi cancelado.`;
+    case 'reschedule': return `Seu agendamento em <strong>${establishmentName}</strong> foi reagendado para uma nova data.`;
+    default: return `Houve uma atualização no seu agendamento em <strong>${establishmentName}</strong>.`;
+  }
+}
+
 function getEmailHtml(type: EmailRequest['type'], data: AppointmentData): string {
   const { customer, professional, service, establishment, start_at } = data;
   const baseUrl = `https://www.agendali.online/${establishment.slug}`;
-  
-  const appointmentDetails = `
-    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h3 style="margin: 0 0 15px 0; color: #333;">Detalhes do Agendamento</h3>
-      <p style="margin: 5px 0;"><strong>📅 Data:</strong> ${formatDate(start_at)}</p>
-      <p style="margin: 5px 0;"><strong>🕐 Horário:</strong> ${formatTime(start_at)}</p>
-      <p style="margin: 5px 0;"><strong>💇 Serviço:</strong> ${service.name} (${service.duration_minutes} min)</p>
-      <p style="margin: 5px 0;"><strong>👤 Profissional:</strong> ${professional.name}</p>
-      ${establishment.address ? `<p style="margin: 5px 0;"><strong>📍 Local:</strong> ${establishment.address}</p>` : ''}
-      ${establishment.phone ? `<p style="margin: 5px 0;"><strong>📞 Telefone:</strong> ${establishment.phone}</p>` : ''}
-    </div>
-  `;
+  const logoUrl = 'https://www.agendali.online/logo-192.png';
+  const { accent, bg } = getStatusColor(type);
+  const icon = getStatusIcon(type);
+  const title = getStatusTitle(type);
+  const message = getStatusMessage(type, establishment.name);
 
-  const footer = `
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
-      <p>Este email foi enviado por ${establishment.name} através do Agendali.</p>
-      <p><a href="${baseUrl}" style="color: #7c3aed;">Agendar outro horário</a></p>
-    </div>
-  `;
+  const showCTA = type === 'cancellation';
+  const showWarning = type === 'reminder';
+  const showFooterNote = type === 'confirmation' || type === 'reschedule';
 
-  switch (type) {
-    case 'confirmation':
-      return `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #16a34a;">✅ Agendamento Confirmado!</h1>
-          <p>Olá, <strong>${customer.name}</strong>!</p>
-          <p>Seu agendamento em <strong>${establishment.name}</strong> foi confirmado com sucesso.</p>
-          ${appointmentDetails}
-          <p style="color: #666;">Caso precise reagendar ou cancelar, acesse sua área de agendamentos.</p>
-          ${footer}
-        </div>
-      `;
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
+    <tr><td align="center" style="padding:40px 20px 0;">
+      <table width="100%" style="max-width:560px;">
+        <!-- Header -->
+        <tr><td style="text-align:center;padding-bottom:32px;">
+          <img src="${logoUrl}" alt="Agendali" width="48" height="48" style="display:inline-block;border-radius:10px;" />
+          <p style="margin:12px 0 0;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">AGENDALI</p>
+        </td></tr>
 
-    case 'reminder':
-      return `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #f59e0b;">⏰ Lembrete de Agendamento</h1>
-          <p>Olá, <strong>${customer.name}</strong>!</p>
-          <p>Este é um lembrete do seu agendamento em <strong>${establishment.name}</strong>.</p>
-          ${appointmentDetails}
-          <p style="background-color: #fef3c7; padding: 15px; border-radius: 8px; color: #92400e;">
-            <strong>⚠️ Importante:</strong> Caso não possa comparecer, por favor avise com antecedência.
+        <!-- Status badge -->
+        <tr><td align="center" style="padding-bottom:24px;">
+          <table cellpadding="0" cellspacing="0"><tr>
+            <td style="background-color:${bg};border:1px solid ${accent}22;border-radius:100px;padding:8px 20px;">
+              <span style="font-size:14px;font-weight:600;color:${accent};">${icon} ${title}</span>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="padding-bottom:8px;">
+          <p style="margin:0 0 6px;font-size:16px;color:#374151;">Olá, <strong style="color:#111827;">${customer.name}</strong>!</p>
+          <p style="margin:0;font-size:16px;line-height:1.6;color:#374151;">${message}</p>
+        </td></tr>
+
+        <!-- Details card -->
+        <tr><td style="padding:24px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+            <tr><td style="padding:24px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:6px 0;font-size:14px;color:#6b7280;width:120px;">📅 Data</td>
+                  <td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${formatDate(start_at)}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;font-size:14px;color:#6b7280;">🕐 Horário</td>
+                  <td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${formatTime(start_at)}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;font-size:14px;color:#6b7280;">💇 Serviço</td>
+                  <td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${service.name} <span style="font-weight:400;color:#6b7280;">(${service.duration_minutes} min)</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;font-size:14px;color:#6b7280;">👤 Profissional</td>
+                  <td style="padding:6px 0;font-size:14px;font-weight:600;color:#111827;">${professional.name}</td>
+                </tr>
+                ${establishment.address ? `<tr>
+                  <td style="padding:6px 0;font-size:14px;color:#6b7280;">📍 Local</td>
+                  <td style="padding:6px 0;font-size:14px;color:#111827;">${establishment.address}</td>
+                </tr>` : ''}
+                ${establishment.phone ? `<tr>
+                  <td style="padding:6px 0;font-size:14px;color:#6b7280;">📞 Telefone</td>
+                  <td style="padding:6px 0;font-size:14px;color:#111827;">${establishment.phone}</td>
+                </tr>` : ''}
+              </table>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        ${showWarning ? `
+        <!-- Warning -->
+        <tr><td style="padding-bottom:24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+            <tr><td style="padding:14px 18px;font-size:14px;color:#92400e;line-height:1.5;">
+              <strong>⚠️ Importante:</strong> Caso não possa comparecer, por favor avise com antecedência.
+            </td></tr>
+          </table>
+        </td></tr>` : ''}
+
+        ${showCTA ? `
+        <!-- CTA -->
+        <tr><td align="center" style="padding-bottom:24px;">
+          <a href="${baseUrl}" style="display:inline-block;padding:14px 32px;background-color:#111827;color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
+            Agendar novo horário
+          </a>
+        </td></tr>` : ''}
+
+        ${showFooterNote ? `
+        <tr><td style="padding-bottom:16px;">
+          <p style="margin:0;font-size:14px;color:#6b7280;line-height:1.5;">Caso precise reagendar ou cancelar, acesse sua área de agendamentos.</p>
+        </td></tr>` : ''}
+
+        <!-- Divider + footer -->
+        <tr><td style="padding-top:24px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;text-align:center;font-size:12px;color:#9ca3af;line-height:1.6;">
+            Enviado por ${establishment.name} através do 
+            <a href="https://www.agendali.online" style="color:#9ca3af;text-decoration:underline;">Agendali</a>
           </p>
-          ${footer}
-        </div>
-      `;
-
-    case 'cancellation':
-      return `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #dc2626;">❌ Agendamento Cancelado</h1>
-          <p>Olá, <strong>${customer.name}</strong>!</p>
-          <p>Seu agendamento em <strong>${establishment.name}</strong> foi cancelado.</p>
-          ${appointmentDetails}
-          <p style="margin-top: 20px;">
-            <a href="${baseUrl}" style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
-              Agendar novo horário
-            </a>
+          <p style="margin:8px 0 0;text-align:center;">
+            <a href="${baseUrl}" style="font-size:12px;color:#6b7280;text-decoration:underline;">Agendar outro horário</a>
           </p>
-          ${footer}
-        </div>
-      `;
-
-    case 'reschedule':
-      return `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #2563eb;">🔄 Agendamento Reagendado</h1>
-          <p>Olá, <strong>${customer.name}</strong>!</p>
-          <p>Seu agendamento em <strong>${establishment.name}</strong> foi reagendado para uma nova data.</p>
-          ${appointmentDetails}
-          <p style="color: #666;">Caso precise de mais alterações, acesse sua área de agendamentos.</p>
-          ${footer}
-        </div>
-      `;
-
-    default:
-      return `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1>Atualização de Agendamento</h1>
-          <p>Olá, <strong>${customer.name}</strong>!</p>
-          <p>Houve uma atualização no seu agendamento em <strong>${establishment.name}</strong>.</p>
-          ${appointmentDetails}
-          ${footer}
-        </div>
-      `;
-  }
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
 }
 
 const handler = async (req: Request): Promise<Response> => {

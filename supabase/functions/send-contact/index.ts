@@ -80,15 +80,24 @@ serve(async (req: Request) => {
             from: `Agendali <${Deno.env.get("RESEND_FROM") || "noreply@agendali.online"}>`,
             to: ["contato@agendali.online"],
             subject: `[Agendali] Nova mensagem de contato: ${name}`,
-            html: `
-              <h2>Nova mensagem de contato</h2>
-              <p><strong>Nome:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Mensagem:</strong></p>
-              <p>${message.replace(/\n/g, "<br>")}</p>
-              <hr>
-              <p><small>Recebido em: ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</small></p>
-            `,
+            html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
+<table width="100%" style="max-width:560px;">
+  <tr><td style="text-align:center;padding-bottom:24px;">
+    <img src="https://www.agendali.online/logo-192.png" alt="Agendali" width="40" height="40" style="border-radius:8px;" />
+  </td></tr>
+  <tr><td style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;">
+    <h2 style="margin:0 0 16px;font-size:18px;color:#111827;">📩 Nova mensagem de contato</h2>
+    <p style="margin:4px 0;font-size:14px;color:#374151;"><strong>Nome:</strong> ${name}</p>
+    <p style="margin:4px 0;font-size:14px;color:#374151;"><strong>Email:</strong> ${email}</p>
+    <div style="margin:16px 0 0;padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;">
+      <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">${message.replace(/\n/g, "<br>")}</p>
+    </div>
+    <p style="margin:16px 0 0;font-size:12px;color:#9ca3af;">Recebido em: ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p>
+  </td></tr>
+</table>
+</td></tr></table></body></html>`,
           }),
         });
 
@@ -115,20 +124,36 @@ serve(async (req: Request) => {
             from: `Agendali <${Deno.env.get("RESEND_FROM") || "noreply@agendali.online"}>`,
             to: [email],
             subject: "Recebemos sua mensagem - Agendali",
-            html: `
-              <h2>Olá, ${name}!</h2>
-              <p>Recebemos sua mensagem e agradecemos por entrar em contato conosco.</p>
-              <p>Nossa equipe irá analisar sua solicitação e responderá em até 24 horas úteis.</p>
-              <br>
-              <p><strong>Sua mensagem:</strong></p>
-              <blockquote style="background: #f5f5f5; padding: 15px; border-left: 4px solid #4F46E5;">
-                ${message.replace(/\n/g, "<br>")}
-              </blockquote>
-              <br>
-              <p>Atenciosamente,<br>Equipe Agendali</p>
-              <hr>
-              <p><small>Este é um email automático. Por favor, não responda diretamente.</small></p>
-            `,
+            html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
+<table width="100%" style="max-width:560px;">
+  <tr><td style="text-align:center;padding-bottom:24px;">
+    <img src="https://www.agendali.online/logo-192.png" alt="Agendali" width="40" height="40" style="border-radius:8px;" />
+    <p style="margin:10px 0 0;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">AGENDALI</p>
+  </td></tr>
+  <tr><td>
+    <p style="margin:0 0 8px;font-size:16px;color:#374151;">Olá, <strong style="color:#111827;">${name}</strong>!</p>
+    <p style="margin:0 0 8px;font-size:16px;line-height:1.6;color:#374151;">Recebemos sua mensagem e agradecemos por entrar em contato.</p>
+    <p style="margin:0;font-size:16px;line-height:1.6;color:#374151;">Nossa equipe analisará sua solicitação e responderá em até <strong>24 horas úteis</strong>.</p>
+  </td></tr>
+  <tr><td style="padding:24px 0;">
+    <table width="100%" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Sua mensagem</p>
+        <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">${message.replace(/\n/g, "<br>")}</p>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td>
+    <p style="margin:0;font-size:14px;color:#374151;">Atenciosamente,<br/><strong>Equipe Agendali</strong></p>
+  </td></tr>
+  <tr><td style="padding-top:24px;border-top:1px solid #e5e7eb;margin-top:24px;">
+    <p style="margin:24px 0 0;text-align:center;font-size:12px;color:#9ca3af;">Este é um email automático. Por favor, não responda diretamente.</p>
+    <p style="margin:4px 0 0;text-align:center;font-size:12px;"><a href="https://www.agendali.online" style="color:#9ca3af;text-decoration:underline;">agendali.online</a></p>
+  </td></tr>
+</table>
+</td></tr></table></body></html>`,
           }),
         });
 
