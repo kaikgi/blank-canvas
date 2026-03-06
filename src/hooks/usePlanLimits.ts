@@ -62,11 +62,12 @@ export function usePlanLimits(establishmentId: string | undefined) {
       // 3. Get limits from hardcoded plans
       const limits = getPlanLimits(planCode, !!isTrial);
 
-      // 4. Count current professionals
+      // 4. Count current active professionals
       const { count: profCount } = await supabase
         .from('professionals')
         .select('id', { count: 'exact', head: true })
-        .eq('establishment_id', establishmentId);
+        .eq('establishment_id', establishmentId)
+        .eq('active', true);
 
       const currentProfessionals = profCount ?? 0;
 
