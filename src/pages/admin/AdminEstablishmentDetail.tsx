@@ -566,9 +566,11 @@ export default function AdminEstablishmentDetail() {
             <Card>
               <CardHeader><CardTitle className="text-lg">Ações Rápidas</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => handleQuickAction('reset_trial')} disabled={updateEstablishment.isPending}>
-                  <RefreshCw className="h-4 w-4 mr-2" /> Resetar Trial (7 dias)
-                </Button>
+                {est.status !== 'active' && (
+                  <Button variant="outline" className="w-full justify-start text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => handleQuickAction('reactivate')} disabled={updateEstablishment.isPending}>
+                    <Play className="h-4 w-4 mr-2" /> Reativar Conta
+                  </Button>
+                )}
                 {est.status === 'active' && (
                   <Button variant="outline" className="w-full justify-start text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => handleQuickAction('suspend')} disabled={updateEstablishment.isPending}>
                     <Ban className="h-4 w-4 mr-2" /> Suspender Conta
