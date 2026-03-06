@@ -194,7 +194,7 @@ export function PlanCardsGrid({
                     asChild
                   >
                     <a href={plan.checkoutUrls[period]} target="_blank" rel="noopener noreferrer">
-                      {ctaLabel}
+                      {plan.code === 'solo' ? 'Começar com Solo' : plan.code === 'studio' ? 'Escolher Studio' : plan.code === 'pro' ? 'Escolher Pro' : ctaLabel}
                       <ExternalLink size={14} className="ml-1.5" />
                     </a>
                   </Button>
