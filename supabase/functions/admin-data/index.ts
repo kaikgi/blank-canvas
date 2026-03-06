@@ -67,22 +67,9 @@ serve(async (req) => {
         byStatus[e.status] = (byStatus[e.status] || 0) + 1;
       });
 
-      // Count trial expired separately
-      const { data: trialEstablishments } = await adminClient
-        .from('establishments')
-        .select('trial_ends_at')
-        .eq('status', 'trial');
-
-      let trialActive = 0;
-      let trialExpired = 0;
-      const now = new Date();
-      (trialEstablishments || []).forEach((e: any) => {
-        if (e.trial_ends_at && new Date(e.trial_ends_at) < now) {
-          trialExpired++;
-        } else {
-          trialActive++;
-        }
-      });
+      // Count canceled separately
+      const canceledCount = byStatus['canceled'] || 0;
+      const pastDueCount = byStatus['past_due'] || 0;
 
       const { count: totalCustomers } = await adminClient
         .from('customers')
