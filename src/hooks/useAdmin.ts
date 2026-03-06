@@ -70,7 +70,6 @@ export interface AdminEstablishment {
   status: string;
   plano: string | null;
   created_at: string;
-  trial_ends_at: string | null;
   booking_enabled: boolean;
   owner_user_id: string;
   owner_email: string;
