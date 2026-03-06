@@ -24,15 +24,16 @@ interface Establishment {
 export default function ClientSearch() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce search
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    // Simple debounce using timeout
+    if (debounceTimer) clearTimeout(debounceTimer);
     const timeoutId = setTimeout(() => {
       setDebouncedSearch(value);
     }, 300);
-    return () => clearTimeout(timeoutId);
+    setDebounceTimer(timeoutId);
   };
 
   const { data: establishments = [], isLoading } = useQuery({

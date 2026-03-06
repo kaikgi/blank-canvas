@@ -7,15 +7,9 @@ import {
   Loader2,
   Save,
   User,
-  Phone,
-  Mail,
   Shield,
   LogOut,
-  Camera,
-  Heart,
   Star,
-  Calendar,
-  Bell,
   KeyRound,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
