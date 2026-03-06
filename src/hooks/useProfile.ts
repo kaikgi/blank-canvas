@@ -30,9 +30,41 @@ export function useProfile() {
         .single();
       
       if (error) {
-        // Profile might not exist yet for new users
+        // Profile might not exist yet for new users - auto-create it
         if (error.code === 'PGRST116') {
-          return null;
+          const defaultAccountType: AccountType = 'customer';
+          
+          // Check if user owns an establishment to determine account type
+          const { data: establishments } = await supabase
+            .from('establishments')
+            .select('id')
+            .eq('owner_user_id', user.id)
+            .limit(1);
+          
+          const accountType: AccountType = 
+            (establishments && establishments.length > 0) 
+              ? 'establishment_owner' 
+              : defaultAccountType;
+
+          const newProfile = {
+            id: user.id,
+            full_name: user.user_metadata?.full_name || null,
+            phone: user.user_metadata?.phone || null,
+            account_type: accountType,
+          };
+
+          const { data: created, error: insertError } = await supabase
+            .from('profiles')
+            .upsert(newProfile)
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error('Auto-create profile failed:', insertError);
+            return null;
+          }
+          
+          return created as Profile;
         }
         throw error;
       }
