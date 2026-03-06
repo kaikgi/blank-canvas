@@ -112,7 +112,7 @@ function eventTypeColor(type: string): string {
   if (type.includes('cancel')) return 'border-red-400 bg-red-50 dark:bg-red-950/30';
   if (type.includes('fail')) return 'border-amber-400 bg-amber-50 dark:bg-amber-950/30';
   if (type.includes('payment') || type.includes('renew')) return 'border-green-400 bg-green-50 dark:bg-green-950/30';
-  if (type.includes('trial')) return 'border-blue-400 bg-blue-50 dark:bg-blue-950/30';
+  return 'border-muted bg-muted/30';
   return 'border-muted bg-muted/30';
 }
 
