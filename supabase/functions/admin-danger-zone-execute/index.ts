@@ -56,12 +56,12 @@ serve(async (req) => {
 
     // Check ENV flag
     const { data: envSetting } = await adminClient
-      .from('system_settings')
+      .from('system_settings' as any)
       .select('value')
       .eq('key', 'ENV_ALLOW_DANGER_ZONE')
       .single();
 
-    if (!envSetting || envSetting.value !== 'true') {
+    if (!envSetting || (envSetting as any).value !== 'true') {
       return respond({ ok: false, code: 'DANGER_ZONE_DISABLED', message: 'Danger Zone desativada' });
     }
 
