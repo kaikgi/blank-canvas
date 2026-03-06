@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface RequestBody {
@@ -73,10 +73,10 @@ serve(async (req) => {
     }
 
     // Validate plan code
-    const validPlans = ['basic', 'essential', 'studio'];
+    const validPlans = ['solo', 'studio', 'pro'];
     if (!validPlans.includes(plan_code)) {
       return new Response(
-        JSON.stringify({ error: 'Plano inválido. Use: basic, essential ou studio' }),
+        JSON.stringify({ error: 'Plano inválido. Use: solo, studio ou pro' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

@@ -3,13 +3,19 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const respond = (body: Record<string, unknown>, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -18,9 +24,7 @@ serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Não autorizado' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return respond({ error: 'Não autorizado' }, 401);
     }
 
     // Verify caller
@@ -29,15 +33,13 @@ serve(async (req) => {
     });
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Não autorizado' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return respond({ error: 'Não autorizado' }, 401);
     }
 
     // Service role client
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check admin access - look for user in admin_users table
+    // Check admin access
     const { data: adminRow } = await adminClient
       .from('admin_users')
       .select('id, level')
@@ -45,9 +47,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (!adminRow) {
-      return new Response(JSON.stringify({ error: 'Acesso negado' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return respond({ error: 'Acesso negado' }, 403);
     }
 
     const { action, ...params } = await req.json();
@@ -103,14 +103,15 @@ serve(async (req) => {
       // Get owner emails
       const recentWithEmails = [];
       for (const est of (recent || [])) {
-        const { data: authUser } = await adminClient.auth.admin.getUserById(est.owner_user_id);
-        recentWithEmails.push({
-          ...est,
-          owner_email: authUser?.user?.email || 'N/A',
-        });
+        let ownerEmail = 'N/A';
+        try {
+          const { data: authUser } = await adminClient.auth.admin.getUserById(est.owner_user_id);
+          ownerEmail = authUser?.user?.email || 'N/A';
+        } catch { /* ignore */ }
+        recentWithEmails.push({ ...est, owner_email: ownerEmail });
       }
 
-      return new Response(JSON.stringify({
+      return respond({
         total_establishments: totalEst || 0,
         total_customers: totalCustomers || 0,
         active_subscriptions: activeSubscriptions || 0,
@@ -118,8 +119,6 @@ serve(async (req) => {
         trial_active: trialActive,
         trial_expired: trialExpired,
         recent_establishments: recentWithEmails,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -138,13 +137,19 @@ serve(async (req) => {
       }
 
       const { data: establishments, error: estError } = await query;
-      if (estError) throw estError;
+      if (estError) {
+        console.error('Error listing establishments:', estError);
+        return respond({ error: `Erro ao listar: ${estError.message}` }, 500);
+      }
 
       // Enrich with owner email, subscription, professionals count
       const enriched = [];
       for (const est of (establishments || [])) {
-        // Owner email
-        const { data: authUser } = await adminClient.auth.admin.getUserById(est.owner_user_id);
+        let ownerEmail = 'N/A';
+        try {
+          const { data: authUser } = await adminClient.auth.admin.getUserById(est.owner_user_id);
+          ownerEmail = authUser?.user?.email || 'N/A';
+        } catch { /* ignore */ }
         
         // Active subscription
         const { data: subs } = await adminClient
@@ -162,17 +167,15 @@ serve(async (req) => {
 
         enriched.push({
           ...est,
-          owner_email: authUser?.user?.email || 'N/A',
+          owner_email: ownerEmail,
           subscription: subs?.[0] || null,
           professionals_count: profCount || 0,
         });
       }
 
-      return new Response(JSON.stringify({
+      return respond({
         establishments: enriched,
         total: enriched.length,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -180,9 +183,7 @@ serve(async (req) => {
     if (action === 'update_establishment') {
       const { establishment_id, status, plano, trial_ends_at } = params;
       if (!establishment_id) {
-        return new Response(JSON.stringify({ error: 'establishment_id obrigatório' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return respond({ error: 'establishment_id obrigatório' }, 400);
       }
 
       const updateData: Record<string, any> = {};
@@ -195,7 +196,10 @@ serve(async (req) => {
         .update(updateData)
         .eq('id', establishment_id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating establishment:', updateError);
+        return respond({ error: `Erro ao atualizar: ${updateError.message}` }, 500);
+      }
 
       // If setting to active with a plan, also create/update subscription
       if (status === 'active' && plano) {
@@ -215,6 +219,7 @@ serve(async (req) => {
           if (existingSub) {
             await adminClient.from('subscriptions').update({
               plan_code: plano,
+              plan: plano,
               status: 'active',
               current_period_start: new Date().toISOString(),
               current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -223,7 +228,9 @@ serve(async (req) => {
           } else {
             await adminClient.from('subscriptions').insert({
               owner_user_id: est.owner_user_id,
+              establishment_id: establishment_id,
               plan_code: plano,
+              plan: plano,
               status: 'active',
               provider: 'admin',
             });
@@ -231,21 +238,23 @@ serve(async (req) => {
         }
       }
 
+      // Audit log
+      await adminClient.from('admin_audit_logs').insert({
+        admin_user_id: user.id,
+        action: 'update_establishment',
+        target_establishment_id: establishment_id,
+        metadata: { changes: updateData },
+      });
+
       console.log(`[admin-data] Admin ${user.email} updated establishment ${establishment_id}:`, updateData);
 
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return respond({ success: true });
     }
 
-    return new Response(JSON.stringify({ error: 'Ação desconhecida' }), {
-      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return respond({ error: `Ação desconhecida: ${action}` }, 400);
 
   } catch (error) {
     console.error('Error in admin-data:', error);
-    return new Response(JSON.stringify({ error: 'Erro interno' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return respond({ error: error.message || 'Erro interno' }, 500);
   }
 });

@@ -37,9 +37,10 @@ const STATUS_OPTIONS = [
 ];
 
 const PLAN_OPTIONS = [
-  { value: 'basico', label: 'Básico (R$ 19,90)' },
-  { value: 'essencial', label: 'Essencial (R$ 49,90)' },
-  { value: 'studio', label: 'Studio (R$ 99,90)' },
+  { value: 'solo', label: 'Solo (1 profissional)' },
+  { value: 'studio', label: 'Studio (até 4 profissionais)' },
+  { value: 'pro', label: 'Pro (ilimitado)' },
+  { value: 'trial', label: 'Trial' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
@@ -55,9 +56,10 @@ function StatusBadge({ status }: { status: string }) {
 function getPlanLabel(est: AdminEstablishment) {
   const planCode = est.subscription?.plan_code || est.plano || 'nenhum';
   switch (planCode) {
-    case 'basico': return 'Básico';
-    case 'essencial': return 'Essencial';
+    case 'solo': return 'Solo';
     case 'studio': return 'Studio';
+    case 'pro': return 'Pro';
+    case 'trial': return 'Trial';
     default: return planCode;
   }
 }
@@ -141,7 +143,7 @@ export default function AdminEstablishments() {
         description: (result?.steps || []).join(", "),
       });
       setDeleteEst(null);
-      queryClient.invalidateQueries({ queryKey: ["adminestablishments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-establishments"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
     } catch (err: any) {
       toast.error(err?.message || "Erro ao excluir estabelecimento");
