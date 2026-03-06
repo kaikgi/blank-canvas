@@ -137,12 +137,7 @@ export default function Assinatura() {
                 <Crown className="h-5 w-5 text-primary" />
                 Seu Plano
               </CardTitle>
-              {isTrial ? (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Período de Teste
-                </Badge>
-              ) : hasActiveSubscription ? (
+              {hasActiveSubscription ? (
                 <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Ativo
