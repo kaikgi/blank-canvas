@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, ArrowLeft, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { forgotPasswordSchema, ForgotPasswordFormData } from '@/lib/validations/auth';
-import { getOAuthRedirectUrl } from '@/lib/publicUrl';
+import { getPublicBaseUrl } from '@/lib/publicUrl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +30,7 @@ export default function ClientForgotPassword() {
     setIsLoading(true);
     
     const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: getOAuthRedirectUrl('/cliente/resetar-senha'),
+      redirectTo: `${getPublicBaseUrl()}/cliente/resetar-senha`,
     });
     
     setIsLoading(false);
