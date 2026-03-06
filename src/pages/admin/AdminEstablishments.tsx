@@ -96,6 +96,7 @@ export default function AdminEstablishments() {
       status: est.status,
       plano: est.subscription?.plan_code || est.plano || 'solo',
       trial_ends_at: est.trial_ends_at ? est.trial_ends_at.split('T')[0] : '',
+      billing_cycle: est.subscription?.billing_cycle || 'monthly',
     });
   };
 
