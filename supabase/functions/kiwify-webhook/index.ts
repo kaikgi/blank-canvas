@@ -306,12 +306,12 @@ async function findAgendaliProduct(
       }
 
       // If name contains "agendali" but no specific match, detect plan from name
-      if (nameLower.includes('studio') || nameLower.includes('profissional')) return { plan_code: 'studio' }
-      if (nameLower.includes('essencial') || nameLower.includes('essential')) return { plan_code: 'essential' }
-      if (nameLower.includes('básico') || nameLower.includes('basic') || nameLower.includes('basico')) return { plan_code: 'basic' }
+      if (nameLower.includes('pro') || nameLower.includes('profissional')) return { plan_code: 'pro' }
+      if (nameLower.includes('studio')) return { plan_code: 'studio' }
+      if (nameLower.includes('solo') || nameLower.includes('básico') || nameLower.includes('basic') || nameLower.includes('basico')) return { plan_code: 'solo' }
 
-      // Default to basic if it says "agendali" but no specific plan keyword
-      return { plan_code: 'basic' }
+      // Default to solo if it says "agendali" but no specific plan keyword
+      return { plan_code: 'solo' }
     }
   }
 
