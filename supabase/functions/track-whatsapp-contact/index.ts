@@ -231,7 +231,7 @@ serve(async (req) => {
     }
 
     // 7. All checks passed — insert clicked event
-    await insertEvent('clicked', null, messageHash);
+    await insertEvent('clicked', undefined, messageHash);
 
     return new Response(
       JSON.stringify({ ok: true }),

@@ -319,7 +319,7 @@ serve(async (req) => {
     // Always release lock
     if (lockAcquired && adminClient) {
       try {
-        await adminClient.from('admin_locks').delete().eq('key', 'danger_zone');
+        await adminClient.from('admin_locks' as any).delete().eq('key', 'danger_zone');
       } catch (e) {
         console.error('[danger-zone] Failed to release lock:', e);
       }
