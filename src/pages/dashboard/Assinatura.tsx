@@ -294,12 +294,7 @@ export default function Assinatura() {
 
             {/* Status */}
             <div className="pt-2 border-t">
-              {isTrial ? (
-                <div className="flex items-center gap-2 text-amber-600 text-sm">
-                  <Clock className="h-4 w-4 shrink-0" />
-                  <span>{trialDaysLeft} dia{trialDaysLeft !== 1 ? 's' : ''} restante{trialDaysLeft !== 1 ? 's' : ''}</span>
-                </div>
-              ) : isNearProfessionalsLimit ? (
+              {isNearProfessionalsLimit ? (
                 <div className="flex items-center gap-2 text-amber-600 text-sm">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   <span>Próximo do limite</span>
