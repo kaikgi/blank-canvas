@@ -71,7 +71,9 @@ export function TrialExpiredModal() {
           <Logo />
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            <span className="font-medium">Acesso bloqueado</span>
+            <span className="font-medium">
+              {reason === 'past_due' ? 'Pagamento pendente' : reason === 'canceled' ? 'Assinatura cancelada' : 'Teste encerrado'}
+            </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold">
             {title}
