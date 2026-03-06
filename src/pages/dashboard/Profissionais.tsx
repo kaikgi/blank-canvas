@@ -39,7 +39,7 @@ import { UsageBadge } from '@/components/dashboard/UsageBadge';
 
 interface ProfessionalForm {
   name: string;
-  capacity: number;
+  capacity: string;
   photo_url: string | null;
 }
 
