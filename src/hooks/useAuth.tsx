@@ -15,7 +15,6 @@ interface AuthContextType {
   loading: boolean;
   signUp: (data: SignUpData) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signInWithGoogle: (redirectPath?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   checkEmailAuthorized: (email: string) => Promise<{ authorized: boolean; planId?: string }>;
