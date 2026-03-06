@@ -14,8 +14,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { signIn, signInWithGoogle, user, loading } = useAuth();
+  const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -54,20 +53,6 @@ export default function Login() {
       description: 'Login realizado com sucesso.',
     });
     navigate('/dashboard');
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    const { error } = await signInWithGoogle();
-    setIsGoogleLoading(false);
-
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao entrar com Google',
-        description: error.message,
-      });
-    }
   };
 
   return (
