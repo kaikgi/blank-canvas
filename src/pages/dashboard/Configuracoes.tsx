@@ -68,10 +68,10 @@ export default function Configuracoes() {
     instagram: '',
     booking_enabled: true,
     auto_confirm_bookings: true,
-    reschedule_min_hours: 2,
-    max_future_days: 30,
-    slot_interval_minutes: 15,
-    reminder_hours_before: 3,
+    reschedule_min_hours: '',
+    max_future_days: '',
+    slot_interval_minutes: '',
+    reminder_hours_before: '',
   });
 
   // Initialize form when establishment loads
@@ -91,10 +91,10 @@ export default function Configuracoes() {
         instagram: (establishment as any).instagram || '',
         booking_enabled: establishment.booking_enabled,
         auto_confirm_bookings: establishment.auto_confirm_bookings,
-        reschedule_min_hours: establishment.reschedule_min_hours,
-        max_future_days: establishment.max_future_days,
-        slot_interval_minutes: establishment.slot_interval_minutes,
-        reminder_hours_before: (establishment as any).reminder_hours_before ?? 3,
+        reschedule_min_hours: String(establishment.reschedule_min_hours ?? 2),
+        max_future_days: String(establishment.max_future_days ?? 30),
+        slot_interval_minutes: String(establishment.slot_interval_minutes ?? 15),
+        reminder_hours_before: String((establishment as any).reminder_hours_before ?? 3),
       });
     }
   }, [establishment]);
@@ -279,10 +279,10 @@ export default function Configuracoes() {
           instagram: form.instagram || null,
           booking_enabled: form.booking_enabled,
           auto_confirm_bookings: form.auto_confirm_bookings,
-          reschedule_min_hours: form.reschedule_min_hours,
-          max_future_days: form.max_future_days,
-          slot_interval_minutes: form.slot_interval_minutes,
-          reminder_hours_before: form.reminder_hours_before,
+          reschedule_min_hours: parseInt(form.reschedule_min_hours) || 2,
+          max_future_days: parseInt(form.max_future_days) || 30,
+          slot_interval_minutes: parseInt(form.slot_interval_minutes) || 15,
+          reminder_hours_before: parseInt(form.reminder_hours_before) || 0,
         } as any)
         .eq('id', establishment.id);
 
@@ -586,20 +586,28 @@ export default function Configuracoes() {
               <Label htmlFor="reschedule">Antecedência mínima (horas)</Label>
               <Input
                 id="reschedule"
-                type="number"
-                min={0}
+                type="text"
+                inputMode="numeric"
                 value={form.reschedule_min_hours}
-                onChange={(e) => setForm({ ...form, reschedule_min_hours: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, reschedule_min_hours: val });
+                }}
+                placeholder="2"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="future">Dias no futuro</Label>
               <Input
                 id="future"
-                type="number"
-                min={1}
+                type="text"
+                inputMode="numeric"
                 value={form.max_future_days}
-                onChange={(e) => setForm({ ...form, max_future_days: parseInt(e.target.value) || 30 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, max_future_days: val });
+                }}
+                placeholder="30"
               />
             </div>
           </div>
@@ -609,22 +617,28 @@ export default function Configuracoes() {
               <Label htmlFor="interval">Intervalo de horários (minutos)</Label>
               <Input
                 id="interval"
-                type="number"
-                min={5}
-                step={5}
+                type="text"
+                inputMode="numeric"
                 value={form.slot_interval_minutes}
-                onChange={(e) => setForm({ ...form, slot_interval_minutes: parseInt(e.target.value) || 15 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, slot_interval_minutes: val });
+                }}
+                placeholder="15"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="reminder">Lembrete por e-mail (horas antes)</Label>
               <Input
                 id="reminder"
-                type="number"
-                min={0}
-                max={48}
+                type="text"
+                inputMode="numeric"
                 value={form.reminder_hours_before}
-                onChange={(e) => setForm({ ...form, reminder_hours_before: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, reminder_hours_before: val });
+                }}
+                placeholder="3"
               />
               <p className="text-xs text-muted-foreground">
                 0 = desativado

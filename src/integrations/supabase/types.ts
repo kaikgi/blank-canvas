@@ -1061,6 +1061,10 @@ export type Database = {
         Returns: string
       }
       admin_get_my_level: { Args: never; Returns: string }
+      check_establishment_slug_available: {
+        Args: { p_current_establishment_id: string; p_slug: string }
+        Returns: boolean
+      }
       check_has_active_entitlement: {
         Args: { p_email: string }
         Returns: boolean
