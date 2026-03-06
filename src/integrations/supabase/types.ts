@@ -47,20 +47,35 @@ export type Database = {
       admin_users: {
         Row: {
           created_at: string
+          created_by: string | null
           id: string
+          last_access_at: string | null
           level: string
+          name: string | null
+          role: string
+          status: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           id?: string
+          last_access_at?: string | null
           level?: string
+          name?: string | null
+          role?: string
+          status?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           id?: string
+          last_access_at?: string | null
           level?: string
+          name?: string | null
+          role?: string
+          status?: string
           user_id?: string
         }
         Relationships: []
@@ -1099,8 +1114,14 @@ export type Database = {
       get_admin_users: {
         Args: never
         Returns: {
+          created_by: string
+          created_by_email: string
           email: string
+          last_access_at: string
           level: string
+          name: string
+          role: string
+          status: string
           user_created_at: string
           user_id: string
         }[]
