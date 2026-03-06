@@ -50,6 +50,7 @@ export function useManageProfessionals(establishmentId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manage-professionals', establishmentId] });
+      queryClient.invalidateQueries({ queryKey: ['plan-limits'] });
     },
   });
 
@@ -63,6 +64,7 @@ export function useManageProfessionals(establishmentId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manage-professionals', establishmentId] });
+      queryClient.invalidateQueries({ queryKey: ['plan-limits'] });
     },
   });
 
@@ -76,6 +78,7 @@ export function useManageProfessionals(establishmentId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manage-professionals', establishmentId] });
+      queryClient.invalidateQueries({ queryKey: ['plan-limits'] });
     },
   });
 

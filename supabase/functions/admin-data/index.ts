@@ -159,11 +159,12 @@ serve(async (req) => {
           .order('created_at', { ascending: false })
           .limit(1);
 
-        // Professionals count
+        // Professionals count (only active)
         const { count: profCount } = await adminClient
           .from('professionals')
           .select('id', { count: 'exact', head: true })
-          .eq('establishment_id', est.id);
+          .eq('establishment_id', est.id)
+          .eq('active', true);
 
         enriched.push({
           ...est,
