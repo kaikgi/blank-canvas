@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { loginSchema, LoginFormData } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/hooks/use-toast';
+import { PasswordInput } from '@/components/ui/password-input';
+import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [accountTypeError, setAccountTypeError] = useState<string | null>(null);
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -32,11 +36,12 @@ export default function Login() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    setAccountTypeError(null);
     setIsLoading(true);
     const { error } = await signIn(data.email, data.password);
-    setIsLoading(false);
-
+    
     if (error) {
+      setIsLoading(false);
       toast({
         variant: 'destructive',
         title: 'Erro ao entrar',
@@ -47,6 +52,24 @@ export default function Login() {
       return;
     }
 
+    // Check account type after successful login
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('account_type')
+        .eq('id', userData.user.id)
+        .single();
+
+      if (profile?.account_type === 'customer') {
+        setIsLoading(false);
+        await supabase.auth.signOut();
+        setAccountTypeError('Esta é a área de estabelecimentos. Para acessar como cliente, use a Área do Cliente.');
+        return;
+      }
+    }
+
+    setIsLoading(false);
     toast({
       title: 'Bem-vindo de volta!',
       description: 'Login realizado com sucesso.',
@@ -68,6 +91,18 @@ export default function Login() {
             Acesse o painel de gerenciamento
           </p>
         </div>
+
+        {accountTypeError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {accountTypeError}{' '}
+              <Link to="/cliente/login" className="font-medium underline">
+                Ir para Área do Cliente
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
@@ -94,9 +129,8 @@ export default function Login() {
                 Esqueci minha senha
               </Link>
             </div>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="••••••••"
               autoComplete="current-password"
               {...register('password')}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,9 +11,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
+import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function ClientLogin() {
   const [isLoading, setIsLoading] = useState(false);
+  const [accountTypeError, setAccountTypeError] = useState<string | null>(null);
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,11 +30,12 @@ export default function ClientLogin() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    setAccountTypeError(null);
     setIsLoading(true);
     const { error } = await signIn(data.email, data.password);
-    setIsLoading(false);
 
     if (error) {
+      setIsLoading(false);
       toast({
         variant: 'destructive',
         title: 'Erro ao entrar',
@@ -42,6 +46,24 @@ export default function ClientLogin() {
       return;
     }
 
+    // Check account type after successful login
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('account_type')
+        .eq('id', userData.user.id)
+        .single();
+
+      if (profile?.account_type === 'establishment_owner') {
+        setIsLoading(false);
+        await supabase.auth.signOut();
+        setAccountTypeError('Esta é a área de clientes. Para acessar como estabelecimento, use o Painel do Estabelecimento.');
+        return;
+      }
+    }
+
+    setIsLoading(false);
     navigate(from, { replace: true });
   };
 
@@ -53,6 +75,18 @@ export default function ClientLogin() {
           <h1 className="mt-6 text-2xl font-bold">Área do Cliente</h1>
           <p className="mt-2 text-sm text-muted-foreground">Entre para gerenciar seus agendamentos</p>
         </div>
+
+        {accountTypeError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {accountTypeError}{' '}
+              <Link to="/login" className="font-medium underline">
+                Ir para Painel do Estabelecimento
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
@@ -80,6 +114,13 @@ export default function ClientLogin() {
           Não tem conta?{' '}
           <Link to="/cliente/cadastro" state={{ from }} className="text-primary hover:underline">
             Criar conta
+          </Link>
+        </p>
+
+        <p className="text-center text-sm text-muted-foreground">
+          É estabelecimento?{' '}
+          <Link to="/login" className="font-medium text-foreground hover:underline">
+            Painel do Estabelecimento
           </Link>
         </p>
       </div>
