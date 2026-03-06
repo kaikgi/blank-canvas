@@ -83,14 +83,17 @@ export default function Servicos() {
   const handleSubmit = async () => {
     if (!form.name.trim()) return;
 
+    const durationNum = parseInt(form.duration_minutes) || 30;
+    const priceNum = form.price.trim() ? Math.round(parseFloat(form.price.replace(',', '.')) * 100) : null;
+
     try {
       if (editingId) {
         await update({
           id: editingId,
           name: form.name,
           description: form.description || null,
-          duration_minutes: form.duration_minutes,
-          price_cents: form.price_cents || null,
+          duration_minutes: durationNum,
+          price_cents: priceNum,
         });
         toast({ title: 'Serviço atualizado!' });
       } else {
@@ -98,8 +101,8 @@ export default function Servicos() {
           establishment_id: establishment!.id,
           name: form.name,
           description: form.description || undefined,
-          duration_minutes: form.duration_minutes,
-          price_cents: form.price_cents || undefined,
+          duration_minutes: durationNum,
+          price_cents: priceNum || undefined,
         });
         toast({ title: 'Serviço criado!' });
       }
