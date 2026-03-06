@@ -356,17 +356,15 @@ export default function AdminSubscriptions() {
 
     const total = data.length;
     const active = data.filter(s => s.status === 'active').length;
-    const trial = data.filter(s => s.status === 'trial').length;
     const canceled = data.filter(s => s.status === 'canceled').length;
     const pastDue = data.filter(s => s.status === 'past_due').length;
-    const expired = data.filter(s => s.status === 'trial' && s.current_period_end && new Date(s.current_period_end) < new Date()).length;
     const mrr = calculateMRR(data);
 
     const totalFiltered = result.length;
     const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
     const paginatedData = result.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-    return { totalFiltered, totalPages, paginatedData, metrics: { total, active, trial, canceled, pastDue, expired, mrr } };
+    return { totalFiltered, totalPages, paginatedData, metrics: { total, active, canceled, pastDue, mrr } };
   }, [data, statusFilter, planFilter, cycleFilter, providerFilter, search, sortKey, sortDir, page]);
 
   if (error) {
