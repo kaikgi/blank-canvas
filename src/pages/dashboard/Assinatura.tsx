@@ -428,7 +428,7 @@ export default function Assinatura() {
                         asChild
                       >
                         <a href={plan.checkoutUrls[selectedCycle]} target="_blank" rel="noopener noreferrer">
-                          {isTrial ? 'Assinar' : 'Fazer upgrade'} {plan.name}
+                          Fazer upgrade — {plan.name}
                           <ExternalLink size={14} className="ml-1" />
                         </a>
                       </Button>
