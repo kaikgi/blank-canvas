@@ -520,7 +520,7 @@ export default function AdminEstablishmentDetail() {
                       <div className={`absolute left-2.5 top-2 h-3 w-3 rounded-full border-2 ${
                         ev.event_type.includes('cancel') || ev.event_type.includes('fail') ? 'border-red-500 bg-red-100' :
                         ev.event_type.includes('payment') || ev.event_type.includes('renew') ? 'border-green-500 bg-green-100' :
-                        ev.event_type.includes('trial') ? 'border-blue-500 bg-blue-100' :
+                        'border-muted-foreground bg-muted'
                         'border-muted-foreground bg-muted'
                       }`} />
 
