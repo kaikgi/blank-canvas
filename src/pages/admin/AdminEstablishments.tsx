@@ -308,18 +308,6 @@ export default function AdminEstablishments() {
 
           <div className="space-y-5 py-2">
             <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plano</Label>
-              <Select value={editForm.plano} onValueChange={(v) => setEditForm({ ...editForm, plano: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {PLAN_OPTIONS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</Label>
               <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
