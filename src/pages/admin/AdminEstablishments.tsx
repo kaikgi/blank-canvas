@@ -69,7 +69,6 @@ function PlanBadge({ plan }: { plan: string }) {
     pro: "bg-violet-500/10 text-violet-700 border-violet-500/20 dark:text-violet-400 font-semibold",
     studio: "bg-primary/10 text-primary border-primary/20 font-semibold",
     solo: "bg-zinc-500/10 text-zinc-600 border-zinc-500/20 dark:text-zinc-400 font-semibold",
-    trial: "bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400 font-semibold",
   };
   return <Badge variant="outline" className={`text-[11px] ${map[n] || ''}`}>{plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Nenhum'}</Badge>;
 }

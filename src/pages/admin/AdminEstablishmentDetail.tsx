@@ -31,7 +31,6 @@ import { PLANS, formatCentsBRL } from "@/lib/hardcodedPlans";
 
 // --- Constants ---
 const STATUS_OPTIONS = [
-  { value: 'trial', label: 'Trial' },
   { value: 'active', label: 'Ativo' },
   { value: 'past_due', label: 'Past Due' },
   { value: 'canceled', label: 'Cancelado' },
@@ -41,7 +40,6 @@ const PLAN_OPTIONS = [
   { value: 'solo', label: 'Solo' },
   { value: 'studio', label: 'Studio' },
   { value: 'pro', label: 'Pro' },
-  { value: 'trial', label: 'Trial' },
 ];
 const CYCLE_OPTIONS = [
   { value: 'monthly', label: 'Mensal' },
