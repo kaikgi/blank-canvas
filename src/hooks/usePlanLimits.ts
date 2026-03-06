@@ -5,7 +5,6 @@ import { useAuth } from './useAuth';
 
 export interface PlanLimitsData {
   planCode: string;
-  isTrial: boolean;
   maxProfessionals: number | null; // null = unlimited
   currentProfessionals: number;
   canAddProfessional: boolean;
