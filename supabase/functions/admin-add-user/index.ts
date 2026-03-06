@@ -38,36 +38,31 @@ serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if caller is admin MASTER
+    // Check if caller is super_admin
     const { data: callerAdmin } = await adminClient
       .from('admin_users')
-      .select('level')
+      .select('role, status')
       .eq('user_id', callerUser.id)
       .single();
 
-    if (!callerAdmin || callerAdmin.level !== 'master') {
-      return respond({ ok: false, code: 'FORBIDDEN', message: 'Apenas admin MASTER pode adicionar administradores' }, 403);
+    if (!callerAdmin || (callerAdmin.role !== 'super_admin' && callerAdmin.role !== 'master') || callerAdmin.status !== 'ativo') {
+      return respond({ ok: false, code: 'FORBIDDEN', message: 'Apenas Super Admin pode adicionar administradores' }, 403);
     }
 
     // Parse request
-    const { email, level = 'standard', createIfMissing = false } = await req.json();
+    const { email, level, role = 'admin', name, createIfMissing = false, created_by } = await req.json();
 
     if (!email || typeof email !== 'string') {
       return respond({ ok: false, code: 'INVALID_INPUT', message: 'Email é obrigatório' }, 400);
     }
 
-    const targetLevel = level === 'master' ? 'master' : 'standard';
+    const targetRole = role || (level === 'master' ? 'super_admin' : 'admin');
+    const targetLevel = targetRole === 'super_admin' ? 'master' : 'standard';
     const normalizedEmail = email.toLowerCase().trim();
 
-    console.log(`[admin-add-user] MASTER ${callerUser.email} adding admin: ${normalizedEmail} (level: ${targetLevel})`);
+    console.log(`[admin-add-user] ${callerUser.email} adding admin: ${normalizedEmail} (role: ${targetRole})`);
 
-    // Find user by email using admin API
-    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers({
-      perPage: 1,
-      page: 1,
-    });
-
-    // listUsers doesn't support email filter, so we search all
+    // Find user by email
     const { data: allUsersData, error: allUsersError } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
     if (allUsersError) {
       console.error('Error listing users:', allUsersError);
@@ -81,11 +76,10 @@ serve(async (req) => {
         return respond({
           ok: false,
           code: 'USER_NOT_FOUND',
-          message: 'Usuário não encontrado. Marque "Criar usuário se não existir" ou peça para o usuário criar uma conta primeiro.',
+          message: 'Usuário não encontrado. Marque "Criar usuário e enviar convite" para criar automaticamente.',
         }, 404);
       }
 
-      // Create user
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email: normalizedEmail,
         email_confirm: true,
@@ -103,29 +97,35 @@ serve(async (req) => {
     // Check if already admin
     const { data: existingAdmin } = await adminClient
       .from('admin_users')
-      .select('id, level')
+      .select('id, role, status')
       .eq('user_id', targetUser.id)
       .maybeSingle();
 
     if (existingAdmin) {
-      if (existingAdmin.level === targetLevel) {
-        return respond({ ok: false, code: 'ALREADY_EXISTS', message: `${normalizedEmail} já é administrador (${targetLevel})` }, 409);
+      if (existingAdmin.role === targetRole && existingAdmin.status === 'ativo') {
+        return respond({ ok: false, code: 'ALREADY_EXISTS', message: `${normalizedEmail} já é administrador (${targetRole})` }, 409);
       }
-      // Update level
+      // Update role/status
       const { error: updateError } = await adminClient
         .from('admin_users')
-        .update({ level: targetLevel })
+        .update({ role: targetRole, level: targetLevel, name: name || null, status: 'ativo' })
         .eq('id', existingAdmin.id);
 
       if (updateError) {
-        console.error('Error updating admin level:', updateError);
-        return respond({ ok: false, code: 'UPDATE_FAILED', message: 'Erro ao atualizar nível do administrador' }, 500);
+        return respond({ ok: false, code: 'UPDATE_FAILED', message: 'Erro ao atualizar administrador' }, 500);
       }
     } else {
       // Insert new admin
       const { error: insertError } = await adminClient
         .from('admin_users')
-        .insert({ user_id: targetUser.id, level: targetLevel });
+        .insert({
+          user_id: targetUser.id,
+          level: targetLevel,
+          role: targetRole,
+          name: name || null,
+          status: 'ativo',
+          created_by: created_by || callerUser.id,
+        });
 
       if (insertError) {
         console.error('Error inserting admin:', insertError);
@@ -133,25 +133,25 @@ serve(async (req) => {
       }
     }
 
-    // Audit log (matches admin_audit_logs schema: admin_user_id, action, metadata)
+    // Audit log
     await adminClient.from('admin_audit_logs').insert({
       admin_user_id: callerUser.id,
       action: 'admin_add',
       metadata: {
         target_email: normalizedEmail,
         target_user_id: targetUser.id,
-        level: targetLevel,
+        role: targetRole,
         created_new_user: !existingAdmin && createIfMissing,
       },
     });
 
-    console.log(`[admin-add-user] Successfully added ${normalizedEmail} as ${targetLevel}`);
+    console.log(`[admin-add-user] Successfully added ${normalizedEmail} as ${targetRole}`);
 
     return respond({
       ok: true,
       code: 'SUCCESS',
-      message: `${normalizedEmail} adicionado como administrador (${targetLevel})`,
-      data: { user_id: targetUser.id, level: targetLevel },
+      message: `${normalizedEmail} adicionado como ${targetRole}`,
+      data: { user_id: targetUser.id, role: targetRole },
     });
 
   } catch (error) {
