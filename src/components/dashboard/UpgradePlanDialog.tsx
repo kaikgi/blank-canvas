@@ -25,7 +25,7 @@ const featureMessages = {
   },
   appointments: {
     title: 'Limite de agendamentos atingido',
-    description: 'Você atingiu o limite de agendamentos do período de teste. Assine um plano para ter agendamentos ilimitados.',
+    description: 'Você atingiu o limite de agendamentos do seu plano atual. Faça upgrade para ter agendamentos ilimitados.',
   },
   establishments: {
     title: 'Recurso disponível no plano Pro',

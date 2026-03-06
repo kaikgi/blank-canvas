@@ -31,7 +31,6 @@ import { PLANS, formatCentsBRL } from "@/lib/hardcodedPlans";
 
 // --- Constants ---
 const STATUS_OPTIONS = [
-  { value: 'trial', label: 'Trial' },
   { value: 'active', label: 'Ativo' },
   { value: 'past_due', label: 'Past Due' },
   { value: 'canceled', label: 'Cancelado' },
@@ -41,7 +40,6 @@ const PLAN_OPTIONS = [
   { value: 'solo', label: 'Solo' },
   { value: 'studio', label: 'Studio' },
   { value: 'pro', label: 'Pro' },
-  { value: 'trial', label: 'Trial' },
 ];
 const CYCLE_OPTIONS = [
   { value: 'monthly', label: 'Mensal' },
@@ -50,12 +48,9 @@ const CYCLE_OPTIONS = [
 ];
 
 // --- Badge helpers ---
-function StatusBadge({ status, trialEndsAt }: { status: string; trialEndsAt?: string | null }) {
-  const isTrialExpired = status === 'trial' && trialEndsAt && new Date(trialEndsAt) < new Date();
-  if (isTrialExpired) return <Badge className="bg-red-600/15 text-red-700 border-red-600/30"><XCircle className="h-3 w-3 mr-1" /> Trial Expirado</Badge>;
+function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'active': return <Badge className="bg-green-600/15 text-green-700 border-green-600/30"><CheckCircle2 className="h-3 w-3 mr-1" /> Ativo</Badge>;
-    case 'trial': return <Badge className="bg-blue-600/15 text-blue-700 border-blue-600/30"><Clock className="h-3 w-3 mr-1" /> Trial</Badge>;
     case 'past_due': return <Badge className="bg-amber-600/15 text-amber-700 border-amber-600/30"><AlertCircle className="h-3 w-3 mr-1" /> Past Due</Badge>;
     case 'canceled': return <Badge className="bg-red-600/15 text-red-700 border-red-600/30"><XCircle className="h-3 w-3 mr-1" /> Cancelado</Badge>;
     case 'suspended': return <Badge className="bg-orange-600/15 text-orange-700 border-orange-600/30"><Ban className="h-3 w-3 mr-1" /> Suspenso</Badge>;
@@ -69,7 +64,6 @@ function PlanBadge({ plan }: { plan: string }) {
     case 'pro': return <Badge className="bg-purple-600/15 text-purple-700 border-purple-600/30 font-semibold">Pro</Badge>;
     case 'studio': return <Badge className="bg-primary/15 text-primary border-primary/30 font-semibold">Studio</Badge>;
     case 'solo': return <Badge className="bg-zinc-600/15 text-zinc-700 border-zinc-600/30 font-semibold">Solo</Badge>;
-    case 'trial': return <Badge className="bg-blue-600/15 text-blue-700 border-blue-600/30 font-semibold">Trial</Badge>;
     default: return <Badge variant="outline">{plan || 'Nenhum'}</Badge>;
   }
 }
@@ -102,7 +96,6 @@ function getCycle(est: AdminEstablishment): string {
 // --- Event type label ---
 function eventTypeLabel(type: string): string {
   const map: Record<string, string> = {
-    trial_created: 'Trial criado',
     payment_confirmed: 'Pagamento confirmado',
     subscription_updated: 'Assinatura atualizada',
     subscription_renewed: 'Renovação',
@@ -118,7 +111,7 @@ function eventTypeColor(type: string): string {
   if (type.includes('cancel')) return 'border-red-400 bg-red-50 dark:bg-red-950/30';
   if (type.includes('fail')) return 'border-amber-400 bg-amber-50 dark:bg-amber-950/30';
   if (type.includes('payment') || type.includes('renew')) return 'border-green-400 bg-green-50 dark:bg-green-950/30';
-  if (type.includes('trial')) return 'border-blue-400 bg-blue-50 dark:bg-blue-950/30';
+  return 'border-muted bg-muted/30';
   return 'border-muted bg-muted/30';
 }
 
@@ -208,18 +201,12 @@ export default function AdminEstablishmentDetail() {
     }
   };
 
-  const handleQuickAction = async (action: 'suspend' | 'reactivate' | 'cancel' | 'reset_trial') => {
+  const handleQuickAction = async (action: 'suspend' | 'reactivate' | 'cancel') => {
     if (!est) return;
     try {
-      if (action === 'reset_trial') {
-        const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        await updateEstablishment.mutateAsync({ establishment_id: est.id, status: 'trial', trial_ends_at: trialEnd });
-        toast.success("Trial resetado (7 dias)");
-      } else {
-        const statusMap = { suspend: 'past_due', reactivate: 'active', cancel: 'canceled' } as const;
-        await updateEstablishment.mutateAsync({ establishment_id: est.id, status: statusMap[action] });
-        toast.success(`Estabelecimento ${action === 'suspend' ? 'suspenso' : action === 'reactivate' ? 'reativado' : 'cancelado'}`);
-      }
+      const statusMap = { suspend: 'past_due', reactivate: 'active', cancel: 'canceled' } as const;
+      await updateEstablishment.mutateAsync({ establishment_id: est.id, status: statusMap[action] });
+      toast.success(`Estabelecimento ${action === 'suspend' ? 'suspenso' : action === 'reactivate' ? 'reativado' : 'cancelado'}`);
     } catch (err: any) {
       toast.error(err?.message || "Erro na ação");
     }
@@ -280,7 +267,7 @@ export default function AdminEstablishmentDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
             {est.name}
-            <StatusBadge status={est.status} trialEndsAt={est.trial_ends_at} />
+            <StatusBadge status={est.status} />
           </h1>
           <p className="text-sm text-muted-foreground">/{est.slug} · {est.owner_email}</p>
         </div>
@@ -356,10 +343,7 @@ export default function AdminEstablishmentDetail() {
               <Separator className="my-2" />
               <InfoRow label="Plano" value={<PlanBadge plan={getPlanCode(est)} />} />
               <InfoRow label="Ciclo" value={<CycleBadge cycle={getCycle(est)} />} />
-              <InfoRow label="Status" value={<StatusBadge status={est.status} trialEndsAt={est.trial_ends_at} />} />
-              {est.trial_ends_at && (
-                <InfoRow label="Validade Trial" value={format(new Date(est.trial_ends_at), "dd/MM/yyyy HH:mm", { locale: ptBR })} />
-              )}
+              <InfoRow label="Status" value={<StatusBadge status={est.status} />} />
               {est.subscription?.current_period_end && (
                 <InfoRow label="Validade Assinatura" value={format(new Date(est.subscription.current_period_end), "dd/MM/yyyy", { locale: ptBR })} />
               )}
@@ -535,7 +519,6 @@ export default function AdminEstablishmentDetail() {
                       <div className={`absolute left-2.5 top-2 h-3 w-3 rounded-full border-2 ${
                         ev.event_type.includes('cancel') || ev.event_type.includes('fail') ? 'border-red-500 bg-red-100' :
                         ev.event_type.includes('payment') || ev.event_type.includes('renew') ? 'border-green-500 bg-green-100' :
-                        ev.event_type.includes('trial') ? 'border-blue-500 bg-blue-100' :
                         'border-muted-foreground bg-muted'
                       }`} />
 
@@ -581,9 +564,11 @@ export default function AdminEstablishmentDetail() {
             <Card>
               <CardHeader><CardTitle className="text-lg">Ações Rápidas</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => handleQuickAction('reset_trial')} disabled={updateEstablishment.isPending}>
-                  <RefreshCw className="h-4 w-4 mr-2" /> Resetar Trial (7 dias)
-                </Button>
+                {est.status !== 'active' && (
+                  <Button variant="outline" className="w-full justify-start text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => handleQuickAction('reactivate')} disabled={updateEstablishment.isPending}>
+                    <Play className="h-4 w-4 mr-2" /> Reativar Conta
+                  </Button>
+                )}
                 {est.status === 'active' && (
                   <Button variant="outline" className="w-full justify-start text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => handleQuickAction('suspend')} disabled={updateEstablishment.isPending}>
                     <Ban className="h-4 w-4 mr-2" /> Suspender Conta

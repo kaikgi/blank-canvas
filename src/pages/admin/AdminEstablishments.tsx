@@ -31,7 +31,6 @@ import { useQueryClient } from "@tanstack/react-query";
 
 // --- Constants ---
 const STATUS_OPTIONS = [
-  { value: 'trial', label: 'Trial' },
   { value: 'active', label: 'Ativo' },
   { value: 'past_due', label: 'Past Due' },
   { value: 'canceled', label: 'Cancelado' },
@@ -41,7 +40,6 @@ const PLAN_OPTIONS = [
   { value: 'solo', label: 'Solo' },
   { value: 'studio', label: 'Studio' },
   { value: 'pro', label: 'Pro' },
-  { value: 'trial', label: 'Trial' },
 ];
 const CYCLE_OPTIONS = [
   { value: 'monthly', label: 'Mensal' },
@@ -53,14 +51,9 @@ const PAGE_SIZE = 20;
 type SortKey = 'name' | 'status' | 'plano' | 'professionals_count' | 'services_count' | 'customers_count' | 'appointments_count' | 'created_at';
 
 // --- Badge Components ---
-function StatusBadge({ status, trialEndsAt }: { status: string; trialEndsAt?: string | null }) {
-  const isTrialExpired = status === 'trial' && trialEndsAt && new Date(trialEndsAt) < new Date();
-  if (isTrialExpired) {
-    return <Badge variant="destructive" className="gap-1 text-[11px] font-medium"><XCircle className="h-3 w-3" /> Expirado</Badge>;
-  }
+function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { className: string; icon: React.ReactNode; label: string }> = {
     active: { className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400", icon: <CheckCircle2 className="h-3 w-3" />, label: "Ativo" },
-    trial: { className: "bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400", icon: <Clock className="h-3 w-3" />, label: "Trial" },
     past_due: { className: "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400", icon: <AlertCircle className="h-3 w-3" />, label: "Past Due" },
     canceled: { className: "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400", icon: <XCircle className="h-3 w-3" />, label: "Cancelado" },
     suspended: { className: "bg-orange-500/10 text-orange-700 border-orange-500/20 dark:text-orange-400", icon: <Ban className="h-3 w-3" />, label: "Suspenso" },
@@ -76,7 +69,6 @@ function PlanBadge({ plan }: { plan: string }) {
     pro: "bg-violet-500/10 text-violet-700 border-violet-500/20 dark:text-violet-400 font-semibold",
     studio: "bg-primary/10 text-primary border-primary/20 font-semibold",
     solo: "bg-zinc-500/10 text-zinc-600 border-zinc-500/20 dark:text-zinc-400 font-semibold",
-    trial: "bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400 font-semibold",
   };
   return <Badge variant="outline" className={`text-[11px] ${map[n] || ''}`}>{plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Nenhum'}</Badge>;
 }
@@ -243,8 +235,6 @@ export default function AdminEstablishments() {
     const monthStart = startOfMonth(now);
     const total = establishments.length;
     const active = establishments.filter(e => e.status === 'active').length;
-    const trial = establishments.filter(e => e.status === 'trial' && (!e.trial_ends_at || new Date(e.trial_ends_at) >= now)).length;
-    const trialExpired = establishments.filter(e => e.status === 'trial' && e.trial_ends_at && new Date(e.trial_ends_at) < now).length;
     const canceled = establishments.filter(e => e.status === 'canceled').length;
     const pastDue = establishments.filter(e => e.status === 'past_due').length;
     const newThisMonth = establishments.filter(e => isAfter(new Date(e.created_at), monthStart)).length;
@@ -271,7 +261,7 @@ export default function AdminEstablishments() {
     const paginatedData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
     return {
-      metrics: { total, active, trial, trialExpired, canceled, pastDue, newThisMonth },
+      metrics: { total, active, canceled, pastDue, newThisMonth },
       paginatedData, totalFiltered, totalPages,
     };
   }, [data, statusFilter, planFilter, cycleFilter, sortKey, sortDir, page]);
@@ -282,10 +272,8 @@ export default function AdminEstablishments() {
     for (const est of data.establishments) {
       const plan = getPlanCode(est);
       if (est.status === 'active' && !est.subscription) issues.push({ est, issue: 'Ativo sem assinatura' });
-      if (est.subscription && est.plano && est.subscription.plan_code !== est.plano && est.plano !== 'trial' && est.plano !== 'nenhum')
+      if (est.subscription && est.plano && est.subscription.plan_code !== est.plano && est.plano !== 'nenhum')
         issues.push({ est, issue: `Plano divergente: est=${est.plano} vs sub=${est.subscription.plan_code}` });
-      if (est.status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) < new Date())
-        issues.push({ est, issue: 'Trial expirado (não migrado)' });
       if (plan === 'solo' && est.professionals_count > 1) issues.push({ est, issue: `Solo com ${est.professionals_count} profissionais` });
       if (plan === 'studio' && est.professionals_count > 4) issues.push({ est, issue: `Studio com ${est.professionals_count} profissionais` });
     }
@@ -316,7 +304,6 @@ export default function AdminEstablishments() {
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <MetricCard title="Total" value={String(metrics.total)} icon={Building2} color="text-foreground" loading={isLoading} />
         <MetricCard title="Ativos" value={String(metrics.active)} icon={CheckCircle2} color="text-emerald-600" loading={isLoading} />
-        <MetricCard title="Trial" value={String(metrics.trial)} icon={Clock} color="text-sky-600" loading={isLoading} subtitle={metrics.trialExpired > 0 ? `${metrics.trialExpired} expirado(s)` : undefined} />
         <MetricCard title="Past Due" value={String(metrics.pastDue)} icon={AlertCircle} color="text-amber-600" loading={isLoading} />
         <MetricCard title="Cancelados" value={String(metrics.canceled)} icon={XCircle} color="text-red-600" loading={isLoading} />
         <MetricCard title="Novos (mês)" value={String(metrics.newThisMonth)} icon={TrendingUp} color="text-emerald-600" loading={isLoading} />
@@ -429,7 +416,7 @@ export default function AdminEstablishments() {
                       </TableCell>
                       <TableCell><PlanBadge plan={getPlanCode(est)} /></TableCell>
                       <TableCell><CycleBadge cycle={getCycle(est)} /></TableCell>
-                      <TableCell><StatusBadge status={est.status} trialEndsAt={est.trial_ends_at} /></TableCell>
+                      <TableCell><StatusBadge status={est.status} /></TableCell>
                       <TableCell className="tabular-nums text-center text-sm">{est.professionals_count}</TableCell>
                       <TableCell className="tabular-nums text-center text-sm">{est.services_count}</TableCell>
                       <TableCell className="tabular-nums text-center text-sm">{est.customers_count}</TableCell>
