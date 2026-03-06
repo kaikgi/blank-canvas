@@ -421,7 +421,7 @@ export default function AdminEstablishments() {
                       </TableCell>
                       <TableCell><PlanBadge plan={getPlanCode(est)} /></TableCell>
                       <TableCell><CycleBadge cycle={getCycle(est)} /></TableCell>
-                      <TableCell><StatusBadge status={est.status} trialEndsAt={est.trial_ends_at} /></TableCell>
+                      <TableCell><StatusBadge status={est.status} /></TableCell>
                       <TableCell className="tabular-nums text-center text-sm">{est.professionals_count}</TableCell>
                       <TableCell className="tabular-nums text-center text-sm">{est.services_count}</TableCell>
                       <TableCell className="tabular-nums text-center text-sm">{est.customers_count}</TableCell>
