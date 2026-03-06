@@ -328,6 +328,7 @@ export default function Servicos() {
                     const val = e.target.value.replace(/[^0-9.,]/g, '');
                     setForm({ ...form, price: val });
                   }}
+                  onFocus={(e) => e.target.select()}
                   placeholder="0,00"
                 />
               </div>
