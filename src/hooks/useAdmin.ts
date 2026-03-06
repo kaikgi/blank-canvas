@@ -77,7 +77,7 @@ export interface AdminEstablishment {
   booking_enabled: boolean;
   owner_user_id: string;
   owner_email: string;
-  subscription: { plan_code: string; status: string } | null;
+  subscription: { plan_code: string; status: string; billing_cycle?: string; current_period_end?: string; provider?: string } | null;
   professionals_count: number;
 }
 
@@ -106,6 +106,7 @@ export function useUpdateEstablishment() {
       status?: string;
       plano?: string;
       trial_ends_at?: string;
+      billing_cycle?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke('admin-data', {
         body: { action: 'update_establishment', ...params },
