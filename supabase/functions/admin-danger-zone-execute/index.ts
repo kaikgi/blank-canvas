@@ -134,8 +134,8 @@ serve(async (req) => {
       return respond({ ok: false, code: 'ESTABLISHMENTS_NOT_FOUND', message: 'Estabelecimentos não encontrados' });
     }
 
-    const keptIds = keptEstablishments.map(e => e.id);
-    const ownerIds = keptEstablishments.map(e => e.owner_user_id);
+    const keptIds = keptEstablishments.map((e: any) => e.id);
+    const ownerIds = keptEstablishments.map((e: any) => e.owner_user_id);
 
     // Build allowlist: owners + all admins
     const { data: adminUsers } = await adminClient.from('admin_users').select('user_id');
