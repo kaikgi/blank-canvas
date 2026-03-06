@@ -195,7 +195,7 @@ serve(async (req) => {
       .from('professionals')
       .select('id')
       .not('establishment_id', 'in', `(${keptIds.join(',')})`);
-    const profIds = (profsToDelete || []).map(p => p.id);
+    const profIds = (profsToDelete || []).map((p: any) => p.id);
 
     if (profIds.length > 0) {
       for (let i = 0; i < profIds.length; i += 100) {
