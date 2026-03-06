@@ -205,8 +205,8 @@ export default function Profissionais() {
     try {
       await update({ id, active: !currentActive });
       toast({ title: currentActive ? 'Profissional desativado' : 'Profissional ativado' });
-    } catch (error) {
-      toast({ title: 'Erro ao alterar status', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao alterar status', description: err?.message, variant: 'destructive' });
     }
   };
 
@@ -217,8 +217,17 @@ export default function Profissionais() {
       toast({ title: 'Profissional removido' });
       setDeleteDialogOpen(false);
       setDeletingId(null);
-    } catch (error) {
-      toast({ title: 'Erro ao remover', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Erro ao remover profissional', description: err?.message, variant: 'destructive' });
+    }
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingId(null);
+      setForm({ name: '', capacity: '1', photo_url: null });
+      delete (window as any).__pendingProfessionalPhotoBlob;
     }
   };
 
