@@ -294,7 +294,7 @@ export default function Servicos() {
               {editingId ? 'Editar Serviço' : 'Novo Serviço'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4" onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !isCreating && !isUpdating) handleSubmit(); }}>
             <div className="space-y-2">
               <Label htmlFor="name">Nome</Label>
               <Input
@@ -302,6 +302,7 @@ export default function Servicos() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Nome do serviço"
+                autoFocus
               />
             </div>
             <div className="space-y-2">
@@ -319,11 +320,13 @@ export default function Servicos() {
                 <Label htmlFor="duration">Duração (minutos)</Label>
                 <Input
                   id="duration"
-                  type="number"
-                  min="5"
-                  step="5"
+                  type="text"
+                  inputMode="numeric"
                   value={form.duration_minutes}
-                  onChange={(e) => setForm({ ...form, duration_minutes: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setForm({ ...form, duration_minutes: val });
+                  }}
                   onFocus={(e) => e.target.select()}
                   placeholder="30"
                 />

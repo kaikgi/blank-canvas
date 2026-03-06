@@ -430,7 +430,7 @@ export default function Profissionais() {
               {editingId ? 'Editar Profissional' : 'Novo Profissional'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4" onKeyDown={(e) => { if (e.key === 'Enter' && !isCreating && !isUpdating) handleSubmit(); }}>
             {/* Photo upload */}
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
@@ -478,17 +478,20 @@ export default function Profissionais() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Nome do profissional"
+                autoFocus
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="capacity">Capacidade simultânea</Label>
               <Input
                 id="capacity"
-                type="number"
-                min="1"
-                max="99"
+                type="text"
+                inputMode="numeric"
                 value={form.capacity}
-                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setForm({ ...form, capacity: val });
+                }}
                 onFocus={(e) => e.target.select()}
                 placeholder="1"
               />
