@@ -51,6 +51,7 @@ export default function ClientSignup() {
           data: {
             full_name: data.full_name,
             phone: data.phone,
+            account_type: 'customer',
           },
         },
       });
@@ -63,20 +64,10 @@ export default function ClientSignup() {
         throw new Error('Erro ao criar usuário');
       }
 
-      // 2. Create profile with account_type = 'customer'
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: authData.user.id,
-        full_name: data.full_name,
-        phone: data.phone,
-        account_type: 'customer',
-      });
+      // Profile is auto-created by database trigger (handle_new_user)
+      // No manual profile insert needed
 
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw - the auth user was created, profile can be retried on login
-      }
-
-      // 3. Handle session state
+      // Handle session state
       if (authData.session) {
         // Auto-confirmed: redirect immediately
         toast({
