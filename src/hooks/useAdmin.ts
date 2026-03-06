@@ -95,7 +95,7 @@ export function useAdminEstablishments(search?: string) {
   });
 }
 
-// ─── Update Establishment (plan, status, trial) ───
+// ─── Update Establishment (plan, status) ───
 export function useUpdateEstablishment() {
   const queryClient = useQueryClient();
 
