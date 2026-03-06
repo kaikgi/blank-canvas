@@ -65,7 +65,7 @@ export const PLANS: HardcodedPlan[] = [
     code: 'pro',
     name: 'Pro',
     description: 'Para barbearias e clínicas que querem crescer.',
-    prices: { monthly: 14900, quarterly: 40200, yearly: 134100 },
+    prices: { monthly: 14900, quarterly: 40230, yearly: 134100 },
     maxProfessionals: null,
     features: [
       'Profissionais ilimitados',
