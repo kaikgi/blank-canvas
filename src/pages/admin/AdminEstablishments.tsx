@@ -30,7 +30,6 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 // --- Constants ---
-
 const STATUS_OPTIONS = [
   { value: 'trial', label: 'Trial' },
   { value: 'active', label: 'Ativo' },
@@ -38,14 +37,12 @@ const STATUS_OPTIONS = [
   { value: 'canceled', label: 'Cancelado' },
   { value: 'suspended', label: 'Suspenso' },
 ];
-
 const PLAN_OPTIONS = [
   { value: 'solo', label: 'Solo' },
   { value: 'studio', label: 'Studio' },
   { value: 'pro', label: 'Pro' },
   { value: 'trial', label: 'Trial' },
 ];
-
 const CYCLE_OPTIONS = [
   { value: 'monthly', label: 'Mensal' },
   { value: 'quarterly', label: 'Trimestral' },
@@ -56,99 +53,73 @@ const PAGE_SIZE = 20;
 type SortKey = 'name' | 'status' | 'plano' | 'professionals_count' | 'services_count' | 'customers_count' | 'appointments_count' | 'created_at';
 
 // --- Badge Components ---
-
 function StatusBadge({ status, trialEndsAt }: { status: string; trialEndsAt?: string | null }) {
   const isTrialExpired = status === 'trial' && trialEndsAt && new Date(trialEndsAt) < new Date();
   if (isTrialExpired) {
-    return (
-      <Badge className="bg-red-600/15 text-red-700 border-red-600/30">
-        <XCircle className="h-3 w-3 mr-1" /> Trial Expirado
-      </Badge>
-    );
+    return <Badge variant="destructive" className="gap-1 text-[11px] font-medium"><XCircle className="h-3 w-3" /> Expirado</Badge>;
   }
-  switch (status) {
-    case 'active': return (
-      <Badge className="bg-green-600/15 text-green-700 border-green-600/30">
-        <CheckCircle2 className="h-3 w-3 mr-1" /> Ativo
-      </Badge>
-    );
-    case 'trial': return (
-      <Badge className="bg-blue-600/15 text-blue-700 border-blue-600/30">
-        <Clock className="h-3 w-3 mr-1" /> Trial
-      </Badge>
-    );
-    case 'past_due': return (
-      <Badge className="bg-amber-600/15 text-amber-700 border-amber-600/30">
-        <AlertCircle className="h-3 w-3 mr-1" /> Past Due
-      </Badge>
-    );
-    case 'canceled': return (
-      <Badge className="bg-red-600/15 text-red-700 border-red-600/30">
-        <XCircle className="h-3 w-3 mr-1" /> Cancelado
-      </Badge>
-    );
-    case 'suspended': return (
-      <Badge className="bg-orange-600/15 text-orange-700 border-orange-600/30">
-        <Ban className="h-3 w-3 mr-1" /> Suspenso
-      </Badge>
-    );
-    default: return <Badge variant="outline">{status}</Badge>;
-  }
+  const map: Record<string, { className: string; icon: React.ReactNode; label: string }> = {
+    active: { className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400", icon: <CheckCircle2 className="h-3 w-3" />, label: "Ativo" },
+    trial: { className: "bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400", icon: <Clock className="h-3 w-3" />, label: "Trial" },
+    past_due: { className: "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400", icon: <AlertCircle className="h-3 w-3" />, label: "Past Due" },
+    canceled: { className: "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400", icon: <XCircle className="h-3 w-3" />, label: "Cancelado" },
+    suspended: { className: "bg-orange-500/10 text-orange-700 border-orange-500/20 dark:text-orange-400", icon: <Ban className="h-3 w-3" />, label: "Suspenso" },
+  };
+  const s = map[status];
+  if (!s) return <Badge variant="outline" className="text-[11px]">{status}</Badge>;
+  return <Badge variant="outline" className={`gap-1 text-[11px] font-medium ${s.className}`}>{s.icon} {s.label}</Badge>;
 }
 
 function PlanBadge({ plan }: { plan: string }) {
   const n = (plan || '').toLowerCase();
-  switch (n) {
-    case 'pro': return <Badge className="bg-purple-600/15 text-purple-700 border-purple-600/30 font-semibold">Pro</Badge>;
-    case 'studio': return <Badge className="bg-primary/15 text-primary border-primary/30 font-semibold">Studio</Badge>;
-    case 'solo': return <Badge className="bg-zinc-600/15 text-zinc-700 border-zinc-600/30 font-semibold">Solo</Badge>;
-    case 'trial': return <Badge className="bg-blue-600/15 text-blue-700 border-blue-600/30 font-semibold">Trial</Badge>;
-    default: return <Badge variant="outline">{plan || 'Nenhum'}</Badge>;
-  }
+  const map: Record<string, string> = {
+    pro: "bg-violet-500/10 text-violet-700 border-violet-500/20 dark:text-violet-400 font-semibold",
+    studio: "bg-primary/10 text-primary border-primary/20 font-semibold",
+    solo: "bg-zinc-500/10 text-zinc-600 border-zinc-500/20 dark:text-zinc-400 font-semibold",
+    trial: "bg-sky-500/10 text-sky-700 border-sky-500/20 dark:text-sky-400 font-semibold",
+  };
+  return <Badge variant="outline" className={`text-[11px] ${map[n] || ''}`}>{plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Nenhum'}</Badge>;
 }
 
 function CycleBadge({ cycle }: { cycle: string | undefined }) {
-  switch ((cycle || '').toLowerCase()) {
-    case 'yearly': return <Badge variant="outline" className="text-xs font-normal">Anual</Badge>;
-    case 'quarterly': return <Badge variant="outline" className="text-xs font-normal">Trimestral</Badge>;
-    case 'monthly': return <Badge variant="outline" className="text-xs font-normal">Mensal</Badge>;
-    default: return <span className="text-xs text-muted-foreground">—</span>;
-  }
+  const labels: Record<string, string> = { yearly: 'Anual', quarterly: 'Trimestral', monthly: 'Mensal' };
+  const c = (cycle || '').toLowerCase();
+  return c && labels[c]
+    ? <Badge variant="secondary" className="text-[10px] font-normal">{labels[c]}</Badge>
+    : <span className="text-xs text-muted-foreground">—</span>;
 }
 
 function getPlanCode(est: AdminEstablishment): string {
   return est.subscription?.plan_code || est.plano || 'nenhum';
 }
-
 function getCycle(est: AdminEstablishment): string {
   return est.subscription?.billing_cycle || '';
 }
 
 // --- Metric Card ---
-
 function MetricCard({ title, value, icon: Icon, color, loading, subtitle }: {
   title: string; value: string; icon: React.ComponentType<{ className?: string }>; color: string; loading: boolean; subtitle?: string;
 }) {
   return (
-    <Card>
-      <CardContent className="pt-5 pb-4">
-        <div className="flex items-center justify-between">
-          <div>
+    <Card className="overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
             {loading ? (
-              <>
-                <Skeleton className="h-8 w-16 mb-1" />
-                <Skeleton className="h-3 w-20" />
-              </>
+              <div className="space-y-2">
+                <Skeleton className="h-7 w-14" />
+                <Skeleton className="h-3.5 w-20" />
+              </div>
             ) : (
               <>
-                <p className={`text-2xl font-bold tabular-nums ${color}`}>{value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{title}</p>
-                {subtitle && <p className="text-[10px] text-muted-foreground/70">{subtitle}</p>}
+                <p className={`text-2xl font-bold tabular-nums leading-none ${color}`}>{value}</p>
+                <p className="text-[11px] text-muted-foreground mt-1.5 font-medium">{title}</p>
+                {subtitle && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{subtitle}</p>}
               </>
             )}
           </div>
-          <div className="p-2 rounded-lg bg-muted/50">
-            <Icon className={`h-5 w-5 ${color || 'text-muted-foreground'}`} />
+          <div className="shrink-0 p-2 rounded-lg bg-muted/60">
+            <Icon className={`h-4 w-4 ${color || 'text-muted-foreground'}`} />
           </div>
         </div>
       </CardContent>
@@ -157,34 +128,50 @@ function MetricCard({ title, value, icon: Icon, color, loading, subtitle }: {
 }
 
 // --- Sortable Header ---
-
 function SortableHeader({ label, sortKey, currentSort, currentDir, onSort }: {
   label: string; sortKey: SortKey; currentSort: SortKey; currentDir: 'asc' | 'desc'; onSort: (key: SortKey) => void;
 }) {
   const isActive = currentSort === sortKey;
   return (
-    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => onSort(sortKey)}>
+    <TableHead
+      className="cursor-pointer select-none hover:text-foreground transition-colors whitespace-nowrap"
+      onClick={() => onSort(sortKey)}
+    >
       <div className="flex items-center gap-1">
-        {label}
-        <ArrowUpDown className={`h-3 w-3 ${isActive ? 'text-foreground' : 'text-muted-foreground/40'}`} />
+        <span className={isActive ? 'text-foreground font-semibold' : ''}>{label}</span>
+        <ArrowUpDown className={`h-3 w-3 shrink-0 ${isActive ? 'text-foreground' : 'text-muted-foreground/30'}`} />
       </div>
     </TableHead>
   );
 }
 
-// --- Info Row ---
-
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+// --- Table Skeleton ---
+function TableSkeleton() {
   return (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="text-sm font-medium">{value}</div>
-    </div>
+    <Card>
+      <div className="p-1">
+        <div className="space-y-0">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-0">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-5 w-14 rounded-full" />
+              <Skeleton className="h-5 w-12 rounded-full" />
+              <Skeleton className="h-5 w-14 rounded-full" />
+              <Skeleton className="h-4 w-8 ml-auto" />
+              <Skeleton className="h-4 w-8" />
+              <Skeleton className="h-4 w-8" />
+              <Skeleton className="h-4 w-8" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-8 w-24 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
   );
 }
 
 // === MAIN COMPONENT ===
-
 export default function AdminEstablishments() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -192,13 +179,10 @@ export default function AdminEstablishments() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [planFilter, setPlanFilter] = useState("all");
   const [cycleFilter, setCycleFilter] = useState("all");
-
-  // Sorting & Pagination
   const [sortKey, setSortKey] = useState<SortKey>('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(0);
 
-  // Delete modal
   const [deleteEst, setDeleteEst] = useState<AdminEstablishment | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteAuthUser, setDeleteAuthUser] = useState(false);
@@ -222,12 +206,10 @@ export default function AdminEstablishments() {
     setPage(0);
   }, [sortKey]);
 
-  // --- Navigate to detail page ---
   const handleOpenManage = (est: AdminEstablishment) => {
     navigate(`/admin/estabelecimentos/${est.id}`);
   };
 
-  // --- Delete ---
   const handleOpenDelete = (est: AdminEstablishment) => {
     setDeleteEst(est);
     setDeleteConfirmText("");
@@ -255,11 +237,8 @@ export default function AdminEstablishments() {
     }
   };
 
-  // --- Filter, Sort, Paginate ---
   const { metrics, paginatedData, totalFiltered, totalPages } = useMemo(() => {
     const establishments = data?.establishments || [];
-
-    // Metrics
     const now = new Date();
     const monthStart = startOfMonth(now);
     const total = establishments.length;
@@ -270,27 +249,16 @@ export default function AdminEstablishments() {
     const pastDue = establishments.filter(e => e.status === 'past_due').length;
     const newThisMonth = establishments.filter(e => isAfter(new Date(e.created_at), monthStart)).length;
 
-    // Filter
     let filtered = establishments.filter((est) => {
       if (statusFilter !== 'all' && est.status !== statusFilter) return false;
-      const plan = getPlanCode(est);
-      if (planFilter !== 'all' && plan !== planFilter) return false;
-      const cycle = getCycle(est);
-      if (cycleFilter !== 'all' && cycle !== cycleFilter) return false;
+      if (planFilter !== 'all' && getPlanCode(est) !== planFilter) return false;
+      if (cycleFilter !== 'all' && getCycle(est) !== cycleFilter) return false;
       return true;
     });
 
-    // Sort
     filtered.sort((a, b) => {
-      let aVal: any;
-      let bVal: any;
-      if (sortKey === 'plano') {
-        aVal = getPlanCode(a).toLowerCase();
-        bVal = getPlanCode(b).toLowerCase();
-      } else {
-        aVal = (a as any)[sortKey] ?? '';
-        bVal = (b as any)[sortKey] ?? '';
-      }
+      let aVal: any = sortKey === 'plano' ? getPlanCode(a) : (a as any)[sortKey] ?? '';
+      let bVal: any = sortKey === 'plano' ? getPlanCode(b) : (b as any)[sortKey] ?? '';
       if (typeof aVal === 'string') aVal = aVal.toLowerCase();
       if (typeof bVal === 'string') bVal = bVal.toLowerCase();
       if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
@@ -304,38 +272,22 @@ export default function AdminEstablishments() {
 
     return {
       metrics: { total, active, trial, trialExpired, canceled, pastDue, newThisMonth },
-      paginatedData,
-      totalFiltered,
-      totalPages,
+      paginatedData, totalFiltered, totalPages,
     };
   }, [data, statusFilter, planFilter, cycleFilter, sortKey, sortDir, page]);
 
-  // --- Diagnostics ---
   const diagnostics = useMemo(() => {
     if (!data?.establishments) return [];
     const issues: { est: AdminEstablishment; issue: string }[] = [];
     for (const est of data.establishments) {
       const plan = getPlanCode(est);
-      // Active but no subscription
-      if (est.status === 'active' && !est.subscription) {
-        issues.push({ est, issue: 'Ativo sem assinatura' });
-      }
-      // Plan mismatch between establishment and subscription
-      if (est.subscription && est.plano && est.subscription.plan_code !== est.plano && est.plano !== 'trial' && est.plano !== 'nenhum') {
+      if (est.status === 'active' && !est.subscription) issues.push({ est, issue: 'Ativo sem assinatura' });
+      if (est.subscription && est.plano && est.subscription.plan_code !== est.plano && est.plano !== 'trial' && est.plano !== 'nenhum')
         issues.push({ est, issue: `Plano divergente: est=${est.plano} vs sub=${est.subscription.plan_code}` });
-      }
-      // Trial expired but still showing as trial
-      if (est.status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) < new Date()) {
+      if (est.status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) < new Date())
         issues.push({ est, issue: 'Trial expirado (não migrado)' });
-      }
-      // Solo plan with more than 1 professional
-      if (plan === 'solo' && est.professionals_count > 1) {
-        issues.push({ est, issue: `Solo com ${est.professionals_count} profissionais` });
-      }
-      // Studio plan with more than 4 professionals
-      if (plan === 'studio' && est.professionals_count > 4) {
-        issues.push({ est, issue: `Studio com ${est.professionals_count} profissionais` });
-      }
+      if (plan === 'solo' && est.professionals_count > 1) issues.push({ est, issue: `Solo com ${est.professionals_count} profissionais` });
+      if (plan === 'studio' && est.professionals_count > 4) issues.push({ est, issue: `Studio com ${est.professionals_count} profissionais` });
     }
     return issues;
   }, [data]);
@@ -344,26 +296,27 @@ export default function AdminEstablishments() {
 
   if (error) {
     return (
-      <div className="text-center py-12 space-y-2">
-        <AlertTriangle className="h-8 w-8 text-destructive mx-auto" />
-        <p className="text-destructive font-medium">Erro ao carregar estabelecimentos</p>
-        <p className="text-sm text-muted-foreground">{(error as Error)?.message}</p>
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="p-3 rounded-full bg-destructive/10"><AlertTriangle className="h-6 w-6 text-destructive" /></div>
+        <p className="text-destructive font-semibold">Erro ao carregar estabelecimentos</p>
+        <p className="text-sm text-muted-foreground max-w-md text-center">{(error as Error)?.message}</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Estabelecimentos</h1>
-        <p className="text-muted-foreground text-sm">Centro de controle de todos os estabelecimentos</p>
+        <p className="text-sm text-muted-foreground">Centro de controle de todos os estabelecimentos do sistema</p>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+      {/* Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <MetricCard title="Total" value={String(metrics.total)} icon={Building2} color="text-foreground" loading={isLoading} />
-        <MetricCard title="Ativos" value={String(metrics.active)} icon={CheckCircle2} color="text-green-600" loading={isLoading} />
-        <MetricCard title="Trial" value={String(metrics.trial)} icon={Clock} color="text-blue-600" loading={isLoading} subtitle={metrics.trialExpired > 0 ? `${metrics.trialExpired} expirado(s)` : undefined} />
+        <MetricCard title="Ativos" value={String(metrics.active)} icon={CheckCircle2} color="text-emerald-600" loading={isLoading} />
+        <MetricCard title="Trial" value={String(metrics.trial)} icon={Clock} color="text-sky-600" loading={isLoading} subtitle={metrics.trialExpired > 0 ? `${metrics.trialExpired} expirado(s)` : undefined} />
         <MetricCard title="Past Due" value={String(metrics.pastDue)} icon={AlertCircle} color="text-amber-600" loading={isLoading} />
         <MetricCard title="Cancelados" value={String(metrics.canceled)} icon={XCircle} color="text-red-600" loading={isLoading} />
         <MetricCard title="Novos (mês)" value={String(metrics.newThisMonth)} icon={TrendingUp} color="text-emerald-600" loading={isLoading} />
@@ -372,23 +325,27 @@ export default function AdminEstablishments() {
         )}
       </div>
 
-      {/* Diagnostics Alert */}
+      {/* Diagnostics */}
       {diagnostics.length > 0 && (
-        <Card className="border-orange-300 bg-orange-50/50 dark:bg-orange-950/20">
-          <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <ShieldAlert className="h-4 w-4 text-orange-600" />
-              <span className="text-sm font-semibold text-orange-700">Diagnóstico: {diagnostics.length} inconsistência(s)</span>
+        <Card className="border-orange-400/30 bg-orange-50/30 dark:bg-orange-950/10">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2.5">
+              <ShieldAlert className="h-4 w-4 text-orange-600 shrink-0" />
+              <span className="text-sm font-semibold text-orange-700 dark:text-orange-400">
+                {diagnostics.length} inconsistência{diagnostics.length !== 1 ? 's' : ''} detectada{diagnostics.length !== 1 ? 's' : ''}
+              </span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {diagnostics.slice(0, 5).map((d, i) => (
-                <div key={i} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{d.est.name} ({d.est.slug})</span>
-                  <span className="text-orange-600 font-medium">{d.issue}</span>
+                <div key={i} className="flex items-center justify-between text-xs gap-2">
+                  <button onClick={() => handleOpenManage(d.est)} className="text-muted-foreground hover:text-foreground hover:underline transition-colors truncate text-left">
+                    {d.est.name} <span className="text-muted-foreground/60">({d.est.slug})</span>
+                  </button>
+                  <span className="text-orange-600 dark:text-orange-400 font-medium shrink-0">{d.issue}</span>
                 </div>
               ))}
               {diagnostics.length > 5 && (
-                <p className="text-xs text-muted-foreground">...e mais {diagnostics.length - 5}</p>
+                <p className="text-[11px] text-muted-foreground">...e mais {diagnostics.length - 5}</p>
               )}
             </div>
           </CardContent>
@@ -396,89 +353,96 @@ export default function AdminEstablishments() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div className="relative max-w-md flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nome, slug ou e-mail..." value={search} onChange={(e) => handleSearchChange(e.target.value)} className="pl-10" />
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[120px] h-9 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos status</SelectItem>
-              {STATUS_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={planFilter} onValueChange={(v) => { setPlanFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[110px] h-9 text-xs"><SelectValue placeholder="Plano" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos planos</SelectItem>
-              {PLAN_OPTIONS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={cycleFilter} onValueChange={(v) => { setCycleFilter(v); setPage(0); }}>
-            <SelectTrigger className="w-[120px] h-9 text-xs"><SelectValue placeholder="Ciclo" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos ciclos</SelectItem>
-              {CYCLE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <span className="text-sm text-muted-foreground tabular-nums whitespace-nowrap">
-          {totalFiltered} resultado{totalFiltered !== 1 ? 's' : ''}
-        </span>
-      </div>
+      <Card className="border-dashed">
+        <CardContent className="p-3">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3">
+            <div className="relative flex-1 w-full max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar nome, slug ou e-mail..."
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
+                <SelectTrigger className="w-[115px] h-8 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos status</SelectItem>
+                  {STATUS_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={planFilter} onValueChange={(v) => { setPlanFilter(v); setPage(0); }}>
+                <SelectTrigger className="w-[105px] h-8 text-xs"><SelectValue placeholder="Plano" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos planos</SelectItem>
+                  {PLAN_OPTIONS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={cycleFilter} onValueChange={(v) => { setCycleFilter(v); setPage(0); }}>
+                <SelectTrigger className="w-[115px] h-8 text-xs"><SelectValue placeholder="Ciclo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos ciclos</SelectItem>
+                  {CYCLE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap ml-auto">
+              {totalFiltered} resultado{totalFiltered !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Table */}
       {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
-        </div>
+        <TableSkeleton />
       ) : paginatedData.length > 0 ? (
         <>
           <Card>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="hover:bg-transparent">
                     <SortableHeader label="Estabelecimento" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                     <SortableHeader label="Plano" sortKey="plano" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <TableHead>Ciclo</TableHead>
+                    <TableHead className="whitespace-nowrap">Ciclo</TableHead>
                     <SortableHeader label="Status" sortKey="status" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <SortableHeader label="Profissionais" sortKey="professionals_count" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <SortableHeader label="Serviços" sortKey="services_count" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Prof." sortKey="professionals_count" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Serv." sortKey="services_count" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                     <SortableHeader label="Clientes" sortKey="customers_count" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <SortableHeader label="Agendamentos" sortKey="appointments_count" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <SortableHeader label="Criado em" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                    <TableHead className="text-right">Ações</TableHead>
+                    <SortableHeader label="Agend." sortKey="appointments_count" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <SortableHeader label="Criado" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                    <TableHead className="text-right whitespace-nowrap">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedData.map((est) => (
-                    <TableRow key={est.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-sm">{est.name}</p>
-                          <p className="text-[11px] text-muted-foreground">/{est.slug} · {est.owner_email}</p>
+                    <TableRow key={est.id} className="group">
+                      <TableCell className="max-w-[220px]">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{est.name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">/{est.slug} · {est.owner_email}</p>
                         </div>
                       </TableCell>
                       <TableCell><PlanBadge plan={getPlanCode(est)} /></TableCell>
                       <TableCell><CycleBadge cycle={getCycle(est)} /></TableCell>
                       <TableCell><StatusBadge status={est.status} trialEndsAt={est.trial_ends_at} /></TableCell>
-                      <TableCell className="tabular-nums text-center">{est.professionals_count}</TableCell>
-                      <TableCell className="tabular-nums text-center">{est.services_count}</TableCell>
-                      <TableCell className="tabular-nums text-center">{est.customers_count}</TableCell>
-                      <TableCell className="tabular-nums text-center">{est.appointments_count}</TableCell>
-                      <TableCell className="text-xs tabular-nums text-muted-foreground">
+                      <TableCell className="tabular-nums text-center text-sm">{est.professionals_count}</TableCell>
+                      <TableCell className="tabular-nums text-center text-sm">{est.services_count}</TableCell>
+                      <TableCell className="tabular-nums text-center text-sm">{est.customers_count}</TableCell>
+                      <TableCell className="tabular-nums text-center text-sm">{est.appointments_count}</TableCell>
+                      <TableCell className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">
                         {format(new Date(est.created_at), "dd/MM/yy", { locale: ptBR })}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="outline" size="sm" onClick={() => handleOpenManage(est)} className="gap-1.5">
+                          <Button variant="outline" size="sm" onClick={() => handleOpenManage(est)} className="gap-1.5 h-8 text-xs">
                             <Settings2 className="h-3.5 w-3.5" /> Gerenciar
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleOpenDelete(est)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                          <Button variant="ghost" size="sm" onClick={() => handleOpenDelete(est)} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -492,13 +456,29 @@ export default function AdminEstablishments() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">Página {page + 1} de {totalPages}</p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+            <div className="flex items-center justify-between px-1">
+              <p className="text-xs text-muted-foreground tabular-nums">
+                Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalFiltered)} de {totalFiltered}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+                {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+                  const pageIdx = totalPages <= 5 ? i : Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
+                  return (
+                    <Button
+                      key={pageIdx}
+                      variant={pageIdx === page ? "default" : "outline"}
+                      size="sm"
+                      className="h-8 w-8 p-0 text-xs"
+                      onClick={() => setPage(pageIdx)}
+                    >
+                      {pageIdx + 1}
+                    </Button>
+                  );
+                })}
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -507,9 +487,11 @@ export default function AdminEstablishments() {
         </>
       ) : (
         <Card>
-          <CardContent className="py-12 text-center">
-            <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
+          <CardContent className="py-16 text-center">
+            <div className="p-3 rounded-full bg-muted/60 w-fit mx-auto mb-4">
+              <Building2 className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground">
               {search || statusFilter !== 'all' || planFilter !== 'all' || cycleFilter !== 'all'
                 ? 'Nenhum estabelecimento encontrado com esses filtros'
                 : 'Nenhum estabelecimento cadastrado'}
@@ -518,20 +500,17 @@ export default function AdminEstablishments() {
         </Card>
       )}
 
-
       {/* Hard Delete Modal */}
       <AlertDialog open={!!deleteEst} onOpenChange={() => !deleting && setDeleteEst(null)}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-              <Trash2 className="h-5 w-5" /> Excluir Conta Permanentemente
+              <Trash2 className="h-5 w-5" /> Excluir Permanentemente
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Você está prestes a excluir <strong>{deleteEst?.name}</strong> (/{deleteEst?.slug}).
-              Esta ação é <strong>irreversível</strong>.
+              Excluir <strong>{deleteEst?.name}</strong> (/{deleteEst?.slug}). Esta ação é <strong>irreversível</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <div className="space-y-4 py-2">
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -548,12 +527,11 @@ export default function AdminEstablishments() {
               <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="EXCLUIR" className="font-mono border-destructive/30 focus-visible:ring-destructive/30" autoComplete="off" />
             </div>
           </div>
-
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setDeleteEst(null)} disabled={deleting}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={!canDelete || deleting}>
               {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {deleting ? "Excluindo..." : "🔥 Excluir Permanentemente"}
+              {deleting ? "Excluindo..." : "Excluir Permanentemente"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
