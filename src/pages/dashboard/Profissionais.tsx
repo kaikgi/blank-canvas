@@ -473,13 +473,12 @@ export default function Profissionais() {
               <Label htmlFor="capacity">Capacidade simultânea</Label>
               <Input
                 id="capacity"
-                type="text"
-                inputMode="numeric"
+                type="number"
+                min="1"
+                max="99"
                 value={form.capacity}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  setForm({ ...form, capacity: val });
-                }}
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                onFocus={(e) => e.target.select()}
                 placeholder="1"
               />
               <p className="text-xs text-muted-foreground">
