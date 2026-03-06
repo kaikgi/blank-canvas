@@ -5,28 +5,26 @@ export interface HardcodedPlan {
   prices: {
     monthly: number;
     quarterly: number;
-    annual: number;
+    yearly: number;
   };
   checkoutUrls: {
     monthly: string;
     quarterly: string;
-    annual: string;
+    yearly: string;
   };
   maxProfessionals: number | null;
   features: string[];
   popular: boolean;
-  /** @deprecated Use checkoutUrls[period] instead */
-  checkoutUrl: string;
 }
 
-export type BillingPeriod = 'monthly' | 'quarterly' | 'annual';
+export type BillingPeriod = 'monthly' | 'quarterly' | 'yearly';
 
 export const PLANS: HardcodedPlan[] = [
   {
-    code: 'basico',
+    code: 'solo',
     name: 'Solo',
     description: 'Ideal para profissionais autônomos',
-    prices: { monthly: 3900, quarterly: 10500, annual: 35100 },
+    prices: { monthly: 3900, quarterly: 10530, yearly: 35100 },
     maxProfessionals: 1,
     features: [
       '1 profissional',
@@ -36,18 +34,17 @@ export const PLANS: HardcodedPlan[] = [
       'Suporte padrão',
     ],
     popular: false,
-    checkoutUrl: 'https://pay.kiwify.com.br/3Zeym7r',
     checkoutUrls: {
       monthly: 'https://pay.kiwify.com.br/3Zeym7r',
       quarterly: 'https://pay.kiwify.com.br/73RMrpB',
-      annual: 'https://pay.kiwify.com.br/ImV5cuf',
+      yearly: 'https://pay.kiwify.com.br/ImV5cuf',
     },
   },
   {
-    code: 'essencial',
+    code: 'studio',
     name: 'Studio',
     description: 'Para pequenos estabelecimentos',
-    prices: { monthly: 7900, quarterly: 21300, annual: 71100 },
+    prices: { monthly: 7900, quarterly: 21330, yearly: 71100 },
     maxProfessionals: 4,
     features: [
       'Até 4 profissionais',
@@ -58,18 +55,17 @@ export const PLANS: HardcodedPlan[] = [
       'Relatórios de desempenho',
     ],
     popular: true,
-    checkoutUrl: 'https://pay.kiwify.com.br/uc7CCUY',
     checkoutUrls: {
       monthly: 'https://pay.kiwify.com.br/uc7CCUY',
       quarterly: 'https://pay.kiwify.com.br/dQip57V',
-      annual: 'https://pay.kiwify.com.br/g4qeKkm',
+      yearly: 'https://pay.kiwify.com.br/g4qeKkm',
     },
   },
   {
-    code: 'studio',
+    code: 'pro',
     name: 'Pro',
     description: 'Para estúdios e clínicas',
-    prices: { monthly: 14900, quarterly: 40200, annual: 134100 },
+    prices: { monthly: 14900, quarterly: 40200, yearly: 134100 },
     maxProfessionals: null,
     features: [
       'Profissionais ilimitados',
@@ -81,11 +77,10 @@ export const PLANS: HardcodedPlan[] = [
       'Suporte prioritário',
     ],
     popular: false,
-    checkoutUrl: 'https://pay.kiwify.com.br/i9OOO1',
     checkoutUrls: {
       monthly: 'https://pay.kiwify.com.br/i9OOO1',
       quarterly: 'https://pay.kiwify.com.br/oQ2rGRC',
-      annual: 'https://pay.kiwify.com.br/kIinvfN',
+      yearly: 'https://pay.kiwify.com.br/kIinvfN',
     },
   },
 ];

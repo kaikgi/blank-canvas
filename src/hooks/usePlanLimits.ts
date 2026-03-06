@@ -34,15 +34,15 @@ export function usePlanLimits(establishmentId: string | undefined) {
       const plano = (est.plano || '').toLowerCase();
 
       const isTrial = status === 'trial' && est.trial_ends_at && new Date(est.trial_ends_at) > new Date();
-      const isVip = status === 'active' && plano === 'studio';
+      const isPro = status === 'active' && plano === 'pro';
 
       // 2. Determine plan code — priority:
-      // Trial → trial limits (3 pros), VIP → studio, then subscription, then establishment plano, then basico
-      let planCode = 'basico';
+      // Trial → trial limits (3 pros), Pro → unlimited, then subscription, then establishment plano, then solo
+      let planCode = 'solo';
       if (isTrial) {
         planCode = 'trial';
-      } else if (isVip) {
-        planCode = 'studio';
+      } else if (isPro) {
+        planCode = 'pro';
       } else {
         const { data: sub } = await supabase
           .from('subscriptions')
@@ -53,7 +53,7 @@ export function usePlanLimits(establishmentId: string | undefined) {
           .limit(1);
 
         if (sub && sub.length > 0) {
-          planCode = (sub[0].plan_code || 'basico').toLowerCase();
+          planCode = (sub[0].plan_code || 'solo').toLowerCase();
         } else if (plano && plano !== 'nenhum') {
           planCode = plano;
         }
