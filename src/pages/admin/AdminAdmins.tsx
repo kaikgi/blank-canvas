@@ -118,11 +118,9 @@ export default function AdminAdmins() {
     queryKey: ["admin-users-view"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("v_admin_users")
-        .select("*")
-        .order("level", { ascending: false });
-      console.log("[AdminAdmins] v_admin_users data:", data);
-      console.log("[AdminAdmins] v_admin_users error:", error);
+        .rpc("get_admin_users" as any);
+      console.log("[AdminAdmins] get_admin_users data:", data);
+      console.log("[AdminAdmins] get_admin_users error:", error);
       if (error) throw error;
       return (data || []) as VAdminUser[];
     },
