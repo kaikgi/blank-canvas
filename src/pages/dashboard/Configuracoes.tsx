@@ -91,10 +91,10 @@ export default function Configuracoes() {
         instagram: (establishment as any).instagram || '',
         booking_enabled: establishment.booking_enabled,
         auto_confirm_bookings: establishment.auto_confirm_bookings,
-        reschedule_min_hours: establishment.reschedule_min_hours,
-        max_future_days: establishment.max_future_days,
-        slot_interval_minutes: establishment.slot_interval_minutes,
-        reminder_hours_before: (establishment as any).reminder_hours_before ?? 3,
+        reschedule_min_hours: String(establishment.reschedule_min_hours ?? 2),
+        max_future_days: String(establishment.max_future_days ?? 30),
+        slot_interval_minutes: String(establishment.slot_interval_minutes ?? 15),
+        reminder_hours_before: String((establishment as any).reminder_hours_before ?? 3),
       });
     }
   }, [establishment]);
