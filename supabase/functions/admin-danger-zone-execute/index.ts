@@ -110,7 +110,7 @@ serve(async (req) => {
 
     // Acquire lock
     const { error: lockError } = await adminClient
-      .from('admin_locks')
+      .from('admin_locks' as any)
       .insert({ key: 'danger_zone', locked_by: callerUser.id, locked_at: new Date().toISOString() });
 
     if (lockError) {
