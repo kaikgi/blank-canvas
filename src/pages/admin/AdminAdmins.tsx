@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminPermissions } from "@/hooks/useAdminPermissions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,19 +106,7 @@ const STATUSES = [
 ] as const;
 
 // ─── Hooks ───
-function useMyAdminLevel() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["my-admin-level", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase.rpc("admin_get_my_level" as any);
-      if (error) throw error;
-      return (data as string) ?? "none";
-    },
-    enabled: !!user,
-  });
-}
+// useMyAdminLevel removed - using useAdminPermissions instead
 
 function useAdminUsers() {
   return useQuery({
@@ -146,9 +135,8 @@ export default function AdminAdmins() {
 
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { data: myLevel, isLoading: myLevelLoading, error: myLevelError } = useMyAdminLevel();
+  const { isSuperAdmin, hasPermission, role: myLevel, isLoading: myLevelLoading, error: myLevelError } = useAdminPermissions();
   const { data: admins, isLoading, error, refetch } = useAdminUsers();
-  const isSuperAdmin = myLevel === "super_admin";
 
   // ─── Mutations ───
   const addAdmin = useMutation({

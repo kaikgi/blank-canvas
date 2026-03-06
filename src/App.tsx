@@ -59,6 +59,7 @@ import AdminWhatsAppAnalytics from "./pages/admin/AdminWhatsAppAnalytics";
 import AdminAllowedEmails from "./pages/admin/AdminAllowedEmails";
 import AdminWebhooks from "./pages/admin/AdminWebhooks";
 import AdminSettingsSaaS from "./pages/admin/AdminSettingsSaaS";
+import { AdminPermissionGuard } from "./components/AdminPermissionGuard";
 import ResponsiveTestPage from "./pages/dev/ResponsiveTest";
 
 const queryClient = new QueryClient();
@@ -143,17 +144,17 @@ const App = () => (
               <Route path="/admin" element={<AdminProtectedRoute />}>
                 <Route element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
-                  <Route path="estabelecimentos" element={<AdminEstablishments />} />
-                  <Route path="estabelecimentos/:id" element={<AdminEstablishmentDetail />} />
-                  <Route path="configuracoes" element={<AdminSettingsSaaS />} />
+                  <Route path="estabelecimentos" element={<AdminPermissionGuard permission="view_establishments"><AdminEstablishments /></AdminPermissionGuard>} />
+                  <Route path="estabelecimentos/:id" element={<AdminPermissionGuard permission="view_establishments"><AdminEstablishmentDetail /></AdminPermissionGuard>} />
+                  <Route path="configuracoes" element={<AdminPermissionGuard permission="manage_establishments"><AdminSettingsSaaS /></AdminPermissionGuard>} />
                   <Route path="mensagens" element={<AdminMessages />} />
-                  <Route path="assinaturas" element={<AdminSubscriptions />} />
-                  <Route path="admins" element={<AdminAdmins />} />
-                  <Route path="auditoria" element={<AdminAuditLogs />} />
+                  <Route path="assinaturas" element={<AdminPermissionGuard permission="view_subscriptions"><AdminSubscriptions /></AdminPermissionGuard>} />
+                  <Route path="admins" element={<AdminPermissionGuard permission="view_admins"><AdminAdmins /></AdminPermissionGuard>} />
+                  <Route path="auditoria" element={<AdminPermissionGuard permission="view_audit_logs"><AdminAuditLogs /></AdminPermissionGuard>} />
                   <Route path="whatsapp" element={<AdminWhatsAppAnalytics />} />
-                  <Route path="emails-autorizados" element={<AdminAllowedEmails />} />
-                  <Route path="webhooks" element={<AdminWebhooks />} />
-                  <Route path="danger-zone" element={<AdminDangerZone />} />
+                  <Route path="emails-autorizados" element={<AdminPermissionGuard permission="view_allowed_emails"><AdminAllowedEmails /></AdminPermissionGuard>} />
+                  <Route path="webhooks" element={<AdminPermissionGuard permission="view_webhooks"><AdminWebhooks /></AdminPermissionGuard>} />
+                  <Route path="danger-zone" element={<AdminPermissionGuard permission="view_danger_zone"><AdminDangerZone /></AdminPermissionGuard>} />
                 </Route>
               </Route>
               

@@ -12,29 +12,48 @@ import {
   Shield,
   Webhook,
   CreditCard,
+  ScrollText,
+  Mail,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminPermissions, type AdminPermission } from "@/hooks/useAdminPermissions";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
-const adminNavItems = [
-  { to: "/admin", label: "Visão Geral", icon: LayoutDashboard, end: true },
-  { to: "/admin/estabelecimentos", label: "Estabelecimentos", icon: Building2, end: false },
-  { to: "/admin/assinaturas", label: "Assinaturas", icon: CreditCard, end: false },
-  { to: "/admin/admins", label: "Administradores", icon: Users, end: false },
-  { to: "/admin/webhooks", label: "Webhooks", icon: Webhook, end: false },
-  { to: "/admin/danger-zone", label: "Danger Zone", icon: Skull, end: false, danger: true },
+const adminNavItems: { to: string; label: string; icon: React.ComponentType<any>; end: boolean; danger?: boolean; permission: AdminPermission }[] = [
+  { to: "/admin", label: "Visão Geral", icon: LayoutDashboard, end: true, permission: "view_dashboard" },
+  { to: "/admin/estabelecimentos", label: "Estabelecimentos", icon: Building2, end: false, permission: "view_establishments" },
+  { to: "/admin/assinaturas", label: "Assinaturas", icon: CreditCard, end: false, permission: "view_subscriptions" },
+  { to: "/admin/admins", label: "Administradores", icon: Users, end: false, permission: "view_admins" },
+  { to: "/admin/emails-autorizados", label: "Emails Autorizados", icon: Mail, end: false, permission: "view_allowed_emails" },
+  { to: "/admin/webhooks", label: "Webhooks", icon: Webhook, end: false, permission: "view_webhooks" },
+  { to: "/admin/auditoria", label: "Auditoria", icon: ScrollText, end: false, permission: "view_audit_logs" },
+  { to: "/admin/danger-zone", label: "Danger Zone", icon: Skull, end: false, danger: true, permission: "view_danger_zone" },
 ];
+
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Super Admin",
+  admin: "Admin",
+  support: "Suporte",
+  finance: "Financeiro",
+  developer: "Dev",
+};
 
 export default function AdminLayout() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { role, hasPermission } = useAdminPermissions();
+
+  const visibleItems = adminNavItems.filter(item => hasPermission(item.permission));
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
+
+  const roleLabel = ROLE_LABELS[role || ""] || "Admin";
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -42,7 +61,7 @@ export default function AdminLayout() {
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-amber-500" />
-          <span className="text-sm font-bold text-white tracking-wide">Super Admin</span>
+          <span className="text-sm font-bold text-white tracking-wide">{roleLabel}</span>
         </div>
         <Button variant="ghost" size="icon" className="text-zinc-300 hover:text-white hover:bg-zinc-800" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
@@ -63,7 +82,7 @@ export default function AdminLayout() {
             <Shield className="h-5 w-5 text-amber-500" />
           </div>
           <div>
-            <span className="text-sm font-bold text-white tracking-wide block">Super Admin</span>
+            <span className="text-sm font-bold text-white tracking-wide block">{roleLabel}</span>
             <span className="text-[10px] text-zinc-500 font-mono">Agendali Control</span>
           </div>
         </div>
@@ -71,7 +90,7 @@ export default function AdminLayout() {
         {/* Navigation */}
         <nav className="flex-1 p-3 pt-16 lg:pt-3 space-y-1 overflow-y-auto">
           <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest px-3 pt-2 pb-1">Menu</p>
-          {adminNavItems.map((item) => (
+          {visibleItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
