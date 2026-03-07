@@ -407,6 +407,7 @@ export default function ClientProfile() {
                   placeholder="Mínimo 8 caracteres"
                   {...registerPw('password')}
                 />
+                {newPassword && <PasswordStrength password={newPassword} />}
                 {pwErrors.password && (
                   <p className="text-xs text-destructive">
                     {pwErrors.password.message}
