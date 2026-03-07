@@ -1,8 +1,28 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useSubscription, getBillingCycleLabel } from '@/hooks/useSubscription';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useUserEstablishment } from '@/hooks/useUserEstablishment';
@@ -22,17 +42,27 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
-  Clock,
   CalendarDays,
   Repeat,
+  Settings,
+  ArrowUpRight,
+  XCircle,
+  Shield,
+  Zap,
+  Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const KIWIFY_MANAGE_URL = 'https://dashboard.kiwify.com.br';
 
 export default function Assinatura() {
   const { user } = useAuth();
   const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
   const { data: establishment, isLoading: establishmentLoading } = useUserEstablishment();
   const { data: limits, isLoading: limitsLoading } = usePlanLimits(establishment?.id);
+
+  const [changePlanOpen, setChangePlanOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const isLoading = subscriptionLoading || establishmentLoading || limitsLoading;
 
@@ -45,16 +75,11 @@ export default function Assinatura() {
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
-            <Skeleton className="h-48 rounded-xl" />
-            <div className="grid grid-cols-3 gap-4">
-              <Skeleton className="h-20 rounded-lg" />
-              <Skeleton className="h-20 rounded-lg" />
-              <Skeleton className="h-20 rounded-lg" />
-            </div>
+            <Skeleton className="h-56 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
           </div>
-          <Skeleton className="h-72 rounded-xl" />
+          <Skeleton className="h-80 rounded-xl" />
         </div>
-        <Skeleton className="h-80 rounded-xl" />
       </div>
     );
   }
@@ -65,7 +90,6 @@ export default function Assinatura() {
 
   const hasActiveSubscription = subscription?.status === 'active';
 
-  // Determine display plan code
   let displayPlanCode: string;
   if (hasActiveSubscription) {
     displayPlanCode = (subscription?.plan_code || subscription?.plan || 'solo').toLowerCase();
@@ -78,17 +102,13 @@ export default function Assinatura() {
   const currentPlan = PLANS.find(p => p.code === displayPlanCode) || PLANS[0];
   const entitlements = getPlanEntitlements(estStatus, displayPlanCode);
 
-  // Billing cycle from subscription
   const billingCycle = (subscription?.billing_cycle || 'monthly').toLowerCase() as BillingPeriod;
   const billingCycleLabel = getBillingCycleLabel(billingCycle);
 
-  // Period end
   const periodEnd = subscription?.current_period_end
     ? format(new Date(subscription.current_period_end), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
     : null;
 
-
-  // Usage
   const profLimit = entitlements.professionalLimit;
   const profCurrent = limits?.currentProfessionals ?? 0;
   const isNearProfessionalsLimit = profLimit !== Infinity && profLimit > 0
@@ -96,13 +116,28 @@ export default function Assinatura() {
     : false;
 
   const isMaxPlan = displayPlanCode === 'pro';
+  const currentPrice = currentPlan.prices[billingCycle] || currentPlan.prices.monthly;
+
+  // Plan tier index for upgrade/downgrade labeling
+  const planIndex = PLANS.findIndex(p => p.code === displayPlanCode);
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Assinatura</h1>
-        <p className="text-muted-foreground">Gerencie seu plano e acompanhe seu uso</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Assinatura</h1>
+          <p className="text-muted-foreground">Gerencie seu plano, ciclo e pagamento</p>
+        </div>
+        {hasActiveSubscription && (
+          <Button variant="outline" size="sm" asChild>
+            <a href={KIWIFY_MANAGE_URL} target="_blank" rel="noopener noreferrer">
+              <Settings className="mr-2 h-4 w-4" />
+              Gerenciar na Kiwify
+              <ExternalLink className="ml-2 h-3 w-3" />
+            </a>
+          </Button>
+        )}
       </div>
 
       {/* Upgrade Alert */}
@@ -110,7 +145,7 @@ export default function Assinatura() {
         <Alert variant="default" className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
-            Você está próximo do limite de profissionais. Considere fazer upgrade para continuar crescendo.
+            Você está usando <strong>{profCurrent}/{formatLimit(profLimit)}</strong> profissionais. Considere fazer upgrade para continuar crescendo.
           </AlertDescription>
         </Alert>
       )}
@@ -118,81 +153,98 @@ export default function Assinatura() {
       {/* Main Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Current Plan Card */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 overflow-hidden">
+          <div className={cn(
+            "h-1.5 w-full",
+            displayPlanCode === 'pro' ? 'bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500' :
+            displayPlanCode === 'studio' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+            'bg-gradient-to-r from-primary to-primary/70'
+          )} />
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <CardTitle className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-primary" />
-                Seu Plano
+                Plano Atual
               </CardTitle>
               {hasActiveSubscription ? (
-                <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-700">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Ativo
                 </Badge>
               ) : (
-                <Badge variant="secondary">Sem assinatura</Badge>
+                <Badge variant="secondary">Sem assinatura ativa</Badge>
               )}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Plan Info Row */}
+            {/* Plan Hero */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Crown className="h-7 w-7 text-primary" />
+                <div className={cn(
+                  "h-14 w-14 rounded-2xl flex items-center justify-center shrink-0",
+                  displayPlanCode === 'pro' ? 'bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20' :
+                  displayPlanCode === 'studio' ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/20' :
+                  'bg-primary/10'
+                )}>
+                  <Crown className={cn(
+                    "h-7 w-7",
+                    displayPlanCode === 'pro' ? 'text-violet-600 dark:text-violet-400' :
+                    displayPlanCode === 'studio' ? 'text-blue-600 dark:text-blue-400' :
+                    'text-primary'
+                  )} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge className="text-base px-3 py-1">
-                      {currentPlan.name}
-                    </Badge>
+                    <span className="text-xl font-bold">{currentPlan.name}</span>
                     {hasActiveSubscription && (
                       <Badge variant="outline" className="text-xs">
                         {billingCycleLabel}
                       </Badge>
                     )}
                   </div>
-                  {hasActiveSubscription ? (
-                    <p className="text-sm text-muted-foreground mt-1.5">
-                      Assinatura ativa • {billingCycleLabel}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground mt-1.5">
-                      Nenhuma assinatura ativa
-                    </p>
-                  )}
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {currentPlan.description}
+                  </p>
                 </div>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-3xl font-bold tabular-nums">
-                  R$ {formatCentsBRL(currentPlan.prices.monthly)}
+                  R$ {formatCentsBRL(currentPrice)}
                 </div>
-                <div className="text-sm text-muted-foreground">/mês</div>
+                <div className="text-sm text-muted-foreground">
+                  /{billingCycle === 'yearly' ? 'ano' : billingCycle === 'quarterly' ? 'trimestre' : 'mês'}
+                </div>
               </div>
             </div>
 
             {/* Subscription Details */}
             {hasActiveSubscription && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                   <Repeat className="h-4 w-4 text-primary shrink-0" />
                   <div>
-                    <div className="text-xs text-muted-foreground">Ciclo de cobrança</div>
+                    <div className="text-xs text-muted-foreground">Ciclo</div>
                     <div className="font-medium text-sm">{billingCycleLabel}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                   <CalendarDays className="h-4 w-4 text-primary shrink-0" />
                   <div>
-                    <div className="text-xs text-muted-foreground">Válido até</div>
+                    <div className="text-xs text-muted-foreground">Próxima renovação</div>
                     <div className="font-medium text-sm">{periodEnd || '—'}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
+                  <CreditCard className="h-4 w-4 text-primary shrink-0" />
+                  <div>
+                    <div className="text-xs text-muted-foreground">Pagamento</div>
+                    <div className="font-medium text-sm">Via Kiwify</div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Plan Features Grid */}
+            {/* Plan Limits */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
                 <Users className="h-5 w-5 text-primary shrink-0" />
@@ -205,32 +257,47 @@ export default function Assinatura() {
                 <Calendar className="h-5 w-5 text-primary shrink-0" />
                 <div>
                   <div className="text-xs text-muted-foreground">Agendamentos</div>
-                  <div className="font-semibold text-sm">
-                    {entitlements.appointmentLimit === Infinity ? 'Ilimitados' : entitlements.appointmentLimit}
-                  </div>
+                  <div className="font-semibold text-sm">Ilimitados</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-card border rounded-lg">
-                <Crown className="h-5 w-5 text-primary shrink-0" />
+                <Shield className="h-5 w-5 text-primary shrink-0" />
                 <div>
-                  <div className="text-xs text-muted-foreground">Plano</div>
-                  <div className="font-semibold text-sm">{currentPlan.name}</div>
+                  <div className="text-xs text-muted-foreground">Página pública</div>
+                  <div className="font-semibold text-sm">Incluída</div>
                 </div>
               </div>
             </div>
 
-            {/* Manage Payment */}
-            {hasActiveSubscription && (
-              <div className="flex justify-end pt-2">
-                <Button variant="outline" size="sm" asChild>
-                  <a href="https://dashboard.kiwify.com.br" target="_blank" rel="noopener noreferrer">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Gerenciar Pagamento
-                    <ExternalLink className="ml-2 h-3 w-3" />
-                  </a>
+            {/* Action Buttons */}
+            <Separator />
+            <div className="flex flex-col sm:flex-row gap-3">
+              {!isMaxPlan && (
+                <Button onClick={() => setChangePlanOpen(true)} className="gap-2">
+                  <ArrowUpRight className="h-4 w-4" />
+                  Alterar plano
                 </Button>
-              </div>
-            )}
+              )}
+              {hasActiveSubscription && (
+                <>
+                  <Button variant="outline" asChild>
+                    <a href={KIWIFY_MANAGE_URL} target="_blank" rel="noopener noreferrer">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Gerenciar pagamento
+                      <ExternalLink className="ml-2 h-3 w-3" />
+                    </a>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setCancelDialogOpen(true)}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Cancelar assinatura
+                  </Button>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -274,9 +341,7 @@ export default function Assinatura() {
               <Calendar className="h-4 w-4 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-muted-foreground">Agendamentos</div>
-                <div className="font-semibold text-sm">
-                  {entitlements.appointmentLimit === Infinity ? 'Ilimitados' : `Até ${entitlements.appointmentLimit}/mês`}
-                </div>
+                <div className="font-semibold text-sm">Ilimitados</div>
               </div>
             </div>
 
@@ -288,17 +353,46 @@ export default function Assinatura() {
                   <span>Próximo do limite</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-green-600 text-sm">
+                <div className="flex items-center gap-2 text-emerald-600 text-sm">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
                   <span>Uso dentro do limite</span>
                 </div>
               )}
             </div>
+
+            {/* Quick upgrade CTA */}
+            {!isMaxPlan && (
+              <Button
+                variant="outline"
+                className="w-full mt-2"
+                onClick={() => setChangePlanOpen(true)}
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                Fazer upgrade
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Plan Comparison Section */}
+      {/* Max Plan Success */}
+      {isMaxPlan && (
+        <Card className="border-violet-500/30 bg-gradient-to-br from-violet-500/5 via-purple-500/5 to-fuchsia-500/5">
+          <CardContent className="flex items-center gap-4 py-6">
+            <div className="h-12 w-12 rounded-full bg-violet-500/10 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Você está no plano Pro! 🎉</h3>
+              <p className="text-muted-foreground">
+                Aproveite todos os recursos premium do Agendali sem limitações.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Plan Comparison (only for non-max plans) */}
       {!isMaxPlan && (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
@@ -310,7 +404,6 @@ export default function Assinatura() {
               </p>
             </div>
           </div>
-
           <PlanCardsGrid
             currentPlanCode={displayPlanCode}
             defaultPeriod={billingCycle as BillingPeriod}
@@ -319,22 +412,76 @@ export default function Assinatura() {
         </div>
       )}
 
-      {/* Max Plan Success */}
-      {isMaxPlan && (
-        <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardContent className="flex items-center gap-4 py-6">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Você está no plano Pro! 🎉</h3>
-              <p className="text-muted-foreground">
-                Aproveite todos os recursos premium do Agendali sem limitações.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* ── Change Plan Modal ── */}
+      <Dialog open={changePlanOpen} onOpenChange={setChangePlanOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowUpRight className="h-5 w-5" />
+              Alterar Plano
+            </DialogTitle>
+            <DialogDescription>
+              Escolha o plano e ciclo ideais para o seu negócio. Você será redirecionado para o checkout seguro da Kiwify.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2">
+            <PlanCardsGrid
+              currentPlanCode={displayPlanCode}
+              defaultPeriod={billingCycle as BillingPeriod}
+              ctaLabel="Escolher plano"
+              compact
+            />
+          </div>
+
+          <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+            <Info className="h-4 w-4 shrink-0 mt-0.5" />
+            <p>
+              Para alterar o plano de uma assinatura existente, é necessário cancelar a assinatura atual na Kiwify e assinar o novo plano. Seu acesso continuará até o final do período já pago.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Cancel Subscription Dialog ── */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-destructive" />
+              Cancelar assinatura
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Tem certeza que deseja cancelar sua assinatura? Ao cancelar:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Seu acesso continuará até <strong>{periodEnd || 'o final do período pago'}</strong></li>
+                  <li>Após esse período, o estabelecimento ficará inativo</li>
+                  <li>Seus dados serão mantidos, mas você não poderá receber novos agendamentos</li>
+                  <li>Você poderá reativar a qualquer momento assinando novamente</li>
+                </ul>
+                <p className="text-sm">
+                  O cancelamento é feito diretamente pela plataforma da Kiwify, onde sua assinatura é gerenciada.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              asChild
+            >
+              <a href={KIWIFY_MANAGE_URL} target="_blank" rel="noopener noreferrer">
+                Ir para Kiwify para cancelar
+                <ExternalLink className="ml-2 h-3 w-3" />
+              </a>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
