@@ -300,14 +300,17 @@ export default function ClientProfile() {
               </p>
             </div>
 
-            <Button type="submit" disabled={isUpdating || !isDirty} size="sm">
-              {isUpdating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
+            <ActionButton
+              type="submit"
+              disabled={!isDirty}
+              loading={isUpdating}
+              icon={<Save className="h-4 w-4" />}
+              loadingLabel="Salvando..."
+              successLabel="Salvo!"
+              size="sm"
+            >
               Salvar Alterações
-            </Button>
+            </ActionButton>
           </form>
         </CardContent>
       </Card>
