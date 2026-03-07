@@ -129,8 +129,6 @@ export function ProfessionalPortalDialog({
           : msg,
         variant: 'destructive',
       });
-    } finally {
-      setSaving(false);
     }
   };
 
