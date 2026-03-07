@@ -542,9 +542,9 @@ export default function Bloqueios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRecorrenteOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveRecorrente} disabled={isSavingRecorrente}>
-              {isSavingRecorrente ? 'Salvando...' : 'Salvar'}
-            </Button>
+            <ActionButton onClick={handleSaveRecorrente} loadingLabel="Salvando..." successLabel="Salvo!">
+              Salvar
+            </ActionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

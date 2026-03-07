@@ -647,10 +647,15 @@ export default function Configuracoes() {
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full">
-        <Save className="h-4 w-4 mr-2" />
-        {saving ? 'Salvando...' : 'Salvar Configurações'}
-      </Button>
+      <ActionButton
+        onClick={handleSave}
+        icon={<Save className="h-4 w-4" />}
+        loadingLabel="Salvando..."
+        successLabel="Configurações salvas!"
+        className="w-full"
+      >
+        Salvar Configurações
+      </ActionButton>
     </div>
   );
 }
