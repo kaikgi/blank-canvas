@@ -75,7 +75,6 @@ export function useInAppNotifications() {
             created_at: string;
           };
 
-          // Fetch customer and appointment details
           const { data: appointmentData } = await supabase
             .from('appointments')
             .select(`
@@ -106,18 +105,82 @@ export function useInAppNotifications() {
           };
 
           setNotifications(prev => {
-            // Avoid duplicates
-            if (prev.some(n => n.id === newNotification.id)) {
-              return prev;
-            }
-            // Keep last 50 notifications
-            const updated = [newNotification, ...prev].slice(0, 50);
-            return updated;
+            if (prev.some(n => n.id === newNotification.id)) return prev;
+            return [newNotification, ...prev].slice(0, 50);
           });
 
-          // Invalidate ratings queries to refresh dashboard
           queryClient.invalidateQueries({ queryKey: ['establishment-rating'] });
           queryClient.invalidateQueries({ queryKey: ['establishment-ratings'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [establishment?.id, queryClient]);
+
+  // Subscribe to new appointments via Realtime
+  useEffect(() => {
+    if (!establishment?.id) return;
+
+    const channel = supabase
+      .channel('appointments-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'appointments',
+          filter: `establishment_id=eq.${establishment.id}`,
+        },
+        async (payload) => {
+          const appointment = payload.new as {
+            id: string;
+            customer_id: string;
+            service_id: string;
+            professional_id: string;
+            start_at: string;
+            created_at: string;
+          };
+
+          // Fetch details
+          const [customerRes, serviceRes, professionalRes] = await Promise.all([
+            supabase.from('customers').select('name').eq('id', appointment.customer_id).single(),
+            supabase.from('services').select('name').eq('id', appointment.service_id).single(),
+            supabase.from('professionals').select('name').eq('id', appointment.professional_id).single(),
+          ]);
+
+          const customerName = customerRes.data?.name || 'Cliente';
+          const serviceName = serviceRes.data?.name || 'Serviço';
+          const professionalName = professionalRes.data?.name || 'Profissional';
+
+          const startDate = new Date(appointment.start_at);
+          const dateStr = startDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+          const timeStr = startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+          const newNotification: InAppNotification = {
+            id: `appointment-${appointment.id}`,
+            type: 'new_appointment',
+            title: 'Novo Agendamento',
+            message: `${customerName} agendou ${serviceName} com ${professionalName} em ${dateStr} às ${timeStr}`,
+            data: {
+              appointmentId: appointment.id,
+              customerName,
+              serviceName,
+            },
+            read: false,
+            created_at: appointment.created_at,
+          };
+
+          setNotifications(prev => {
+            if (prev.some(n => n.id === newNotification.id)) return prev;
+            return [newNotification, ...prev].slice(0, 50);
+          });
+
+          // Refresh appointment queries
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
         }
       )
       .subscribe();
