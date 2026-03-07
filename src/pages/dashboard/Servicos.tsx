@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Scissors, RefreshCw, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Scissors, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
