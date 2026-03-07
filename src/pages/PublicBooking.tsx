@@ -573,12 +573,11 @@ export default function PublicBooking() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-phone">Telefone *</Label>
-                  <Input
+                  <PhoneInput
                     id="signup-phone"
-                    placeholder="(99) 99999-9999"
+                    placeholder="(11) 99999-9999"
                     value={signupPhone}
-                    onChange={(e) => setSignupPhone(e.target.value)}
-                    required
+                    onChange={(val) => setSignupPhone(val)}
                   />
                 </div>
                 <div className="space-y-2">
