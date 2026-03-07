@@ -9,9 +9,9 @@ interface LogoProps {
 
 export function Logo({ className, size = "md", showText = true }: LogoProps) {
   const heights = {
-    sm: "h-7",
-    md: "h-9",
-    lg: "h-12",
+    sm: "h-9",
+    md: "h-12",
+    lg: "h-16",
   };
 
   const iconSizes = {
