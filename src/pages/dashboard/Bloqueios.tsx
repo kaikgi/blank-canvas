@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -465,9 +466,9 @@ export default function Bloqueios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPontualOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSavePontual} disabled={isSavingPontual}>
-              {isSavingPontual ? 'Salvando...' : 'Salvar'}
-            </Button>
+            <ActionButton onClick={handleSavePontual} loadingLabel="Salvando..." successLabel="Salvo!">
+              Salvar
+            </ActionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -542,9 +543,9 @@ export default function Bloqueios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRecorrenteOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveRecorrente} disabled={isSavingRecorrente}>
-              {isSavingRecorrente ? 'Salvando...' : 'Salvar'}
-            </Button>
+            <ActionButton onClick={handleSaveRecorrente} loadingLabel="Salvando..." successLabel="Salvo!">
+              Salvar
+            </ActionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

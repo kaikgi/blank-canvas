@@ -9,6 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -182,9 +183,9 @@ export function ProfessionalHoursDialog({ open, onOpenChange, professionalId, pr
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={isUpdating}>
-            {isUpdating ? 'Salvando...' : 'Salvar'}
-          </Button>
+          <ActionButton onClick={handleSave} loadingLabel="Salvando..." successLabel="Salvo!">
+            Salvar
+          </ActionButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

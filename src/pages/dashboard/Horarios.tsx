@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Clock, Save, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -121,10 +122,14 @@ export default function Horarios() {
             Configure os horários em que seu estabelecimento está aberto
           </p>
         </div>
-        <Button onClick={handleSave} disabled={isUpdating}>
-          <Save className="h-4 w-4 mr-2" />
-          {isUpdating ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <ActionButton
+          onClick={handleSave}
+          icon={<Save className="h-4 w-4" />}
+          loadingLabel="Salvando..."
+          successLabel="Salvo!"
+        >
+          Salvar
+        </ActionButton>
       </div>
 
       <Card>

@@ -9,6 +9,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -45,7 +46,7 @@ export function ProfessionalPortalDialog({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [saving, setSaving] = useState(false);
+  
 
   // Use the canonical public URL, never window.location.origin
   const portalUrl = getProfessionalPortalUrl(establishmentSlug, slug);
@@ -99,7 +100,7 @@ export function ProfessionalPortalDialog({
       return;
     }
 
-    setSaving(true);
+    
     try {
       // Update slug and portal_enabled
       await onUpdate({
@@ -128,8 +129,6 @@ export function ProfessionalPortalDialog({
           : msg,
         variant: 'destructive',
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -262,9 +261,9 @@ export function ProfessionalPortalDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar'}
-          </Button>
+          <ActionButton onClick={handleSave} loadingLabel="Salvando..." successLabel="Salvo!">
+            Salvar
+          </ActionButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

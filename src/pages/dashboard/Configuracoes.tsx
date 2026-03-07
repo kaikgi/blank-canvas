@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Save, Copy, Check, RefreshCw, AlertCircle, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -45,7 +46,7 @@ export default function Configuracoes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [saving, setSaving] = useState(false);
+  
   const [copied, setCopied] = useState(false);
   
   // Logo upload state
@@ -264,7 +265,7 @@ export default function Configuracoes() {
       return;
     }
 
-    setSaving(true);
+    
     try {
       const { error } = await supabase
         .from('establishments')
@@ -306,8 +307,6 @@ export default function Configuracoes() {
         description: err?.message || 'Tente novamente',
         variant: 'destructive' 
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -647,10 +646,15 @@ export default function Configuracoes() {
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full">
-        <Save className="h-4 w-4 mr-2" />
-        {saving ? 'Salvando...' : 'Salvar Configurações'}
-      </Button>
+      <ActionButton
+        onClick={handleSave}
+        icon={<Save className="h-4 w-4" />}
+        loadingLabel="Salvando..."
+        successLabel="Configurações salvas!"
+        className="w-full"
+      >
+        Salvar Configurações
+      </ActionButton>
     </div>
   );
 }

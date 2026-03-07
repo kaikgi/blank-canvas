@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
-import { Plus, Pencil, Trash2, User, Clock, Scissors, RefreshCw, X, Key, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, User, Clock, Scissors, RefreshCw, X, Key } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -504,10 +505,14 @@ export default function Profissionais() {
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isCreating || isUpdating}>
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={isCreating || isUpdating || !form.name.trim()}>
-              {(isCreating || isUpdating) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isCreating ? 'Criando...' : isUpdating ? 'Salvando...' : editingId ? 'Salvar' : 'Criar'}
-            </Button>
+            <ActionButton
+              onClick={handleSubmit}
+              disabled={!form.name.trim()}
+              loadingLabel={editingId ? 'Salvando...' : 'Criando...'}
+              successLabel={editingId ? 'Salvo!' : 'Criado!'}
+            >
+              {editingId ? 'Salvar' : 'Criar'}
+            </ActionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
