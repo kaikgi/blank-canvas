@@ -40,10 +40,14 @@ const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
     const [state, setState] = React.useState<ActionState>("idle");
     const timeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
 
-    // Sync with external loading prop
+    // Sync with external loading prop — show success when loading transitions false
     React.useEffect(() => {
-      if (externalLoading === true) setState("loading");
-      else if (externalLoading === false && state === "loading") setState("idle");
+      if (externalLoading === true) {
+        setState("loading");
+      } else if (externalLoading === false && state === "loading") {
+        setState("success");
+        timeoutRef.current = setTimeout(() => setState("idle"), successDuration);
+      }
     }, [externalLoading]);
 
     // Cleanup timeout on unmount
