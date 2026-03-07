@@ -265,7 +265,7 @@ export default function Configuracoes() {
       return;
     }
 
-    setSaving(true);
+    
     try {
       const { error } = await supabase
         .from('establishments')
