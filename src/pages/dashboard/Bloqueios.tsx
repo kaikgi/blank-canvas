@@ -465,9 +465,9 @@ export default function Bloqueios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPontualOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSavePontual} disabled={isSavingPontual}>
-              {isSavingPontual ? 'Salvando...' : 'Salvar'}
-            </Button>
+            <ActionButton onClick={handleSavePontual} loadingLabel="Salvando..." successLabel="Salvo!">
+              Salvar
+            </ActionButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
