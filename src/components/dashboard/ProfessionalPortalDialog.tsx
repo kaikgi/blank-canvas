@@ -100,7 +100,7 @@ export function ProfessionalPortalDialog({
       return;
     }
 
-    setSaving(true);
+    
     try {
       // Update slug and portal_enabled
       await onUpdate({
