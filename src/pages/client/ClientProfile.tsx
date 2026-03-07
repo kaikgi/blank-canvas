@@ -426,7 +426,6 @@ export default function ClientProfile() {
                 <ActionButton type="submit" size="sm" loading={savingPassword} loadingLabel="Salvando..." successLabel="Senha alterada!">
                   Salvar nova senha
                 </ActionButton>
-                </Button>
                 <Button
                   type="button"
                   variant="ghost"
