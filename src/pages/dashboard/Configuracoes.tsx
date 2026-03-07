@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { getPublicUrl, PUBLIC_BASE_URL } from '@/lib/publicUrl';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 // Reserved slugs that cannot be used
 const RESERVED_SLUGS = ['app', 'dashboard', 'login', 'entrar', 'criar-conta', 'signup', 'api', 'admin', 'settings', 'configuracoes', 'agenda', 'profissionais', 'servicos', 'clientes', 'horarios', 'bloqueios'];
@@ -498,10 +499,10 @@ export default function Configuracoes() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone / WhatsApp</Label>
-              <Input
+              <PhoneInput
                 id="phone"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(val) => setForm({ ...form, phone: val })}
                 placeholder="(11) 99999-9999"
               />
             </div>

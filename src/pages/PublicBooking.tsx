@@ -12,6 +12,7 @@ import { DateTimeStep } from '@/components/booking/DateTimeStep';
 import { CustomerStep } from '@/components/booking/CustomerStep';
 import { BookingSuccess } from '@/components/booking/BookingSuccess';
 import { Button } from '@/components/ui/button';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { CustomerFormData } from '@/lib/validations/booking';
@@ -572,12 +573,11 @@ export default function PublicBooking() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-phone">Telefone *</Label>
-                  <Input
+                  <PhoneInput
                     id="signup-phone"
-                    placeholder="(99) 99999-9999"
+                    placeholder="(11) 99999-9999"
                     value={signupPhone}
-                    onChange={(e) => setSignupPhone(e.target.value)}
-                    required
+                    onChange={(val) => setSignupPhone(val)}
                   />
                 </div>
                 <div className="space-y-2">
