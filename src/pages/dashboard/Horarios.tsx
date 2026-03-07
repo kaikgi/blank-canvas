@@ -122,10 +122,14 @@ export default function Horarios() {
             Configure os horários em que seu estabelecimento está aberto
           </p>
         </div>
-        <Button onClick={handleSave} disabled={isUpdating}>
-          <Save className="h-4 w-4 mr-2" />
-          {isUpdating ? 'Salvando...' : 'Salvar'}
-        </Button>
+        <ActionButton
+          onClick={handleSave}
+          icon={<Save className="h-4 w-4" />}
+          loadingLabel="Salvando..."
+          successLabel="Salvo!"
+        >
+          Salvar
+        </ActionButton>
       </div>
 
       <Card>
