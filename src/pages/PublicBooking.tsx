@@ -12,6 +12,7 @@ import { DateTimeStep } from '@/components/booking/DateTimeStep';
 import { CustomerStep } from '@/components/booking/CustomerStep';
 import { BookingSuccess } from '@/components/booking/BookingSuccess';
 import { Button } from '@/components/ui/button';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { CustomerFormData } from '@/lib/validations/booking';
