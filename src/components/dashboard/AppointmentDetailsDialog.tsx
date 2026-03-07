@@ -219,15 +219,16 @@ export function AppointmentDetailsDialog({ open, onOpenChange, appointment }: Ap
               maxLength={500}
             />
             {hasChanges && (
-              <Button 
-                size="sm" 
+              <ActionButton
+                size="sm"
                 onClick={handleSaveNotes}
-                disabled={isUpdatingNotes}
+                icon={<Save className="h-4 w-4" />}
+                loadingLabel="Salvando..."
+                successLabel="Salvo!"
                 className="w-full"
               >
-                <Save className="h-4 w-4 mr-2" />
-                {isUpdatingNotes ? 'Salvando...' : 'Salvar notas'}
-              </Button>
+                Salvar notas
+              </ActionButton>
             )}
           </div>
 

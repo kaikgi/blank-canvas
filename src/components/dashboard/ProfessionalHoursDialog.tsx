@@ -183,9 +183,9 @@ export function ProfessionalHoursDialog({ open, onOpenChange, professionalId, pr
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={isUpdating}>
-            {isUpdating ? 'Salvando...' : 'Salvar'}
-          </Button>
+          <ActionButton onClick={handleSave} loadingLabel="Salvando..." successLabel="Salvo!">
+            Salvar
+          </ActionButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

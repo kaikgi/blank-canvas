@@ -263,9 +263,9 @@ export function ProfessionalPortalDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar'}
-          </Button>
+          <ActionButton onClick={handleSave} loadingLabel="Salvando..." successLabel="Salvo!">
+            Salvar
+          </ActionButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
