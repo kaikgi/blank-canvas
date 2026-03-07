@@ -30,13 +30,19 @@ export function useProfessionalServices(professionalId: string | undefined) {
 
       // Insert new links
       if (serviceIds.length > 0) {
-        const { error } = await supabase
+        const rows = serviceIds.map((service_id) => ({
+          professional_id: professionalId,
+          service_id,
+        }));
+        const { data, error } = await supabase
           .from('professional_services')
-          .insert(serviceIds.map((service_id) => ({
-            professional_id: professionalId,
-            service_id,
-          })));
+          .insert(rows)
+          .select();
         if (error) throw error;
+        // If RLS silently blocked the insert, data will be empty
+        if (!data || data.length !== serviceIds.length) {
+          throw new Error('Falha ao salvar vínculos. Verifique suas permissões.');
+        }
       }
     },
     onSuccess: () => {
