@@ -33,17 +33,22 @@ export function useProfessionalHours(professionalId: string | undefined) {
 
   const upsertMutation = useMutation({
     mutationFn: async (hours: { professional_id: string; weekday: number; start_time: string | null; end_time: string | null; closed: boolean }[]) => {
+      if (!professionalId) throw new Error('ID do profissional não informado');
+
       // Delete existing hours for this professional
-      await supabase
+      const { error: deleteError } = await supabase
         .from('professional_hours')
         .delete()
         .eq('professional_id', professionalId);
+      if (deleteError) throw deleteError;
       
       // Insert new hours
-      const { error } = await supabase
-        .from('professional_hours')
-        .insert(hours);
-      if (error) throw error;
+      if (hours.length > 0) {
+        const { error } = await supabase
+          .from('professional_hours')
+          .insert(hours);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professional-hours', professionalId] });
