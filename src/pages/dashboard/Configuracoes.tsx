@@ -46,7 +46,7 @@ export default function Configuracoes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [saving, setSaving] = useState(false);
+  
   const [copied, setCopied] = useState(false);
   
   // Logo upload state
