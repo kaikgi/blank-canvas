@@ -9,9 +9,9 @@ interface LogoProps {
 
 export function Logo({ className, size = "md", showText = true }: LogoProps) {
   const pixelHeights = {
-    sm: 40,
-    md: 56,
-    lg: 72,
+    sm: 52,
+    md: 72,
+    lg: 96,
   };
 
   const iconSizes = {
