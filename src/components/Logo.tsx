@@ -8,13 +8,17 @@ interface LogoProps {
 }
 
 export function Logo({ className, size = "md", showText = true }: LogoProps) {
-  const pixelHeights = {
-    sm: 52,
-    md: 72,
-    lg: 96,
+  // Heights tuned per context:
+  // sm  → sidebar / compact areas (36px)
+  // md  → header / navbar (44px)
+  // lg  → hero / landing prominent (64px)
+  const pixelHeights: Record<string, number> = {
+    sm: 36,
+    md: 44,
+    lg: 64,
   };
 
-  const iconSizes = {
+  const iconSizes: Record<string, string> = {
     sm: "h-8 w-8",
     md: "h-10 w-10",
     lg: "h-14 w-14",
@@ -29,7 +33,8 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
           src={logoPrincipal}
           alt="Agendali"
           className="object-contain"
-          style={{ height: h }}
+          style={{ height: h, width: 'auto' }}
+          draggable={false}
         />
       </div>
     );
@@ -41,6 +46,7 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
         src="/logo-512.png"
         alt="Agendali"
         className={cn("object-contain rounded-lg", iconSizes[size])}
+        draggable={false}
       />
     </div>
   );
