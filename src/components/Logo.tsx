@@ -27,7 +27,7 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
           src={logoPrincipal}
           alt="Agendali"
           className={cn("object-contain", heights[size])}
-          style={{ height: size === "sm" ? 28 : size === "md" ? 36 : 48 }}
+          style={{ height: size === "sm" ? 36 : size === "md" ? 48 : 64 }}
         />
       </div>
     );
