@@ -84,10 +84,13 @@ export default function ClientProfile() {
     register: registerPw,
     handleSubmit: handleSubmitPw,
     reset: resetPw,
+    watch: watchPw,
     formState: { errors: pwErrors },
   } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
+
+  const newPassword = watchPw('password', '');
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
