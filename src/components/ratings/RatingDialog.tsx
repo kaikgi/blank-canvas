@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -148,16 +149,15 @@ export function RatingDialog({
           <Button variant="outline" className="flex-1" onClick={handleClose}>
             Pular
           </Button>
-          <Button
+          <ActionButton
             className="flex-1"
             onClick={handleSubmit}
-            disabled={stars === 0 || submitRating.isPending}
+            disabled={stars === 0}
+            loadingLabel="Enviando..."
+            successLabel="Enviado!"
           >
-            {submitRating.isPending && (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            )}
             Enviar Avaliação
-          </Button>
+          </ActionButton>
         </div>
       </DialogContent>
     </Dialog>

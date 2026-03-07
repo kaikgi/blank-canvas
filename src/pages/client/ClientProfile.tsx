@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -300,14 +301,17 @@ export default function ClientProfile() {
               </p>
             </div>
 
-            <Button type="submit" disabled={isUpdating || !isDirty} size="sm">
-              {isUpdating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
+            <ActionButton
+              type="submit"
+              disabled={!isDirty}
+              loading={isUpdating}
+              icon={<Save className="h-4 w-4" />}
+              loadingLabel="Salvando..."
+              successLabel="Salvo!"
+              size="sm"
+            >
               Salvar Alterações
-            </Button>
+            </ActionButton>
           </form>
         </CardContent>
       </Card>
@@ -419,12 +423,9 @@ export default function ClientProfile() {
                 )}
               </div>
               <div className="flex gap-2">
-                <Button type="submit" size="sm" disabled={savingPassword}>
-                  {savingPassword && (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  )}
+                <ActionButton type="submit" size="sm" loading={savingPassword} loadingLabel="Salvando..." successLabel="Senha alterada!">
                   Salvar nova senha
-                </Button>
+                </ActionButton>
                 <Button
                   type="button"
                   variant="ghost"

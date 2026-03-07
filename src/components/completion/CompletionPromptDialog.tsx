@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { ActionButton } from '@/components/ui/action-button';
 import { useToast } from '@/hooks/use-toast';
 import {
   usePendingCompletionAppointments,
@@ -210,14 +211,14 @@ export function CompletionPromptDialog({
             >
               Ainda não
             </Button>
-            <Button
+            <ActionButton
               className="flex-1"
               onClick={handleCompleted}
-              disabled={isPending}
+              loadingLabel="Finalizando..."
+              successLabel="Finalizado!"
             >
-              {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Sim, finalizado
-            </Button>
+            </ActionButton>
           </div>
         </DialogContent>
       </Dialog>
