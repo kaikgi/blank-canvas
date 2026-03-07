@@ -9,9 +9,9 @@ interface LogoProps {
 
 export function Logo({ className, size = "md", showText = true }: LogoProps) {
   const heights = {
-    sm: "h-7",
-    md: "h-9",
-    lg: "h-12",
+    sm: "h-9",
+    md: "h-12",
+    lg: "h-16",
   };
 
   const iconSizes = {
@@ -27,7 +27,7 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
           src={logoPrincipal}
           alt="Agendali"
           className={cn("object-contain", heights[size])}
-          style={{ height: size === "sm" ? 28 : size === "md" ? 36 : 48 }}
+          style={{ height: size === "sm" ? 36 : size === "md" ? 48 : 64 }}
         />
       </div>
     );
