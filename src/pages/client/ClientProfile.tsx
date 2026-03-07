@@ -19,7 +19,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +28,7 @@ import { useClientAppointments } from '@/hooks/useClientAppointments';
 import { supabase } from '@/integrations/supabase/client';
 import { ImageUploadButton } from '@/components/ImageUploadButton';
 import { PasswordInput } from '@/components/ui/password-input';
+import { PasswordStrength } from '@/components/ui/password-strength';
 import { PhoneInput } from '@/components/ui/phone-input';
 
 const profileSchema = z.object({
@@ -84,10 +84,13 @@ export default function ClientProfile() {
     register: registerPw,
     handleSubmit: handleSubmitPw,
     reset: resetPw,
+    watch: watchPw,
     formState: { errors: pwErrors },
   } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
+
+  const newPassword = watchPw('password', '');
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
@@ -404,6 +407,7 @@ export default function ClientProfile() {
                   placeholder="Mínimo 8 caracteres"
                   {...registerPw('password')}
                 />
+                {newPassword && <PasswordStrength password={newPassword} />}
                 {pwErrors.password && (
                   <p className="text-xs text-destructive">
                     {pwErrors.password.message}
