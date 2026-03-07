@@ -307,8 +307,6 @@ export default function Configuracoes() {
         description: err?.message || 'Tente novamente',
         variant: 'destructive' 
       });
-    } finally {
-      setSaving(false);
     }
   };
 
