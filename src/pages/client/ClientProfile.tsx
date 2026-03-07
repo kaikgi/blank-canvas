@@ -28,6 +28,7 @@ import { useClientAppointments } from '@/hooks/useClientAppointments';
 import { supabase } from '@/integrations/supabase/client';
 import { ImageUploadButton } from '@/components/ImageUploadButton';
 import { PasswordInput } from '@/components/ui/password-input';
+import { PasswordStrength } from '@/components/ui/password-strength';
 import { PhoneInput } from '@/components/ui/phone-input';
 
 const profileSchema = z.object({
