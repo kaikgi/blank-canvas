@@ -185,16 +185,17 @@ export default function AdminAdmins() {
     mutationFn: async (userId: string) => {
       const activeAdmins = admins?.filter(a => a.status === "ativo") || [];
       if (activeAdmins.length <= 1) throw new Error("Não é possível remover o último administrador ativo");
-      const { error } = await supabase
-        .from("admin_users")
-        .update({ status: "removido" })
-        .eq("user_id", userId);
-      if (error) throw error;
+      // Audit log before delete
       await supabase.from("admin_audit_logs").insert({
         admin_user_id: user!.id,
         action: "admin_remove",
         metadata: { target_user_id: userId },
       });
+      const { error } = await supabase
+        .from("admin_users")
+        .delete()
+        .eq("user_id", userId);
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Administrador removido");
