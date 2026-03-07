@@ -19,11 +19,14 @@ export function useProfessionalServices(professionalId: string | undefined) {
 
   const updateMutation = useMutation({
     mutationFn: async (serviceIds: string[]) => {
+      if (!professionalId) throw new Error('ID do profissional não informado');
+
       // Remove existing links
-      await supabase
+      const { error: deleteError } = await supabase
         .from('professional_services')
         .delete()
         .eq('professional_id', professionalId);
+      if (deleteError) throw deleteError;
 
       // Insert new links
       if (serviceIds.length > 0) {
