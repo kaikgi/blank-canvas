@@ -46,7 +46,7 @@ export function ProfessionalPortalDialog({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [saving, setSaving] = useState(false);
+  
 
   // Use the canonical public URL, never window.location.origin
   const portalUrl = getProfessionalPortalUrl(establishmentSlug, slug);
