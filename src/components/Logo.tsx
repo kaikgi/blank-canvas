@@ -8,17 +8,19 @@ interface LogoProps {
 }
 
 export function Logo({ className, size = "md", showText = true }: LogoProps) {
-  const heights = {
-    sm: "h-9",
-    md: "h-12",
-    lg: "h-16",
+  const pixelHeights = {
+    sm: 40,
+    md: 56,
+    lg: 72,
   };
 
   const iconSizes = {
-    sm: "h-7 w-7",
-    md: "h-9 w-9",
-    lg: "h-12 w-12",
+    sm: "h-8 w-8",
+    md: "h-10 w-10",
+    lg: "h-14 w-14",
   };
+
+  const h = pixelHeights[size];
 
   if (showText) {
     return (
@@ -26,8 +28,8 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
         <img
           src={logoPrincipal}
           alt="Agendali"
-          className={cn("object-contain", heights[size])}
-          style={{ height: size === "sm" ? 36 : size === "md" ? 48 : 64 }}
+          className="object-contain"
+          style={{ height: h }}
         />
       </div>
     );
